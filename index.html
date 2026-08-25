@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <link rel="canonical" href="https://vidtoaudio.com/" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MP4 to WAV Converter - Free, Offline & On-Device | VidToAudio</title>
+    <meta name="description" content="Extract audio from video with this free, offline MP4 to WAV converter. VidToAudio provides secure on-device processing without internet. Get it for Android.">
+    
+    <meta property="og:title" content="VidToAudio - Offline MP4 to WAV Converter">
+    <meta property="og:description" content="Convert video to audio without internet. Secure, fast, and 100% on-device processing.">
+    <meta property="og:type" content="website">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdfa',
+                            300: '#5eead4',
+                            400: '#2dd4bf',
+                            500: '#14b8a6', // Teal
+                            600: '#0d9488',
+                            900: '#134e4a',
+                        },
+                        dark: {
+                            800: '#1e293b', // Slate 800
+                            900: '#0f172a', // Slate 900
+                            950: '#020617', // Slate 950
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- WaveSurfer.js CDN -->
+    <script src="https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js"></script>
+    <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
+
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
+    <script src="https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
+    
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+    </style>
+    
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "SoftwareApplication",
+          "name": "VidToAudio",
+          "applicationCategory": "MultimediaApplication",
+          "operatingSystem": "Android",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          }
+          /* "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "ratingCount": "1024"
+          } */
+        },
+        {
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "Does VidToAudio need internet?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "No, VidToAudio is a completely offline audio converter. All processing happens on your device, meaning you can convert video to audio without internet."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What formats are supported?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "You can extract audio into multiple formats including MP3, AAC, WAV, M4A, FLAC, and OGG."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Does noise reduction affect voice quality?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Our AI Noise Reduction (Beta) is tuned to isolate vocals and preserve audio fidelity while removing background hums and noise."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Is there a file size limit?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Because VidToAudio utilizes on-device processing, there are no artificial file size limits. It depends entirely on your phone's available storage and memory."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Where are converted files saved?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Converted files are saved directly to your phone's local storage. You can set a custom output folder path in the app settings, and view all files in the Library section."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Does VidToAudio require a subscription?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "No, the core MP4 to WAV converter and extraction features are completely free to use. There are no mandatory subscriptions to extract audio from video."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+</head>
+<body class="bg-dark-950 text-slate-300 antialiased selection:bg-brand-500 selection:text-white flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-dark-950/80 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <a href="#" class="text-xl font-bold text-white flex items-center gap-2">
+                <svg class="w-6 h-6 text-brand-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+                VidToAudio
+            </a>
+            <nav class="hidden md:flex gap-6">
+                <a href="#how-it-works" class="text-sm font-medium hover:text-brand-400 transition-colors">How it Works</a>
+                <a href="#features" class="text-sm font-medium hover:text-brand-400 transition-colors">Features</a>
+                <a href="#faq" class="text-sm font-medium hover:text-brand-400 transition-colors">FAQ</a>
+            </nav>
+            <a href="#download" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium rounded-lg border border-slate-700 transition-colors">
+                Get App
+            </a>
+        </div>
+    </header>
+
+    <main class="flex-grow">
+        <!-- Hero Section -->
+        <section class="pt-20 pb-12 px-4 text-center">
+            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6 max-w-4xl mx-auto leading-tight">
+                <span class="text-brand-400">MP4 to WAV Converter</span> <br/> Free, Offline & On-Device
+            </h1>
+            <p class="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto mb-10">
+                Extract audio from video with zero uploads. Our audio extraction app runs 100% locally on your phone for maximum privacy and speed.
+            </p>
+            
+            <div id="download" class="flex flex-col sm:flex-row justify-center items-center gap-4">
+                <a href="https://www.amazon.com/gp/product/B0H6VSPLT6" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto px-8 py-4 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl shadow-lg shadow-brand-500/20 transition-all flex items-center justify-center gap-2">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M13.627 12.015L6.643 20.31a.754.754 0 0 1-.772.235.753.753 0 0 1-.502-.676V4.133a.755.755 0 0 1 .5-.675.756.756 0 0 1 .773.235l6.985 8.322zM15.485 10.87l4.083-2.482a.758.758 0 0 1 1.054.26c.216.368.083.84-.287 1.066l-3.233 1.966 1.134 1.353 3.655 4.356c.277.33.242.822-.078 1.11-.321.288-.81.258-1.088-.073l-4.195-5.001-1.045-.64v-1.915z"/></svg>
+                    Amazon Appstore
+                </a>
+                <a href="app-release.apk" download="VidtoAudio.apk" class="w-full sm:w-auto px-8 py-4 bg-dark-800 hover:bg-dark-900 border border-slate-700 text-slate-300 font-semibold rounded-xl transition-all flex items-center justify-center gap-2">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M16 11h5l-9 10-9-10h5v-11h8v11zm3 8v3h-14v-3h-2v5h18v-5h-2z"/></svg>
+                    Direct APK Download
+                </a>
+            </div>
+        </section>
+
+        <!-- Trust Bar -->
+        <section class="border-y border-slate-800/50 bg-dark-900/30">
+            <div class="max-w-5xl mx-auto px-4 py-6 flex flex-wrap justify-center items-center gap-x-8 gap-y-4 text-sm font-medium text-slate-400">
+                <div class="flex items-center gap-2"><svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 100% Offline</div>
+                <div class="hidden sm:block text-slate-700">&bull;</div>
+                <div class="flex items-center gap-2"><svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> On-Device Processing</div>
+                <div class="hidden sm:block text-slate-700">&bull;</div>
+                <div class="flex items-center gap-2"><svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> No Uploads Required</div>
+            </div>
+        </section>
+
+        <!-- Functional Web Tool -->
+        <section class="max-w-3xl mx-auto mt-12 mb-20 px-4">
+            <div class="bg-dark-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+                <div class="text-center mb-6">
+                    <h2 class="text-xl font-semibold text-white mb-2">Try it here: Free MP4 to WAV Converter</h2>
+                    <p class="text-slate-400 text-sm">For best performance, use files under 200MB. Processed entirely in your browser using FFmpeg WASM.</p>
+                </div>
+
+                <div id="converter-ui" class="flex flex-col items-center w-full">
+                    <input type="file" id="video-file" accept="video/mp4,video/*" class="hidden" />
+                    <label for="video-file" class="cursor-pointer group border-2 border-dashed border-slate-700 hover:border-brand-500 rounded-xl w-full py-12 flex flex-col items-center transition-colors bg-dark-800/50 mb-6">
+                        <svg class="w-10 h-10 text-slate-500 group-hover:text-brand-400 mb-3 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                        <span class="text-slate-300 font-medium group-hover:text-white transition-colors">Click to select MP4 video</span>
+                        <span class="text-slate-500 text-xs mt-2" id="file-name-display">No file chosen</span>
+                    </label>
+
+                    <div class="w-full max-w-sm mb-6 text-left">
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Output Format</label>
+                        <select id="output-format" class="w-full bg-dark-800 border border-slate-700 text-white text-sm rounded-lg focus:ring-brand-500 focus:border-brand-500 block p-3">
+                            <option value="wav">WAV (Lossless, High Quality)</option>
+                            <option value="mp3">MP3 (Compressed, Universal)</option>
+                            <option value="aac">AAC (Advanced Audio Coding)</option>
+                            <option value="flac">FLAC (Free Lossless Audio Codec)</option>
+                        </select>
+                    </div>
+
+                    <button id="convert-btn" class="w-full sm:w-auto px-8 py-3 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-lg shadow-lg shadow-brand-500/20 transition-all opacity-50 cursor-not-allowed" disabled>
+                        Extract Audio
+                    </button>
+                    <p id="format-summary" class="text-xs text-slate-500 text-center mt-3 font-medium">Output: WAV (Lossless, High Quality)</p>
+                </div>
+
+                <div id="processing-ui" class="hidden flex-col items-center py-8">
+                    <div class="relative w-24 h-24 mb-4">
+                        <svg class="w-full h-full transform -rotate-90">
+                            <circle cx="48" cy="48" r="44" stroke="currentColor" stroke-width="8" fill="transparent" class="text-slate-800" />
+                            <circle id="progress-circle" cx="48" cy="48" r="44" stroke="currentColor" stroke-width="8" fill="transparent" stroke-dasharray="276.46" stroke-dashoffset="276.46" class="text-brand-500 transition-all duration-300" />
+                        </svg>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <span id="progress-text" class="text-white font-bold text-lg">0%</span>
+                        </div>
+                    </div>
+                    <p class="text-slate-400 animate-pulse text-center">Extracting audio... <br/> <span class="text-xs">Loading FFmpeg core on first run may take a few seconds.</span></p>
+                </div>
+
+                <div id="success-ui" class="hidden flex-col items-center py-6 w-full relative">
+                    <button id="reset-btn" class="absolute top-2 right-2 sm:right-4 text-slate-400 hover:text-white p-2 rounded-full hover:bg-dark-700 transition-colors" title="Clear and Start Over">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 bg-brand-900/30 text-brand-400 border border-brand-800 rounded-full flex items-center justify-center">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
+                        <h3 class="text-white font-semibold text-xl">Conversion Complete!</h3>
+                    </div>
+                    
+                    <div class="w-full bg-dark-800/50 border border-slate-700 rounded-xl p-5 mb-8">
+                        <div id="waveform" class="w-full h-24 mb-4"></div>
+                        
+                        <div class="flex items-center justify-between flex-wrap gap-4">
+                            <div class="flex items-center gap-3">
+                                <button id="play-pause-btn" class="w-10 h-10 rounded-full bg-brand-600 hover:bg-brand-500 flex items-center justify-center text-white shadow-lg transition-colors">
+                                    <svg id="play-icon" class="w-5 h-5 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                    <svg id="pause-icon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                                </button>
+                                <button id="enable-trim-btn" class="px-4 py-2 bg-dark-700 hover:bg-dark-600 border border-slate-600 text-sm font-medium rounded-lg text-slate-200 transition-colors flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z"></path></svg>
+                                    Trim Audio
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                                    <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="1" class="w-24 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-brand-500">
+                                </div>
+                                <div class="text-slate-400 text-sm font-mono tracking-wider" id="time-display">00:00 / 00:00</div>
+                            </div>
+                        </div>
+
+                        <div id="audio-metadata" class="mt-4 pt-3 border-t border-slate-700/50 flex flex-wrap gap-4 text-xs font-mono text-slate-500 justify-center">
+                            <span id="meta-duration">Duration: --</span>
+                            <span class="text-slate-700">|</span>
+                            <span id="meta-samplerate">Sample Rate: --</span>
+                            <span class="text-slate-700">|</span>
+                            <span id="meta-size">Size: --</span>
+                        </div>
+
+                        <div id="trim-controls" class="hidden mt-5 pt-5 border-t border-slate-700/50 flex flex-col sm:flex-row justify-between items-center gap-4">
+                            <div class="text-sm text-brand-400 bg-brand-900/20 px-3 py-1.5 rounded text-center">Drag the colored edges on the waveform to select region</div>
+                            <button id="apply-trim-btn" class="w-full sm:w-auto px-5 py-2 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium rounded-lg shadow-lg transition-colors flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z"></path></svg>
+                                Crop Selection
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 w-full justify-center mb-8">
+                        <a id="download-link" href="#" download="extracted_audio.wav" class="w-full sm:w-auto px-8 py-3 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-lg shadow-lg flex items-center justify-center gap-2 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Download <span id="dl-format-label">WAV</span>
+                        </a>
+                        <button id="convert-another-btn" class="w-full sm:w-auto px-6 py-3 bg-dark-800 hover:bg-dark-700 border border-slate-700 text-slate-300 font-semibold rounded-lg transition-colors flex items-center justify-center">
+                            Start Over
+                        </button>
+                    </div>
+
+                    <div class="bg-dark-800/50 border border-slate-700 p-5 rounded-xl max-w-sm w-full text-center">
+                        <p class="text-sm text-slate-300 mb-3">Want batch conversion and AI noise reduction?</p>
+                        <a href="#download" class="text-brand-400 text-sm font-semibold hover:text-brand-300 flex items-center justify-center gap-1">Get the VidToAudio Android app <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg></a>
+                    </div>
+                </div>
+
+                <div id="error-ui" class="hidden mt-4 p-4 bg-red-900/30 border border-red-800 rounded-lg text-red-400 text-sm text-center">
+                </div>
+            </div>
+        </section>
+
+        <!-- Why We Built This -->
+        <section class="max-w-4xl mx-auto px-4 py-12">
+            <div class="border-l-4 border-brand-500 pl-6 py-2 bg-dark-900/20 rounded-r-xl p-4">
+                <h2 class="text-2xl font-semibold text-white mb-3">Why We Built VidToAudio</h2>
+                <p class="text-slate-400 leading-relaxed mb-4">
+                    Hi, I'm the developer behind VidToAudio. When I needed to <strong class="text-slate-300 font-medium">extract audio from video</strong> for a project, I found that most "MP4 to WAV free" tools online required uploading my private videos to remote servers. This felt slow, invasive, and completely unnecessary given the processing power of modern smartphones.
+                </p>
+                <p class="text-slate-400 leading-relaxed">
+                    I built this <strong class="text-slate-300 font-medium">offline audio converter</strong> to utilize true on-device processing. It runs entirely on your phone's CPU. No uploads, no waiting in server queues, and total privacy for your files. We even added a Privacy Ledger directly in the app settings so you can verify that zero bytes of your media are ever transmitted over the network.
+                </p>
+                <p class="text-slate-500 text-sm mt-4 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    Last Updated: <time datetime="2026-07-10">July 10, 2026</time>
+                </p>
+            </div>
+        </section>
+
+        <!-- How It Works -->
+        <section id="how-it-works" class="bg-dark-900 py-20 mt-8">
+            <div class="max-w-7xl mx-auto px-4">
+                <h2 class="text-3xl font-bold text-white text-center mb-16">How It Works (Real App Flow)</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+                    <div class="text-center group">
+                        <div class="bg-dark-800 aspect-[9/19] rounded-xl flex items-center justify-center overflow-hidden border border-slate-700 shadow-xl mb-6 relative group-hover:border-brand-500 transition-colors">
+                            <img src="select-video.png" alt="VidToAudio app Select Video screen" class="object-cover w-full h-full opacity-40 mix-blend-luminosity">
+                            <span class="absolute text-slate-400 text-sm px-4 bg-dark-900/80 py-2 rounded-lg backdrop-blur-sm border border-slate-700">Select Video Screen</span>
+                        </div>
+                        <h3 class="text-white font-semibold mb-2">1. Select Video</h3>
+                        <p class="text-sm text-slate-400">Pick any MP4 or video file straight from your gallery or local file manager.</p>
+                    </div>
+                    
+                    <div class="text-center group">
+                        <div class="bg-dark-800 aspect-[9/19] rounded-xl flex items-center justify-center overflow-hidden border border-slate-700 shadow-xl mb-6 relative group-hover:border-brand-500 transition-colors">
+                            <img src="format.png" alt="VidToAudio app Extract screen showing MP3 AAC WAV format selection" class="object-cover w-full h-full opacity-40 mix-blend-luminosity">
+                            <span class="absolute text-slate-400 text-sm px-4 bg-dark-900/80 py-2 rounded-lg backdrop-blur-sm border border-slate-700">Extract Screen</span>
+                        </div>
+                        <h3 class="text-white font-semibold mb-2">2. Choose Format</h3>
+                        <p class="text-sm text-slate-400">Select WAV, MP3, AAC, FLAC, M4A, or OGG. Set your preferred <strong class="text-slate-300 font-medium">bitrate quality audio export</strong> (128, 192, 320 kbps).</p>
+                    </div>
+
+                    <div class="text-center group">
+                        <div class="bg-dark-800 aspect-[9/19] rounded-xl flex items-center justify-center overflow-hidden border border-slate-700 shadow-xl mb-6 relative group-hover:border-brand-500 transition-colors">
+                            <img src="noise.png" alt="VidToAudio app Noise Reduction screen" class="object-cover w-full h-full opacity-40 mix-blend-luminosity">
+                            <span class="absolute text-slate-400 text-sm px-4 bg-dark-900/80 py-2 rounded-lg backdrop-blur-sm border border-slate-700">Noise Reduction Screen</span>
+                        </div>
+                        <h3 class="text-white font-semibold mb-2">3. Enable AI Noise Reduction</h3>
+                        <p class="text-sm text-slate-400">Optional: Toggle the Beta AI feature to clean up background static before extraction.</p>
+                    </div>
+
+                    <div class="text-center group">
+                        <div class="bg-dark-800 aspect-[9/19] rounded-xl flex items-center justify-center overflow-hidden border border-slate-700 shadow-xl mb-6 relative group-hover:border-brand-500 transition-colors">
+                            <img src="extract-trim.png" alt="VidToAudio app Library screen showing converted files history" class="object-cover w-full h-full opacity-40 mix-blend-luminosity">
+                            <span class="absolute text-slate-400 text-sm px-4 bg-dark-900/80 py-2 rounded-lg backdrop-blur-sm border border-slate-700">Library & Trim</span>
+                        </div>
+                        <h3 class="text-white font-semibold mb-2">4. Extract & Trim</h3>
+                        <p class="text-sm text-slate-400">Extract instantly. Use the Quick Trim feature to cut the audio, then find it in your Library history.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Grid -->
+        <section id="features" class="max-w-7xl mx-auto px-4 py-24">
+            <h2 class="text-3xl font-bold text-white text-center mb-16">Engineered for Audio Fidelity</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Feature 1 -->
+                <div class="bg-dark-800/40 border border-slate-800 p-8 rounded-2xl hover:bg-dark-800 transition-colors">
+                    <div class="w-12 h-12 bg-brand-900/30 text-brand-400 rounded-lg flex items-center justify-center mb-6 border border-brand-800/50">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-white mb-3">Format Compatibility</h3>
+                    <p class="text-slate-400 leading-relaxed">Extract audio to MP3, AAC, WAV, M4A, FLAC, or OGG. Lossless formats like WAV and FLAC maintain absolute original quality without compression artifacts.</p>
+                </div>
+                <!-- Feature 2 -->
+                <div class="bg-dark-800/40 border border-slate-800 p-8 rounded-2xl hover:bg-dark-800 transition-colors">
+                    <div class="w-12 h-12 bg-brand-900/30 text-brand-400 rounded-lg flex items-center justify-center mb-6 border border-brand-800/50">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-white mb-3">Bitrate Quality Control</h3>
+                    <p class="text-slate-400 leading-relaxed">User selectable export quality allows you to choose between 128 kbps for small file sizes, 192 kbps for standard listening, and 320 kbps for premium audio fidelity.</p>
+                </div>
+                <!-- Feature 3 -->
+                <div class="bg-dark-800/40 border border-slate-800 p-8 rounded-2xl hover:bg-dark-800 transition-colors">
+                    <div class="w-12 h-12 bg-brand-900/30 text-brand-400 rounded-lg flex items-center justify-center mb-6 border border-brand-800/50">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-white mb-3">AI Noise Reduction (Beta)</h3>
+                    <p class="text-slate-400 leading-relaxed">Our on-device neural engine automatically detects and removes background hums, wind, and static, keeping vocals crystal clear and isolated.</p>
+                </div>
+                <!-- Feature 4 -->
+                <div class="bg-dark-800/40 border border-slate-800 p-8 rounded-2xl hover:bg-dark-800 transition-colors">
+                    <div class="w-12 h-12 bg-brand-900/30 text-brand-400 rounded-lg flex items-center justify-center mb-6 border border-brand-800/50">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-white mb-3">Quick Trim & Waveform</h3>
+                    <p class="text-slate-400 leading-relaxed">Preview your extraction with a visual waveform. Use the 10s rewind/forward playback controls to trim exactly the portion you need before saving to disk.</p>
+                </div>
+                <!-- Feature 5 -->
+                <div class="bg-dark-800/40 border border-slate-800 p-8 rounded-2xl hover:bg-dark-800 transition-colors">
+                    <div class="w-12 h-12 bg-brand-900/30 text-brand-400 rounded-lg flex items-center justify-center mb-6 border border-brand-800/50">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-white mb-3">Library Management</h3>
+                    <p class="text-slate-400 leading-relaxed">The built-in Library shows your converted files history, complete with filename, status, and date/time. Easily configure a custom output folder path.</p>
+                </div>
+                <!-- Feature 6 -->
+                <div class="bg-dark-800/40 border border-slate-800 p-8 rounded-2xl hover:bg-dark-800 transition-colors">
+                    <div class="w-12 h-12 bg-brand-900/30 text-brand-400 rounded-lg flex items-center justify-center mb-6 border border-brand-800/50">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-white mb-3">Privacy Ledger</h3>
+                    <p class="text-slate-400 leading-relaxed">Review local processing logs in real-time within the settings. We provide full transparency to prove that zero bytes ever leave your device during extraction.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Screenshot Showcase -->
+        <section class="max-w-7xl mx-auto px-4 py-12 border-t border-slate-800/50">
+            <h2 class="text-3xl font-bold text-white text-center mb-4">App Interface & Transparency</h2>
+            <p class="text-center text-slate-400 mb-12 max-w-2xl mx-auto">See exactly what you get. A clean, native Android interface designed for rapid audio conversion without the clutter.</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
+                <div class="text-center">
+                    <div class="bg-dark-800 aspect-[9/19] rounded-xl overflow-hidden border border-slate-700 shadow-xl mb-4 relative">
+                        <img src="format.png" alt="VidToAudio app Extract screen showing MP3 AAC WAV format selection" class="object-cover w-full h-full opacity-60">
+                    </div>
+                    <p class="text-sm text-slate-300 font-medium">Extract & Format Setup</p>
+                </div>
+                <div class="text-center">
+                    <div class="bg-dark-800 aspect-[9/19] rounded-xl overflow-hidden border border-slate-700 shadow-xl mb-4 relative">
+                        <img src="library.png" alt="VidToAudio app Library screen showing converted files history" class="object-cover w-full h-full opacity-60">
+                    </div>
+                    <p class="text-sm text-slate-300 font-medium">Converted Library</p>
+                </div>
+                <div class="text-center">
+                    <div class="bg-dark-800 aspect-[9/19] rounded-xl overflow-hidden border border-slate-700 shadow-xl mb-4 relative">
+                        <img src="noise.png" alt="VidToAudio app Noise Reduction screen" class="object-cover w-full h-full opacity-60">
+                    </div>
+                    <p class="text-sm text-slate-300 font-medium">AI Noise Reduction</p>
+                </div>
+                <div class="text-center">
+                    <div class="bg-dark-800 aspect-[9/19] rounded-xl overflow-hidden border border-slate-700 shadow-xl mb-4 relative">
+                        <img src="setting.png" alt="VidToAudio app Settings screen showing Privacy Ledger and custom folder path" class="object-cover w-full h-full opacity-60">
+                    </div>
+                    <p class="text-sm text-slate-300 font-medium">Settings & Privacy Ledger</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Why On-Device vs Online Converters -->
+        <section class="bg-dark-900 border-y border-slate-800 py-20 mt-12">
+            <div class="max-w-5xl mx-auto px-4 flex flex-col md:flex-row items-center gap-12">
+                <div class="md:w-1/2">
+                    <h2 class="text-3xl font-bold text-white mb-6">Why On-Device vs Online Converters?</h2>
+                    <p class="text-slate-400 mb-4 leading-relaxed">When you use a standard website to <strong class="text-slate-300 font-medium">convert video to audio without internet</strong>, you are actually uploading your personal videos to their remote servers. This consumes your mobile data limit, takes much longer depending on your connection, and exposes your private media to unknown third parties.</p>
+                    <p class="text-slate-400 leading-relaxed">VidToAudio functions as a true native <strong class="text-slate-300 font-medium">offline audio converter</strong>. By running the extraction algorithms locally on your Android device's CPU, we eliminate upload times entirely, save your cellular data, and guarantee absolute 100% privacy.</p>
+                </div>
+                <div class="md:w-1/2 w-full">
+                    <div class="bg-dark-950 p-6 sm:p-8 rounded-2xl border border-slate-800 shadow-2xl">
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-4 mb-4">
+                            <span class="text-slate-300">Data Uploaded</span>
+                            <span class="text-brand-400 font-mono font-bold">0 KB</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-4 mb-4">
+                            <span class="text-slate-300">Server Wait Time</span>
+                            <span class="text-brand-400 font-mono font-bold">0 Seconds</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-300">Privacy Status</span>
+                            <span class="text-brand-400 font-mono text-sm px-3 py-1 bg-brand-900/30 border border-brand-800/50 rounded-full font-bold">SECURE (LOCAL)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section id="faq" class="max-w-4xl mx-auto px-4 py-24">
+            <h2 class="text-3xl font-bold text-white text-center mb-12">Frequently Asked Questions</h2>
+            <div class="space-y-6">
+                <!-- FAQ 1 -->
+                <div class="bg-dark-900 border border-slate-800 rounded-xl p-6">
+                    <h3 class="text-lg font-semibold text-white mb-2">Does VidToAudio need internet?</h3>
+                    <p class="text-slate-400">No, VidToAudio is a completely offline audio converter. All conversions happen on your device's hardware, meaning you can convert video to audio without internet access or cellular data.</p>
+                </div>
+                <!-- FAQ 2 -->
+                <div class="bg-dark-900 border border-slate-800 rounded-xl p-6">
+                    <h3 class="text-lg font-semibold text-white mb-2">What formats are supported?</h3>
+                    <p class="text-slate-400">You can extract audio into multiple output formats including MP3, AAC, WAV, M4A, FLAC, and OGG. Lossless formats like WAV and FLAC are highly recommended for preserving original quality.</p>
+                </div>
+                <!-- FAQ 3 -->
+                <div class="bg-dark-900 border border-slate-800 rounded-xl p-6">
+                    <h3 class="text-lg font-semibold text-white mb-2">Does noise reduction affect voice quality?</h3>
+                    <p class="text-slate-400">Our AI Noise Reduction (currently in Beta) is specifically tuned to isolate human vocals and preserve audio fidelity while aggressively removing background hums, wind, and static.</p>
+                </div>
+                <!-- FAQ 4 -->
+                <div class="bg-dark-900 border border-slate-800 rounded-xl p-6">
+                    <h3 class="text-lg font-semibold text-white mb-2">Is there a file size limit?</h3>
+                    <p class="text-slate-400">Because VidToAudio utilizes on-device processing instead of cloud servers, there are no artificial file size limits. You are only limited by your phone's available storage and RAM.</p>
+                </div>
+                <!-- FAQ 5 -->
+                <div class="bg-dark-900 border border-slate-800 rounded-xl p-6">
+                    <h3 class="text-lg font-semibold text-white mb-2">Where are converted files saved?</h3>
+                    <p class="text-slate-400">Converted files are saved directly to your phone's local storage. You can set a custom output folder path in the app settings, and quickly view or play all your files in the built-in Library section.</p>
+                </div>
+                <!-- FAQ 6 -->
+                <div class="bg-dark-900 border border-slate-800 rounded-xl p-6">
+                    <h3 class="text-lg font-semibold text-white mb-2">Does VidToAudio require a subscription?</h3>
+                    <p class="text-slate-400">No, the core MP4 to WAV converter and extraction features are completely free to use. There are no mandatory subscriptions to extract audio from video.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark-950 border-t border-slate-800 pt-16 pb-8">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <h2 class="text-2xl font-bold text-white mb-6">Ready to Extract Audio Securely?</h2>
+            <div class="flex justify-center gap-4 mb-12">
+                <a href="#download" class="px-8 py-3 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl shadow-lg transition-colors">
+                    Download VidToAudio
+                </a>
+            </div>
+            
+            <div class="flex flex-col md:flex-row justify-between items-center border-t border-slate-800/50 pt-8 mt-8">
+                <div class="text-slate-500 text-sm mb-4 md:mb-0">
+                    &copy; <span id="year"></span> VidToAudio. All rights reserved.
+                </div>
+                <div class="flex gap-6 text-sm">
+                    <a href="privacy-policy.html" class="text-slate-500 hover:text-slate-300 transition-colors">Privacy Policy</a>
+                    <a href="terms.html" class="text-slate-500 hover:text-slate-300 transition-colors">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Web Tool Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const fileInput = document.getElementById('video-file');
+            const fileNameDisplay = document.getElementById('file-name-display');
+            const convertBtn = document.getElementById('convert-btn');
+            const formatSelect = document.getElementById('output-format');
+            const dlFormatLabel = document.getElementById('dl-format-label');
+            
+            const uiConverter = document.getElementById('converter-ui');
+            const uiProcessing = document.getElementById('processing-ui');
+            const uiSuccess = document.getElementById('success-ui');
+            const uiError = document.getElementById('error-ui');
+            
+            const progressCircle = document.getElementById('progress-circle');
+            const progressText = document.getElementById('progress-text');
+            const downloadLink = document.getElementById('download-link');
+            const convertAnotherBtn = document.getElementById('convert-another-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            
+            const formatSummary = document.getElementById('format-summary');
+            const volumeSlider = document.getElementById('volume-slider');
+            const metaDuration = document.getElementById('meta-duration');
+            const metaSamplerate = document.getElementById('meta-samplerate');
+            const metaSize = document.getElementById('meta-size');
+            
+            // Audio player/editor
+            const playPauseBtn = document.getElementById('play-pause-btn');
+            const playIcon = document.getElementById('play-icon');
+            const pauseIcon = document.getElementById('pause-icon');
+            const timeDisplay = document.getElementById('time-display');
+            const enableTrimBtn = document.getElementById('enable-trim-btn');
+            const trimControls = document.getElementById('trim-controls');
+            const applyTrimBtn = document.getElementById('apply-trim-btn');
+
+            let wavesurfer = null;
+            let wsRegions = null;
+            let currentBlobUrl = null;
+            let currentAudioBlob = null;
+            let activeRegion = null;
+            let originalFileName = "";
+            let selectedFormatExt = "wav";
+
+            const circumference = 2 * Math.PI * 44;
+            progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+            progressCircle.style.strokeDashoffset = circumference;
+            
+            function setProgress(percent) {
+                const offset = circumference - (percent / 100) * circumference;
+                progressCircle.style.strokeDashoffset = offset;
+                progressText.innerText = `${Math.round(percent)}%`;
+            }
+
+            function showError(msg) {
+                uiError.innerText = msg;
+                uiError.classList.remove('hidden');
+                uiProcessing.classList.add('hidden');
+                uiProcessing.classList.remove('flex');
+                uiConverter.classList.remove('hidden');
+                convertBtn.disabled = false;
+                convertBtn.innerHTML = 'Extract Audio';
+            }
+
+            function formatTime(seconds) {
+                const m = Math.floor(seconds / 60);
+                const s = Math.floor(seconds % 60);
+                return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            }
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    fileNameDisplay.innerText = file.name;
+                    fileNameDisplay.classList.add('text-brand-400');
+                    convertBtn.disabled = false;
+                    convertBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                } else {
+                    fileNameDisplay.innerText = 'No file chosen';
+                    fileNameDisplay.classList.remove('text-brand-400');
+                    convertBtn.disabled = true;
+                    convertBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+                uiError.classList.add('hidden');
+            });
+
+            convertAnotherBtn.addEventListener('click', () => {
+                uiSuccess.classList.add('hidden');
+                uiSuccess.classList.remove('flex');
+                uiConverter.classList.remove('hidden');
+                fileInput.value = "";
+                fileNameDisplay.innerText = 'No file chosen';
+                fileNameDisplay.classList.remove('text-brand-400');
+                convertBtn.disabled = true;
+                convertBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                trimControls.classList.add('hidden');
+                if (wavesurfer) {
+                    wavesurfer.destroy();
+                    wavesurfer = null;
+                }
+            });
+
+            resetBtn.addEventListener('click', () => {
+                convertAnotherBtn.click();
+            });
+
+            volumeSlider.addEventListener('input', (e) => {
+                if (wavesurfer) {
+                    wavesurfer.setVolume(Number(e.target.value));
+                }
+            });
+
+            formatSelect.addEventListener('change', (e) => {
+                const selectedOptionText = e.target.options[e.target.selectedIndex].text;
+                formatSummary.innerText = `Output: ${selectedOptionText}`;
+            });
+
+            playPauseBtn.addEventListener('click', () => {
+                if (wavesurfer) {
+                    wavesurfer.playPause();
+                }
+            });
+
+            enableTrimBtn.addEventListener('click', () => {
+                if (trimControls.classList.contains('hidden')) {
+                    trimControls.classList.remove('hidden');
+                    trimControls.classList.add('flex');
+                    if (wsRegions && !activeRegion) {
+                        activeRegion = wsRegions.addRegion({
+                            start: 0,
+                            end: Math.min(wavesurfer.getDuration(), 10),
+                            color: 'rgba(20, 184, 166, 0.3)',
+                            drag: true,
+                            resize: true,
+                        });
+                    }
+                } else {
+                    trimControls.classList.add('hidden');
+                    trimControls.classList.remove('flex');
+                    if (wsRegions && activeRegion) {
+                        activeRegion.remove();
+                        activeRegion = null;
+                    }
+                }
+            });
+
+            let ffmpeg = null;
+
+            async function processAudio(inputFileBlob, outputExt, startOffset = 0, duration = null) {
+                if (!ffmpeg) {
+                    const { FFmpeg } = window.FFmpegWASM;
+                    ffmpeg = new FFmpeg();
+                    
+                    ffmpeg.on('progress', ({ progress }) => {
+                        const percent = Math.max(0, Math.min(100, (progress || 0) * 100));
+                        setProgress(percent);
+                    });
+
+                    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
+                    const { fetchFile, toBlobURL } = window.FFmpegUtil;
+                    
+                    const coreURL = `${baseURL}/ffmpeg-core.js`;
+                    const wasmURL = `${baseURL}/ffmpeg-core.wasm`;
+                    const classWorkerURL = await toBlobURL('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/814.ffmpeg.js', 'text/javascript');
+
+                    await ffmpeg.load({ coreURL, wasmURL, classWorkerURL });
+                }
+
+                const { fetchFile } = window.FFmpegUtil;
+                const inputName = 'input_' + Date.now() + (inputFileBlob.type.includes('mp4') ? '.mp4' : '.wav');
+                const outputName = 'output_' + Date.now() + '.' + outputExt;
+
+                await ffmpeg.writeFile(inputName, await fetchFile(inputFileBlob));
+                
+                let args = [];
+                if (duration !== null) {
+                    args.push('-ss', startOffset.toString(), '-t', duration.toString());
+                }
+                args.push('-i', inputName);
+                
+                // Audio codecs
+                if (outputExt === 'mp3') {
+                    args.push('-c:a', 'libmp3lame', '-q:a', '2');
+                } else if (outputExt === 'aac') {
+                    args.push('-c:a', 'aac', '-b:a', '192k');
+                } else if (outputExt === 'flac') {
+                    args.push('-c:a', 'flac');
+                } else {
+                    args.push('-c:a', 'pcm_s16le'); // wav
+                }
+                
+                args.push(outputName);
+                
+                await ffmpeg.exec(args);
+                const data = await ffmpeg.readFile(outputName);
+                let mime = 'audio/wav';
+                if (outputExt === 'mp3') mime = 'audio/mpeg';
+                if (outputExt === 'aac') mime = 'audio/aac';
+                if (outputExt === 'flac') mime = 'audio/flac';
+                
+                const blob = new Blob([data.buffer], { type: mime });
+                ffmpeg.deleteFile(inputName);
+                ffmpeg.deleteFile(outputName);
+                return blob;
+            }
+
+            function setupWavesurfer(url) {
+                if (wavesurfer) {
+                    wavesurfer.destroy();
+                }
+                wavesurfer = WaveSurfer.create({
+                    container: '#waveform',
+                    waveColor: '#475569',
+                    progressColor: '#14b8a6',
+                    cursorColor: '#5eead4',
+                    barWidth: 2,
+                    barGap: 1,
+                    barRadius: 2,
+                    height: 96,
+                    normalize: true
+                });
+
+                wsRegions = wavesurfer.registerPlugin(WaveSurfer.Regions.create());
+
+                wavesurfer.load(url);
+                wavesurfer.on('ready', () => {
+                    const dur = wavesurfer.getDuration();
+                    timeDisplay.innerText = `00:00 / ${formatTime(dur)}`;
+                });
+                
+                wavesurfer.on('audioprocess', () => {
+                    const curr = wavesurfer.getCurrentTime();
+                    const dur = wavesurfer.getDuration();
+                    timeDisplay.innerText = `${formatTime(curr)} / ${formatTime(dur)}`;
+                });
+
+                wavesurfer.on('play', () => {
+                    playIcon.classList.add('hidden');
+                    pauseIcon.classList.remove('hidden');
+                });
+
+                wavesurfer.on('pause', () => {
+                    playIcon.classList.remove('hidden');
+                    pauseIcon.classList.add('hidden');
+                });
+                
+                wsRegions.on('region-updated', (region) => {
+                    if (region.start < 0) region.start = 0;
+                    if (region.end > wavesurfer.getDuration()) region.end = wavesurfer.getDuration();
+                });
+            }
+
+            function applySuccessBlob(blob, ext) {
+                if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
+                currentAudioBlob = blob;
+                currentBlobUrl = URL.createObjectURL(blob);
+                
+                downloadLink.href = currentBlobUrl;
+                downloadLink.download = `${originalFileName}_vidtoaudio.${ext}`;
+                dlFormatLabel.innerText = ext.toUpperCase();
+                
+                setupWavesurfer(currentBlobUrl);
+                
+                if (wavesurfer && volumeSlider) {
+                    wavesurfer.setVolume(Number(volumeSlider.value));
+                }
+
+                metaSize.innerText = `Size: ${(blob.size / 1024 / 1024).toFixed(2)} MB`;
+                metaDuration.innerText = `Duration: --`;
+                metaSamplerate.innerText = `Sample Rate: --`;
+                try {
+                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    blob.arrayBuffer()
+                        .then(buf => audioCtx.decodeAudioData(buf))
+                        .then(decodedData => {
+                            metaDuration.innerText = `Duration: ${formatTime(decodedData.duration)}`;
+                            metaSamplerate.innerText = `Sample Rate: ${decodedData.sampleRate} Hz`;
+                        }).catch(err => console.error("Error decoding audio metadata", err));
+                } catch (e) {
+                    console.error("AudioContext not supported", e);
+                }
+
+                uiProcessing.classList.remove('flex');
+                uiProcessing.classList.add('hidden');
+                uiSuccess.classList.remove('hidden');
+                uiSuccess.classList.add('flex');
+                
+                trimControls.classList.add('hidden');
+                trimControls.classList.remove('flex');
+                activeRegion = null;
+            }
+
+            convertBtn.addEventListener('click', async () => {
+                const file = fileInput.files[0];
+                if (!file) return;
+                
+                if (file.size > 200 * 1024 * 1024) {
+                    showError("File is too large for the web version. For best performance, use files under 200MB. For larger files or batch conversion, please try the VidToAudio Android app.");
+                    return;
+                }
+
+                selectedFormatExt = formatSelect.value;
+                originalFileName = file.name.replace(/\.[^/.]+$/, "");
+
+                uiConverter.classList.add('hidden');
+                uiError.classList.add('hidden');
+                uiProcessing.classList.remove('hidden');
+                uiProcessing.classList.add('flex');
+                setProgress(0);
+                const infoText = uiProcessing.querySelector('p');
+                if (infoText) infoText.innerHTML = "Extracting audio... <br/> <span class='text-xs'>Loading FFmpeg core on first run may take a few seconds.</span>";
+
+                try {
+                    const blob = await processAudio(file, selectedFormatExt);
+                    applySuccessBlob(blob, selectedFormatExt);
+                } catch (err) {
+                    console.error(err);
+                    showError("An error occurred during conversion. Your browser may not support WASM properly or the file is invalid.");
+                }
+            });
+
+            applyTrimBtn.addEventListener('click', async () => {
+                if (!activeRegion || !currentAudioBlob) return;
+                
+                const start = activeRegion.start;
+                const end = activeRegion.end;
+                const duration = end - start;
+
+                if (duration <= 0) return;
+
+                if (wavesurfer.isPlaying()) {
+                    wavesurfer.pause();
+                }
+
+                uiSuccess.classList.add('hidden');
+                uiSuccess.classList.remove('flex');
+                uiProcessing.classList.remove('hidden');
+                uiProcessing.classList.add('flex');
+                setProgress(0);
+                const infoText = uiProcessing.querySelector('p');
+                if (infoText) infoText.innerHTML = "Cropping audio... <br/> <span class='text-xs'>Processing trim selection.</span>";
+
+                try {
+                    const newBlob = await processAudio(currentAudioBlob, selectedFormatExt, start, duration);
+                    originalFileName = originalFileName + "_trimmed";
+                    applySuccessBlob(newBlob, selectedFormatExt);
+                } catch (err) {
+                    console.error(err);
+                    showError("An error occurred while trimming.");
+                }
+            });
+        });
+    </script>
+</body>
+</html>

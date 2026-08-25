@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
+</head>
+<body>
+    <script>
+        async function test() {
+            const { FFmpeg } = window.FFmpegWASM;
+            const ffmpeg = new FFmpeg();
+            const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+            const { toBlobURL } = window.FFmpegUtil;
+            try {
+                await ffmpeg.load({
+                    coreURL: `${baseURL}/ffmpeg-core.js`,
+                    wasmURL: `${baseURL}/ffmpeg-core.wasm`,
+                    classWorkerURL: await toBlobURL('https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/814.ffmpeg.js', 'text/javascript')
+                });
+                console.log("LOADED!");
+            } catch (e) {
+                console.error("ERROR", e);
+            }
+        }
+        test();
+    </script>
+</body>
+</html>
