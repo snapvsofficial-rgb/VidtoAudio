@@ -354,25 +354,11 @@ export async function navigateTo(pathname = window.location.pathname) {
 
 // Initialize Application
 async function initApp() {
-  // Fetch remote configurations in background for live sync
-  try {
-    const [seo, toggles] = await Promise.all([
-      fetchSEOTemplate(),
-      fetchFormatToggles()
-    ]);
-    cachedSEOTemplate = seo;
-    cachedFormatToggles = toggles;
-  } catch (e) {
-    console.warn('Using local default configs for SEO and Toggles:', e);
-  }
-
-  // Render the crawlable matrix links
+  // 1. Instant initial render and routing (synchronous first paint)
   renderMatrixLinks();
-
-  // Initial routing
   await navigateTo(window.location.pathname);
 
-  // Intercept all SPA route links
+  // 2. Intercept all SPA route links
   document.addEventListener('click', (e) => {
     const target = (e.target as HTMLElement)?.closest('[data-route-link]') as HTMLAnchorElement | null;
     if (!target) return;
@@ -389,10 +375,37 @@ async function initApp() {
     navigateTo(href);
   });
 
-  // Handle browser back/forward navigation
+  // 3. Handle browser back/forward navigation
   window.addEventListener('popstate', () => {
     navigateTo(window.location.pathname);
   });
+
+  // 4. Non-blocking background fetch of remote configurations
+  fetchRemoteConfigs();
+}
+
+async function fetchRemoteConfigs() {
+  try {
+    const [seo, toggles] = await Promise.all([
+      fetchSEOTemplate(),
+      fetchFormatToggles()
+    ]);
+    cachedSEOTemplate = seo;
+    cachedFormatToggles = toggles;
+    renderMatrixLinks();
+    updateFormatDropdown();
+    
+    // If we are currently on a converter page, re-inject SEO content
+    const currentRoute = parseRoute(window.location.pathname);
+    if (currentRoute.type === 'converter') {
+      const seoContainer = document.getElementById('dynamic-seo-content');
+      if (seoContainer) {
+        seoContainer.innerHTML = generateSEOContent(currentRoute.input || 'mp4', currentRoute.output || 'wav');
+      }
+    }
+  } catch (e) {
+    console.warn('Using default configurations for SEO and Toggles:', e);
+  }
 }
 
 if (document.readyState === 'loading') {
