@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "description": "",
+  "name": "VidToAudio",
+  "description": "Free, offline MP4 to WAV converter and audio extractor for video files.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

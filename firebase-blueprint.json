@@ -1,0 +1,22 @@
+{
+  "entities": {
+    "Blog": {
+      "fields": {
+        "title": { "type": "string", "description": "Blog post title" },
+        "slug": { "type": "string", "description": "Unique URL slug for the article" },
+        "content": { "type": "string", "description": "Markdown content of the article" },
+        "excerpt": { "type": "string", "description": "Short excerpt summary" },
+        "authorEmail": { "type": "string", "description": "Author email" },
+        "createdAt": { "type": "timestamp", "description": "Creation timestamp" },
+        "updatedAt": { "type": "timestamp", "description": "Last update timestamp" }
+      }
+    },
+    "Config": {
+      "fields": {
+        "template": { "type": "string", "description": "SEO description template with {INPUT} and {OUTPUT}" },
+        "enabledFormats": { "type": "map", "description": "Map of format extensions to boolean enabled status" },
+        "updatedAt": { "type": "timestamp", "description": "Last update timestamp" }
+      }
+    }
+  }
+}
