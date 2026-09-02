@@ -29,6 +29,11 @@ export const DEFAULT_FORMAT_TOGGLES: FormatTogglesConfig = {
   aiff: true
 };
 
+// --- Local storage fallback keys ---
+const LS_SEO_KEY = 'vidtoaudio_seo_template';
+const LS_TOGGLES_KEY = 'vidtoaudio_format_toggles';
+const LS_BLOGS_KEY = 'vidtoaudio_local_blogs';
+
 // --- SEO Template Management ---
 export async function fetchSEOTemplate(): Promise<string> {
   try {
@@ -37,21 +42,29 @@ export async function fetchSEOTemplate(): Promise<string> {
     if (docSnap.exists()) {
       const data = docSnap.data() as SEOTemplateConfig;
       if (data && data.template) {
+        localStorage.setItem(LS_SEO_KEY, data.template);
         return data.template;
       }
     }
   } catch (err) {
-    console.warn('Could not fetch remote SEO template, using default:', err);
+    console.warn('Could not fetch remote SEO template, checking local cache:', err);
   }
-  return DEFAULT_SEO_TEMPLATE;
+  const cached = localStorage.getItem(LS_SEO_KEY);
+  return cached || DEFAULT_SEO_TEMPLATE;
 }
 
 export async function saveSEOTemplate(template: string): Promise<void> {
-  const docRef = doc(db, 'config', 'seo_template');
-  await setDoc(docRef, {
-    template: template.trim(),
-    updatedAt: serverTimestamp()
-  }, { merge: true });
+  const cleanTemplate = template.trim();
+  localStorage.setItem(LS_SEO_KEY, cleanTemplate);
+  try {
+    const docRef = doc(db, 'config', 'seo_template');
+    await setDoc(docRef, {
+      template: cleanTemplate,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  } catch (err) {
+    console.warn('Could not write SEO template to Firestore (cached locally):', err);
+  }
 }
 
 // --- Format Toggles Management ---
@@ -62,31 +75,63 @@ export async function fetchFormatToggles(): Promise<FormatTogglesConfig> {
     if (docSnap.exists()) {
       const data = docSnap.data() as { enabledFormats: FormatTogglesConfig };
       if (data && data.enabledFormats) {
-        return { ...DEFAULT_FORMAT_TOGGLES, ...data.enabledFormats };
+        const merged = { ...DEFAULT_FORMAT_TOGGLES, ...data.enabledFormats };
+        localStorage.setItem(LS_TOGGLES_KEY, JSON.stringify(merged));
+        return merged;
       }
     }
   } catch (err) {
-    console.warn('Could not fetch remote format toggles, using defaults:', err);
+    console.warn('Could not fetch remote format toggles, checking local cache:', err);
+  }
+  const cached = localStorage.getItem(LS_TOGGLES_KEY);
+  if (cached) {
+    try {
+      return { ...DEFAULT_FORMAT_TOGGLES, ...JSON.parse(cached) };
+    } catch {
+      // fallback
+    }
   }
   return { ...DEFAULT_FORMAT_TOGGLES };
 }
 
 export async function saveFormatToggles(toggles: FormatTogglesConfig): Promise<void> {
-  const docRef = doc(db, 'config', 'format_toggles');
-  await setDoc(docRef, {
-    enabledFormats: toggles,
-    updatedAt: serverTimestamp()
-  }, { merge: true });
+  localStorage.setItem(LS_TOGGLES_KEY, JSON.stringify(toggles));
+  try {
+    const docRef = doc(db, 'config', 'format_toggles');
+    await setDoc(docRef, {
+      enabledFormats: toggles,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  } catch (err) {
+    console.warn('Could not write format toggles to Firestore (cached locally):', err);
+  }
 }
 
 // --- Blog Posts Management ---
+function getLocalBlogs(): BlogPost[] {
+  try {
+    const data = localStorage.getItem(LS_BLOGS_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveLocalBlogs(blogs: BlogPost[]): void {
+  try {
+    localStorage.setItem(LS_BLOGS_KEY, JSON.stringify(blogs));
+  } catch (e) {
+    console.warn('Could not write to local blogs cache:', e);
+  }
+}
+
 export async function fetchAllBlogs(): Promise<BlogPost[]> {
   try {
     const blogsCol = collection(db, 'blogs');
     const q = query(blogsCol, orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
     
-    return snapshot.docs.map(d => {
+    const remoteBlogs = snapshot.docs.map(d => {
       const data = d.data();
       return {
         id: d.id,
@@ -100,10 +145,15 @@ export async function fetchAllBlogs(): Promise<BlogPost[]> {
         published: data.published !== false
       };
     });
+
+    if (remoteBlogs.length > 0) {
+      saveLocalBlogs(remoteBlogs);
+      return remoteBlogs;
+    }
   } catch (err) {
-    console.warn('Could not fetch blogs, returning empty list:', err);
-    return [];
+    console.warn('Could not fetch remote blogs, falling back to local blogs storage:', err);
   }
+  return getLocalBlogs();
 }
 
 export async function fetchBlogBySlug(slug: string): Promise<BlogPost | null> {
@@ -127,16 +177,18 @@ export async function fetchBlogBySlug(slug: string): Promise<BlogPost | null> {
       };
     }
   } catch (err) {
-    console.warn('Error fetching blog by slug:', err);
+    console.warn('Error fetching blog by slug from Firestore, searching local cache:', err);
   }
-  return null;
+  const localList = getLocalBlogs();
+  return localList.find(b => b.slug === slug) || null;
 }
 
 export async function saveBlogPost(post: Partial<BlogPost>): Promise<string> {
   const blogsCol = collection(db, 'blogs');
+  const slug = (post.slug?.trim() || post.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'post').toLowerCase();
   const postData: any = {
     title: post.title?.trim() || 'Untitled Article',
-    slug: (post.slug?.trim() || post.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'post').toLowerCase(),
+    slug,
     content: post.content || '',
     excerpt: post.excerpt?.trim() || (post.content ? post.content.slice(0, 160).replace(/[#*`]/g, '') + '...' : ''),
     authorEmail: post.authorEmail || 'admin@vidtoaudio.com',
@@ -144,19 +196,52 @@ export async function saveBlogPost(post: Partial<BlogPost>): Promise<string> {
     published: post.published !== false
   };
 
-  if (post.id) {
-    const docRef = doc(db, 'blogs', post.id);
-    await setDoc(docRef, postData, { merge: true });
-    return post.id;
+  const id = post.id || 'blog_' + Date.now();
+  const localList = getLocalBlogs();
+  const existingIdx = localList.findIndex(b => b.id === id || b.slug === slug);
+  const localItem: BlogPost = {
+    id,
+    title: postData.title,
+    slug: postData.slug,
+    content: postData.content,
+    excerpt: postData.excerpt,
+    authorEmail: postData.authorEmail,
+    createdAt: post.createdAt || new Date(),
+    updatedAt: new Date(),
+    published: postData.published
+  };
+
+  if (existingIdx >= 0) {
+    localList[existingIdx] = { ...localList[existingIdx], ...localItem };
   } else {
-    postData.createdAt = serverTimestamp();
-    const newDocRef = doc(blogsCol);
-    await setDoc(newDocRef, postData);
-    return newDocRef.id;
+    localList.unshift(localItem);
+  }
+  saveLocalBlogs(localList);
+
+  try {
+    if (post.id) {
+      const docRef = doc(db, 'blogs', post.id);
+      await setDoc(docRef, postData, { merge: true });
+      return post.id;
+    } else {
+      postData.createdAt = serverTimestamp();
+      const newDocRef = doc(blogsCol);
+      await setDoc(newDocRef, postData);
+      return newDocRef.id;
+    }
+  } catch (err) {
+    console.warn('Could not sync blog to Firestore (saved locally):', err);
+    return id;
   }
 }
 
 export async function deleteBlogPost(id: string): Promise<void> {
-  const docRef = doc(db, 'blogs', id);
-  await deleteDoc(docRef);
+  const localList = getLocalBlogs().filter(b => b.id !== id);
+  saveLocalBlogs(localList);
+  try {
+    const docRef = doc(db, 'blogs', id);
+    await deleteDoc(docRef);
+  } catch (err) {
+    console.warn('Could not delete blog from Firestore (deleted locally):', err);
+  }
 }

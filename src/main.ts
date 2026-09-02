@@ -30,8 +30,22 @@ export function parseRoute(pathname: string) {
   let clean = (pathname || window.location.pathname || '/').toLowerCase().trim();
   clean = clean.split('?')[0].split('#')[0];
   clean = clean.replace(/^\/+|\/+$/g, '');
+  clean = clean.replace(/\.html$/, '');
 
-  if (!clean) {
+  // Handle GitHub Pages SPA redirection patterns if present (e.g., /?/admin or ?p=/admin)
+  if (typeof window !== 'undefined' && window.location.search) {
+    const search = window.location.search;
+    if (search.startsWith('?/')) {
+      clean = search.slice(2).split('&')[0].replace(/^\/+|\/+$/g, '').replace(/\.html$/, '');
+    } else {
+      const matchParam = search.match(/[?&](?:p|path|route)=([^&]+)/);
+      if (matchParam) {
+        clean = decodeURIComponent(matchParam[1]).toLowerCase().replace(/^\/+|\/+$/g, '').replace(/\.html$/, '');
+      }
+    }
+  }
+
+  if (!clean || clean === '404') {
     return { type: 'converter', input: 'mp4', output: 'wav', isFallback: true, canonicalPath: '/' };
   }
 

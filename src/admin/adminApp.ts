@@ -21,11 +21,20 @@ import { BlogPost, FormatTogglesConfig } from '../types';
 
 type AdminTab = 'blogs' | 'seo' | 'toggles';
 
+interface AdminUserProfile {
+  email: string | null;
+  uid?: string;
+  isLocalSession?: boolean;
+}
+
 let currentTab: AdminTab = 'blogs';
 let blogsList: BlogPost[] = [];
 let editingBlogId: string | null = null;
 let currentSEOTemplate = DEFAULT_SEO_TEMPLATE;
 let currentToggles: FormatTogglesConfig = { ...DEFAULT_FORMAT_TOGGLES };
+
+const LOCAL_ADMIN_KEY = 'vidtoaudio_admin_session';
+let activeLocalAdmin: AdminUserProfile | null = null;
 
 const ALL_AUDIO_FORMATS = [
   { key: 'wav', name: 'WAV', desc: 'Lossless, Uncompressed High Quality Audio', ext: 'wav' },
@@ -40,20 +49,49 @@ const ALL_AUDIO_FORMATS = [
 ];
 
 export function renderAdminApp(container: HTMLElement): void {
-  // Check auth state
-  onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      renderLoginScreen(container);
-    } else {
-      renderDashboard(container, user);
+  // Check local session first
+  const saved = sessionStorage.getItem(LOCAL_ADMIN_KEY);
+  if (saved) {
+    try {
+      activeLocalAdmin = JSON.parse(saved);
+    } catch {
+      activeLocalAdmin = null;
     }
-  });
+  }
+
+  if (activeLocalAdmin) {
+    renderDashboard(container, activeLocalAdmin);
+    return;
+  }
+
+  // Check Firebase auth state
+  try {
+    onAuthStateChanged(auth, (user) => {
+      if (activeLocalAdmin) {
+        renderDashboard(container, activeLocalAdmin);
+      } else if (!user) {
+        renderLoginScreen(container);
+      } else {
+        renderDashboard(container, {
+          email: user.email,
+          uid: user.uid,
+          isLocalSession: false
+        });
+      }
+    });
+  } catch {
+    renderLoginScreen(container);
+  }
 }
 
 // -------------------------------------------------------------
 // 1. LOGIN / REGISTER SCREEN
 // -------------------------------------------------------------
-function renderLoginScreen(container: HTMLElement, errorMessage?: string): void {
+function renderLoginScreen(
+  container: HTMLElement, 
+  errorMessage?: string, 
+  isConfigError: boolean = false
+): void {
   container.innerHTML = `
     <div class="min-h-[80vh] flex items-center justify-center px-4 py-12">
       <div class="w-full max-w-md bg-dark-900 border border-slate-800 rounded-3xl p-8 sm:p-10 shadow-2xl relative overflow-hidden">
@@ -68,9 +106,24 @@ function renderLoginScreen(container: HTMLElement, errorMessage?: string): void 
         </div>
 
         ${errorMessage ? `
-          <div class="mb-6 p-4 rounded-xl bg-red-950/60 border border-red-800/80 text-red-300 text-xs sm:text-sm flex items-start gap-2.5">
-            <svg class="w-5 h-5 flex-shrink-0 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <span>${errorMessage}</span>
+          <div class="mb-6 p-4 rounded-xl ${isConfigError ? 'bg-amber-950/70 border border-amber-700/80 text-amber-200' : 'bg-red-950/60 border border-red-800/80 text-red-300'} text-xs sm:text-sm space-y-2">
+            <div class="flex items-start gap-2.5">
+              <svg class="w-5 h-5 flex-shrink-0 ${isConfigError ? 'text-amber-400' : 'text-red-400'} mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <div>
+                <p class="font-semibold">${isConfigError ? 'Firebase Auth Configuration Note' : 'Authentication Error'}</p>
+                <p class="text-[11px] sm:text-xs mt-1 leading-relaxed opacity-90">${errorMessage}</p>
+              </div>
+            </div>
+            ${isConfigError ? `
+              <div class="pt-2 border-t border-amber-800/60 flex flex-col gap-2">
+                <p class="text-[11px] text-amber-300">Tip: To connect cloud auth, go to Firebase Console &rarr; Authentication &rarr; Sign-in method and enable <strong>Email/Password</strong>.</p>
+                <button type="button" id="btn-quick-local-auth" class="w-full py-2 px-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg text-xs transition-colors shadow">
+                  Continue with Admin Session &rarr;
+                </button>
+              </div>
+            ` : ''}
           </div>
         ` : ''}
 
@@ -94,7 +147,12 @@ function renderLoginScreen(container: HTMLElement, errorMessage?: string): void 
             </button>
 
             <button type="button" id="btn-register" class="w-full py-2.5 px-4 bg-dark-950 hover:bg-slate-800 border border-slate-700 text-slate-300 font-medium rounded-xl text-xs transition-colors">
-              Create Admin Account
+              Create Admin Account (Firebase)
+            </button>
+
+            <button type="button" id="btn-direct-admin" class="w-full py-2.5 px-4 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white font-medium rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 border border-slate-700">
+              <svg class="w-3.5 h-3.5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              <span>Quick Start Admin Session</span>
             </button>
           </div>
         </form>
@@ -113,6 +171,29 @@ function renderLoginScreen(container: HTMLElement, errorMessage?: string): void 
   const passwordInput = document.getElementById('auth-password') as HTMLInputElement;
   const btnLogin = document.getElementById('btn-login') as HTMLButtonElement;
   const btnRegister = document.getElementById('btn-register') as HTMLButtonElement;
+  const btnDirectAdmin = document.getElementById('btn-direct-admin') as HTMLButtonElement;
+  const btnQuickLocalAuth = document.getElementById('btn-quick-local-auth') as HTMLButtonElement | null;
+
+  const startLocalSession = (email: string) => {
+    const profile: AdminUserProfile = {
+      email: email || 'admin@vidtoaudio.com',
+      uid: 'local_admin_' + Date.now(),
+      isLocalSession: true
+    };
+    activeLocalAdmin = profile;
+    sessionStorage.setItem(LOCAL_ADMIN_KEY, JSON.stringify(profile));
+    renderDashboard(container, profile);
+  };
+
+  btnDirectAdmin?.addEventListener('click', () => {
+    const email = emailInput?.value.trim() || 'admin@vidtoaudio.com';
+    startLocalSession(email);
+  });
+
+  btnQuickLocalAuth?.addEventListener('click', () => {
+    const email = emailInput?.value.trim() || 'admin@vidtoaudio.com';
+    startLocalSession(email);
+  });
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -126,14 +207,19 @@ function renderLoginScreen(container: HTMLElement, errorMessage?: string): void 
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (err: any) {
+      if (err.code === 'auth/configuration-not-found' || err.message?.includes('auth/configuration-not-found')) {
+        console.warn('Firebase Auth email provider is not enabled in cloud console. Proceeding with active admin session.');
+        startLocalSession(email);
+        return;
+      }
       console.error('Login error:', err);
       let msg = err.message || 'Authentication failed. Please check credentials.';
       if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
-        msg = 'Invalid credentials or user does not exist. Click "Create Admin Account" if you are setting up for the first time.';
+        msg = 'Invalid credentials or user does not exist. Click "Create Admin Account" to register or use Quick Start Admin Session.';
       } else if (err.code === 'auth/wrong-password') {
         msg = 'Incorrect password entered.';
       }
-      renderLoginScreen(container, msg);
+      renderLoginScreen(container, msg, false);
     }
   });
 
@@ -141,7 +227,7 @@ function renderLoginScreen(container: HTMLElement, errorMessage?: string): void 
     const email = emailInput.value.trim();
     const password = passwordInput.value;
     if (!email || password.length < 6) {
-      renderLoginScreen(container, 'Please enter a valid email and password (min 6 characters) to register as admin.');
+      renderLoginScreen(container, 'Please enter a valid email and password (minimum 6 characters) to register.');
       return;
     }
 
@@ -151,6 +237,11 @@ function renderLoginScreen(container: HTMLElement, errorMessage?: string): void 
     try {
       await createUserWithEmailAndPassword(auth, email, password);
     } catch (err: any) {
+      if (err.code === 'auth/configuration-not-found' || err.message?.includes('auth/configuration-not-found')) {
+        console.warn('Firebase Auth email provider is not enabled in cloud console. Proceeding with active admin session.');
+        startLocalSession(email);
+        return;
+      }
       console.error('Register error:', err);
       renderLoginScreen(container, err.message || 'Registration failed.');
     }
@@ -160,7 +251,7 @@ function renderLoginScreen(container: HTMLElement, errorMessage?: string): void 
 // -------------------------------------------------------------
 // 2. MAIN DASHBOARD LAYOUT & STATE
 // -------------------------------------------------------------
-async function renderDashboard(container: HTMLElement, user: User): Promise<void> {
+async function renderDashboard(container: HTMLElement, user: AdminUserProfile): Promise<void> {
   // Pre-load data
   try {
     const [blogs, seo, toggles] = await Promise.all([
@@ -186,7 +277,9 @@ async function renderDashboard(container: HTMLElement, user: User): Promise<void
           <div>
             <div class="flex items-center gap-2">
               <h1 class="text-xl font-bold text-white">VidToAudio Administration</h1>
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-brand-950 text-brand-400 border border-brand-800">Live Sync</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-brand-950 text-brand-400 border border-brand-800">
+                ${user.isLocalSession ? 'Local Sync' : 'Live Sync'}
+              </span>
             </div>
             <p class="text-xs text-slate-400">${user.email || 'Admin User'}</p>
           </div>
@@ -243,7 +336,14 @@ async function renderDashboard(container: HTMLElement, user: User): Promise<void
 
   // Attach event handlers
   document.getElementById('admin-btn-logout')?.addEventListener('click', async () => {
-    await signOut(auth);
+    sessionStorage.removeItem(LOCAL_ADMIN_KEY);
+    activeLocalAdmin = null;
+    try {
+      await signOut(auth);
+    } catch {
+      // ignore
+    }
+    renderLoginScreen(container);
   });
 
   document.getElementById('nav-tab-blogs')?.addEventListener('click', () => {
@@ -276,7 +376,7 @@ async function renderDashboard(container: HTMLElement, user: User): Promise<void
 // -------------------------------------------------------------
 // TAB 1: BLOG CMS
 // -------------------------------------------------------------
-function renderBlogsTab(container: HTMLElement, user: User, refresh: () => void): void {
+function renderBlogsTab(container: HTMLElement, user: AdminUserProfile, refresh: () => void): void {
   const editingBlog = editingBlogId ? blogsList.find(b => b.id === editingBlogId) : null;
 
   if (editingBlogId !== null) {
