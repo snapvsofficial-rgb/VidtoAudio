@@ -17,8 +17,7 @@ import {
   DEFAULT_FORMAT_TOGGLES,
   fetchSiteSettings,
   saveSiteSettings,
-  DEFAULT_SITE_SETTINGS,
-  getFirestoreConnectionStatus
+  DEFAULT_SITE_SETTINGS
 } from '../services/configService';
 import { BlogPost, FormatTogglesConfig, SiteSettingsConfig } from '../types';
 
@@ -238,7 +237,6 @@ async function renderDashboard(container: HTMLElement, user: User): Promise<void
   }
 
   const enabledFormatsCount = Object.values(currentToggles).filter(Boolean).length;
-  const dbStatus = getFirestoreConnectionStatus();
 
   container.innerHTML = `
     <div class="min-h-[85vh] bg-dark-950 flex flex-col lg:flex-row">
@@ -427,26 +425,9 @@ function renderDashboardTab(
 ): void {
   const enabledCount = Object.values(currentToggles).filter(Boolean).length;
   const recentBlogs = blogsList.slice(0, 4);
-  const dbStatus = getFirestoreConnectionStatus();
 
   container.innerHTML = `
     <div class="space-y-8">
-      ${dbStatus.isOffline ? `
-        <div class="bg-amber-950/40 border border-amber-800/60 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <div class="flex items-start sm:items-center gap-2.5">
-            <svg class="w-5 h-5 text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <div>
-              <span class="font-semibold text-amber-200">Local Offline Storage Active:</span>
-              <span class="text-amber-300/80">Settings, SEO templates, and articles are stored safely in local browser cache. To enable multi-device sync, enable the Cloud Firestore API in Google Cloud for project <code class="bg-black/40 px-1 py-0.5 rounded text-amber-200 font-mono">vidtoaudio</code>.</span>
-            </div>
-          </div>
-          <a href="https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=vidtoaudio" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-amber-600/30 hover:bg-amber-600/50 border border-amber-700/60 text-amber-200 hover:text-white rounded-lg whitespace-nowrap transition-colors inline-flex items-center gap-1">
-            <span>Enable Cloud Firestore</span>
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-          </a>
-        </div>
-      ` : ''}
-
       <!-- Metric Cards Grid -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <!-- Metric 1 -->
@@ -972,26 +953,8 @@ function renderBlogsTab(
 // TAB 4: SITE SETTINGS (GLOBAL THEME, TITLE, FOOTER, VERCEL HOOK & TOGGLES)
 // -------------------------------------------------------------
 function renderSettingsTab(container: HTMLElement, refresh: () => void): void {
-  const dbStatus = getFirestoreConnectionStatus();
-
   container.innerHTML = `
     <div class="space-y-8">
-      ${dbStatus.isOffline ? `
-        <div class="bg-amber-950/40 border border-amber-800/60 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <div class="flex items-start sm:items-center gap-2.5">
-            <svg class="w-5 h-5 text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <div>
-              <span class="font-semibold text-amber-200">Local Cache Mode:</span>
-              <span class="text-amber-300/80">Site customizations and toggles are saved immediately to local browser storage. For cross-device persistence, activate Cloud Firestore in Google Cloud for project <code class="bg-black/40 px-1 py-0.5 rounded text-amber-200 font-mono">vidtoaudio</code>.</span>
-            </div>
-          </div>
-          <a href="https://console.developers.google.com/apis/api/firestore.googleapis.com/overview?project=vidtoaudio" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-amber-600/30 hover:bg-amber-600/50 border border-amber-700/60 text-amber-200 hover:text-white rounded-lg whitespace-nowrap transition-colors inline-flex items-center gap-1">
-            <span>Enable Firestore API</span>
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-          </a>
-        </div>
-      ` : ''}
-
       <!-- Global Variables & Customization Card -->
       <div class="bg-dark-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl space-y-6">
         <div class="pb-4 border-b border-slate-800">

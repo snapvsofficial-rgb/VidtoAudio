@@ -30,16 +30,6 @@ let cachedSEOTemplate = DEFAULT_SEO_TEMPLATE;
 let cachedFormatToggles: FormatTogglesConfig = { ...DEFAULT_FORMAT_TOGGLES };
 let cachedSiteSettings: SiteSettingsConfig = { ...DEFAULT_SITE_SETTINGS };
 
-// Load instantaneous local cached settings to avoid UI flash
-try {
-  const localSaved = localStorage.getItem('vidtoaudio_site_settings');
-  if (localSaved) {
-    cachedSiteSettings = { ...DEFAULT_SITE_SETTINGS, ...JSON.parse(localSaved) };
-  }
-} catch {
-  // Ignore localStorage read errors in restricted contexts
-}
-
 /**
  * Dynamically applies global site settings across the entire app
  * (Primary Theme Color, Site Title, and Footer Text)
@@ -692,12 +682,6 @@ async function fetchRemoteConfigs() {
     cachedSEOTemplate = seo;
     cachedFormatToggles = toggles;
     cachedSiteSettings = settings;
-
-    try {
-      localStorage.setItem('vidtoaudio_site_settings', JSON.stringify(settings));
-    } catch {
-      // Ignore storage errors
-    }
 
     applyGlobalSettings(settings, toggles);
     renderMatrixLinks();
