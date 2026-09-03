@@ -1,8 +1,7 @@
-import fs from 'fs';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import {defineConfig, Plugin} from 'vite';
+import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
@@ -10,23 +9,6 @@ export default defineConfig(() => {
     plugins: [
       react(),
       tailwindcss(),
-      {
-        name: 'copy-index-to-404',
-        writeBundle() {
-          const indexPath = path.resolve(__dirname, 'dist/index.html');
-          const destPath = path.resolve(__dirname, 'dist/404.html');
-          if (fs.existsSync(indexPath)) {
-            fs.copyFileSync(indexPath, destPath);
-          }
-        },
-        closeBundle() {
-          const indexPath = path.resolve(__dirname, 'dist/index.html');
-          const destPath = path.resolve(__dirname, 'dist/404.html');
-          if (fs.existsSync(indexPath)) {
-            fs.copyFileSync(indexPath, destPath);
-          }
-        },
-      },
     ],
     resolve: {
       alias: {
