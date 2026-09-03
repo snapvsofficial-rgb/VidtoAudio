@@ -1,7 +1,8 @@
 import { 
   signInWithEmailAndPassword, 
   signOut, 
-  onAuthStateChanged 
+  onAuthStateChanged,
+  User 
 } from 'firebase/auth';
 import { auth } from '../firebase';
 import { 
@@ -23,12 +24,6 @@ import { BlogPost, FormatTogglesConfig, SiteSettingsConfig } from '../types';
 
 export type AdminTab = 'dashboard' | 'seo' | 'blogs' | 'settings';
 
-interface AdminUserProfile {
-  email: string | null;
-  uid?: string;
-  isLocalSession?: boolean;
-}
-
 let currentTab: AdminTab = 'dashboard';
 let blogsList: BlogPost[] = [];
 let editingBlogId: string | null = null;
@@ -36,8 +31,7 @@ let currentSEOTemplate = DEFAULT_SEO_TEMPLATE;
 let currentToggles: FormatTogglesConfig = { ...DEFAULT_FORMAT_TOGGLES };
 let currentSettings: SiteSettingsConfig = { ...DEFAULT_SITE_SETTINGS };
 
-const LOCAL_ADMIN_KEY = 'vidtoaudio_admin_session';
-let activeLocalAdmin: AdminUserProfile | null = null;
+let activeAuthUnsubscribe: (() => void) | null = null;
 
 export const ALL_AUDIO_FORMATS = [
   { key: 'wav', name: 'WAV', desc: 'Lossless, Uncompressed High Quality Audio', ext: 'wav' },
@@ -61,41 +55,53 @@ export function navigateToHome() {
 }
 
 // -------------------------------------------------------------
-// MAIN ENTRY POINT & STRICT ROUTE GUARD
+// MAIN ENTRY POINT & STRICT ROUTE GUARD (FAIL CLOSED)
 // -------------------------------------------------------------
 export function renderAdminApp(container: HTMLElement): void {
-  // Check local session
-  const saved = sessionStorage.getItem(LOCAL_ADMIN_KEY);
-  if (saved) {
-    try {
-      activeLocalAdmin = JSON.parse(saved);
-    } catch {
-      activeLocalAdmin = null;
-    }
+  // Clean up any previously active listener
+  if (activeAuthUnsubscribe) {
+    activeAuthUnsubscribe();
+    activeAuthUnsubscribe = null;
   }
 
-  if (activeLocalAdmin) {
-    renderDashboard(container, activeLocalAdmin);
-    return;
-  }
+  // Strict initial loading state: admin dashboard MUST NEVER render until auth is verified
+  container.innerHTML = `
+    <div class="min-h-[85vh] flex items-center justify-center px-4 py-12">
+      <div class="w-full max-w-md bg-dark-900 border border-slate-800 rounded-3xl p-8 sm:p-10 shadow-2xl text-center">
+        <div class="w-12 h-12 border-2 border-brand-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <h3 class="text-lg font-bold text-white mb-2">Verifying Admin Privileges</h3>
+        <p class="text-xs sm:text-sm text-slate-400">Verifying credentials with Firebase Authentication...</p>
+      </div>
+    </div>
+  `;
 
   try {
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        renderDashboard(container, {
-          email: user.email,
-          uid: user.uid,
-          isLocalSession: false
-        });
-      } else if (activeLocalAdmin) {
-        renderDashboard(container, activeLocalAdmin);
-      } else {
-        // Strict guard: unauthenticated users see the strict login form
-        renderLoginScreen(container);
+    if (!auth) {
+      renderLoginScreen(container, 'Firebase Authentication service is unavailable. Access denied.');
+      return;
+    }
+
+    activeAuthUnsubscribe = onAuthStateChanged(
+      auth, 
+      (user: User | null) => {
+        if (user && user.uid) {
+          // Strictly render dashboard ONLY for verified Firebase authenticated user
+          renderDashboard(container, user);
+        } else {
+          // Fail Closed: If user is not logged in, strictly render the secure Login Form
+          renderLoginScreen(container);
+        }
+      },
+      (error) => {
+        console.error('Firebase Auth state error:', error);
+        // Fail closed on auth error
+        renderLoginScreen(container, 'Firebase Authentication error. Access restricted.');
       }
-    });
-  } catch {
-    renderLoginScreen(container);
+    );
+  } catch (err: any) {
+    console.error('Firebase Auth initialization error:', err);
+    // Fail closed on init failure
+    renderLoginScreen(container, 'Failed to initialize Firebase Authentication. Access denied.');
   }
 }
 
@@ -182,22 +188,9 @@ function renderLoginScreen(
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      // On successful login, onAuthStateChanged callback will verify user object and render dashboard
     } catch (err: any) {
-      // In case Firebase Auth cloud provider is not yet turned on in Firebase console, 
-      // check if it's the provider configuration error
-      if (err.code === 'auth/configuration-not-found' || err.message?.includes('auth/configuration-not-found')) {
-        const profile: AdminUserProfile = {
-          email: email,
-          uid: 'admin_session_' + Date.now(),
-          isLocalSession: true
-        };
-        activeLocalAdmin = profile;
-        sessionStorage.setItem(LOCAL_ADMIN_KEY, JSON.stringify(profile));
-        renderDashboard(container, profile);
-        return;
-      }
-
-      console.error('Admin login error:', err);
+      console.error('Admin authentication failure:', err);
       let msg = 'Invalid administrative credentials. Access restricted.';
       if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
         msg = 'No administrative account found with these credentials.';
@@ -205,16 +198,29 @@ function renderLoginScreen(
         msg = 'Incorrect password entered.';
       } else if (err.code === 'auth/too-many-requests') {
         msg = 'Access temporarily locked due to multiple failed attempts. Try again shortly.';
+      } else if (err.code === 'auth/configuration-not-found' || err.message?.includes('configuration-not-found')) {
+        msg = 'Firebase Authentication Email/Password provider is not configured in this project console. Access denied.';
+      } else if (err.code === 'auth/network-request-failed') {
+        msg = 'Network connection failed. Unable to reach Firebase Authentication servers.';
+      } else if (err.message) {
+        msg = err.message;
       }
+      // Strictly fail closed: NEVER bypass authentication with any mock session
       renderLoginScreen(container, msg);
     }
   });
 }
 
 // -------------------------------------------------------------
-// PROFESSIONAL SIDEBAR LAYOUT
+// PROFESSIONAL SIDEBAR LAYOUT (PROTECTED CMS DASHBOARD)
 // -------------------------------------------------------------
-async function renderDashboard(container: HTMLElement, user: AdminUserProfile): Promise<void> {
+async function renderDashboard(container: HTMLElement, user: User): Promise<void> {
+  // Strict Route Guard: Fail closed if unauthenticated or missing verified user object
+  if (!user || !user.uid || !auth.currentUser) {
+    renderLoginScreen(container, 'Unauthorized: Valid Firebase Authentication session required.');
+    return;
+  }
+
   // Pre-load all remote/cached configurations
   try {
     const [blogs, seo, toggles, settings] = await Promise.all([
@@ -262,9 +268,9 @@ async function renderDashboard(container: HTMLElement, user: AdminUserProfile): 
             </div>
             <div>
               <h2 class="text-base font-bold text-white">VidToAudio Portal</h2>
-              <div class="flex items-center gap-1.5 text-[11px]">
-                <span class="w-2 h-2 rounded-full ${dbStatus.isOffline ? 'bg-amber-400' : 'bg-emerald-400 animate-pulse'}"></span>
-                <span class="${dbStatus.isOffline ? 'text-amber-400 font-medium' : 'text-slate-400'}">${dbStatus.isOffline ? 'Local Storage' : 'Cloud Firestore'}</span>
+              <div class="flex items-center gap-1.5 text-[11px] text-emerald-400 font-medium">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Session Verified</span>
               </div>
             </div>
           </div>
@@ -306,10 +312,10 @@ async function renderDashboard(container: HTMLElement, user: AdminUserProfile): 
         <div class="pt-6 border-t border-slate-800 space-y-3 mt-6 lg:mt-0">
           <div class="flex items-center justify-between text-xs px-2">
             <div class="truncate max-w-[170px]">
-              <span class="text-[11px] text-slate-500 block">Logged In As</span>
-              <span class="text-white font-medium truncate block">${user.email || 'Administrator'}</span>
+              <span class="text-[11px] text-slate-500 block">Verified Firebase Admin</span>
+              <span class="text-white font-medium truncate block">${user.email || user.uid}</span>
             </div>
-            <span class="w-2.5 h-2.5 rounded-full bg-brand-400"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400" title="Authenticated Session"></span>
           </div>
 
           <div class="grid grid-cols-2 gap-2 pt-2">
@@ -344,9 +350,9 @@ async function renderDashboard(container: HTMLElement, user: AdminUserProfile): 
           </div>
 
           <div class="flex items-center gap-3">
-            <span class="px-3 py-1 bg-dark-900 border border-slate-800 text-xs rounded-lg flex items-center gap-1.5 ${dbStatus.isOffline ? 'text-amber-300' : 'text-slate-300'}" title="${dbStatus.message}">
-              <span class="w-2 h-2 rounded-full ${dbStatus.isOffline ? 'bg-amber-400' : 'bg-brand-400'}"></span>
-              <span>${dbStatus.isOffline ? 'Local Offline Mode' : 'Cloud Firestore Active'}</span>
+            <span class="px-3 py-1 bg-dark-900 border border-slate-800 text-xs rounded-lg flex items-center gap-1.5 text-slate-300">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span>Authenticated Admin</span>
             </span>
             <a href="/" data-route-link class="px-3.5 py-1.5 bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold rounded-lg shadow transition-colors flex items-center gap-1.5">
               <span>View Public Site &rarr;</span>
@@ -371,12 +377,10 @@ async function renderDashboard(container: HTMLElement, user: AdminUserProfile): 
 
   // Strict Sign Out with Immediate Redirect to Home
   document.getElementById('admin-btn-logout')?.addEventListener('click', async () => {
-    sessionStorage.removeItem(LOCAL_ADMIN_KEY);
-    activeLocalAdmin = null;
     try {
       await signOut(auth);
-    } catch {
-      // ignore
+    } catch (err) {
+      console.error('Sign out error:', err);
     }
     navigateToHome();
   });
@@ -418,7 +422,7 @@ async function renderDashboard(container: HTMLElement, user: AdminUserProfile): 
 // -------------------------------------------------------------
 function renderDashboardTab(
   container: HTMLElement, 
-  user: AdminUserProfile, 
+  user: User, 
   switchTab: (tab: AdminTab) => void
 ): void {
   const enabledCount = Object.values(currentToggles).filter(Boolean).length;
@@ -745,7 +749,7 @@ function renderSEOTab(container: HTMLElement): void {
 // -------------------------------------------------------------
 function renderBlogsTab(
   container: HTMLElement, 
-  user: AdminUserProfile, 
+  user: User, 
   refresh: () => void
 ): void {
   const editingBlog = editingBlogId ? blogsList.find(b => b.id === editingBlogId) : null;
