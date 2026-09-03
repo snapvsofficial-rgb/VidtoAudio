@@ -131,26 +131,77 @@
 </head>
 <body class="bg-dark-950 text-slate-300 antialiased selection:bg-brand-500 selection:text-white flex flex-col min-h-screen">
 
-    <!-- Header -->
-    <header class="border-b border-slate-800 bg-dark-950/80 backdrop-blur-md sticky top-0 z-50">
+    <!-- AdSense-Friendly Responsive Top Navigation Bar -->
+    <header class="border-b border-slate-800 bg-dark-950/90 backdrop-blur-md sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-            <a href="/" data-route-link class="text-xl font-bold text-white flex items-center gap-2">
-                <svg class="w-6 h-6 text-brand-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
-                VidToAudio
+            <!-- Brand Logo -->
+            <a href="/" data-route-link class="text-xl font-bold text-white flex items-center gap-2 group">
+                <div class="w-8 h-8 rounded-lg bg-brand-950 border border-brand-800/80 flex items-center justify-center text-brand-400 shadow-sm group-hover:scale-105 transition-transform">
+                    <svg class="w-5 h-5 text-brand-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+                </div>
+                <span>VidToAudio</span>
             </a>
-            <nav class="hidden md:flex gap-6 items-center">
-                <a href="/#how-it-works" class="text-sm font-medium hover:text-brand-400 transition-colors">How it Works</a>
-                <a href="/#features" class="text-sm font-medium hover:text-brand-400 transition-colors">Features</a>
-                <a href="/#faq" class="text-sm font-medium hover:text-brand-400 transition-colors">FAQ</a>
-                <a href="/blog" data-route-link class="text-sm font-medium hover:text-brand-400 transition-colors">Blog</a>
-                <a href="/admin" data-route-link class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-dark-900 border border-slate-700 text-slate-300 hover:text-brand-400 hover:border-brand-500 transition-colors flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                    Admin
+
+            <!-- Desktop Navigation Links (Home, Converters, Blog, About, Privacy) -->
+            <nav id="desktop-navbar" class="hidden md:flex items-center gap-1 lg:gap-2">
+                <a href="/" data-route-link id="nav-link-home" class="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-900 transition-colors">
+                    Home
+                </a>
+                <a href="/#all-converters-section" id="nav-link-converters" class="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-900 transition-colors">
+                    Converters
+                </a>
+                <a href="/blog" data-route-link id="nav-link-blog" class="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-900 transition-colors">
+                    Blog
+                </a>
+                <a href="/#about" id="nav-link-about" class="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-900 transition-colors">
+                    About
+                </a>
+                <a href="/privacy-policy.html" id="nav-link-privacy" class="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-900 transition-colors">
+                    Privacy
                 </a>
             </nav>
-            <div class="flex items-center gap-2">
-                <a href="/admin" data-route-link class="md:hidden text-xs font-medium px-2.5 py-1.5 rounded-lg bg-dark-900 border border-slate-700 text-slate-300 hover:text-brand-400">Admin</a>
-                <a href="#download" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium rounded-lg border border-slate-700 transition-colors">
+
+            <!-- Actions: Admin Lock, CTA & Mobile Toggle -->
+            <div class="flex items-center gap-2.5">
+                <a href="/admin" data-route-link id="nav-link-admin" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-dark-900 border border-slate-700/80 text-slate-400 hover:text-brand-400 hover:border-brand-500 transition-colors flex items-center gap-1.5" title="Admin Control Center">
+                    <svg class="w-3.5 h-3.5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    <span class="hidden sm:inline">Admin</span>
+                </a>
+
+                <a href="#download" class="hidden sm:inline-flex px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold rounded-lg shadow transition-colors items-center gap-1">
+                    Get App
+                </a>
+
+                <!-- Mobile Hamburger Toggle -->
+                <button type="button" id="mobile-menu-toggle" class="md:hidden p-2 rounded-lg bg-dark-900 border border-slate-700 text-slate-300 hover:text-white focus:outline-none" aria-label="Toggle navigation menu">
+                    <svg id="hamburger-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    <svg id="close-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Drawer / Dropdown -->
+        <div id="mobile-nav-menu" class="hidden md:hidden border-t border-slate-800 bg-dark-950/95 backdrop-blur-xl px-4 py-4 space-y-2">
+            <a href="/" data-route-link id="mob-link-home" class="block px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-900 transition-colors">
+                Home
+            </a>
+            <a href="/#all-converters-section" id="mob-link-converters" class="block px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-900 transition-colors">
+                Converters
+            </a>
+            <a href="/blog" data-route-link id="mob-link-blog" class="block px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-900 transition-colors">
+                Blog
+            </a>
+            <a href="/#about" id="mob-link-about" class="block px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-900 transition-colors">
+                About VidToAudio
+            </a>
+            <a href="/privacy-policy.html" id="mob-link-privacy" class="block px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-900 transition-colors">
+                Privacy Policy
+            </a>
+            <div class="pt-2 border-t border-slate-800 flex items-center justify-between gap-3">
+                <a href="/admin" data-route-link class="flex-1 text-center py-2 bg-dark-900 border border-slate-700 text-slate-300 rounded-lg text-xs font-semibold">
+                    Admin Portal
+                </a>
+                <a href="#download" class="flex-1 text-center py-2 bg-brand-600 text-white rounded-lg text-xs font-semibold">
                     Get App
                 </a>
             </div>
@@ -547,6 +598,52 @@
                 </div>
             </div>
         </section>
+
+        <!-- About Section (AdSense Transparency & Publisher Information) -->
+        <section id="about" class="max-w-4xl mx-auto px-4 py-20 border-t border-slate-800/80">
+            <div class="text-center mb-12">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-brand-950 text-brand-400 border border-brand-800/60 mb-3">
+                    Publisher & Engineering Mission
+                </span>
+                <h2 class="text-3xl font-bold text-white tracking-tight">About VidToAudio</h2>
+                <p class="text-slate-400 text-sm mt-2 max-w-xl mx-auto">Engineered for absolute client-side privacy, broadcast-grade audio extraction, and open web transparency.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-dark-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-3">
+                    <div class="w-10 h-10 rounded-xl bg-brand-950 text-brand-400 border border-brand-800/80 flex items-center justify-center font-bold">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-white">100% On-Device Processing</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">
+                        VidToAudio was created to solve a fundamental security flaw in legacy cloud conversion tools: uploading sensitive personal recordings to unknown servers. Using WebAssembly and client-side audio decoders, your files are processed completely inside your browser sandbox.
+                    </p>
+                </div>
+
+                <div class="bg-dark-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-3">
+                    <div class="w-10 h-10 rounded-xl bg-brand-950 text-brand-400 border border-brand-800/80 flex items-center justify-center font-bold">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-white">Lossless Codec Fidelity</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">
+                        Whether you require high-bitrate MP3 for everyday listening or uncompressed 24-bit PCM WAV and FLAC for studio mastering, our converter preserves original sample rates, channel layouts, and audio dynamics without generational degradation.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Editorial & Contact Box -->
+            <div class="bg-dark-900/60 border border-slate-800 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+                <div>
+                    <span class="font-semibold text-white block mb-0.5">Publisher & Editorial Integrity</span>
+                    <span>Operated by Muhammad Hassan Khan. For editorial inquiries, technical support, or privacy requests, contact <a href="mailto:hubfactsofficial@gmail.com" class="text-brand-400 hover:underline">hubfactsofficial@gmail.com</a>.</span>
+                </div>
+                <div class="flex items-center gap-3 whitespace-nowrap">
+                    <a href="/privacy-policy.html" class="text-brand-400 hover:text-brand-300 underline font-medium">Privacy Policy</a>
+                    <span>&bull;</span>
+                    <a href="/terms.html" class="text-brand-400 hover:text-brand-300 underline font-medium">Terms of Service</a>
+                </div>
+            </div>
+        </section>
         </div>
     </main>
 
@@ -589,9 +686,10 @@
             
             <div class="flex flex-col md:flex-row justify-between items-center border-t border-slate-800/50 pt-8 mt-8">
                 <div class="text-slate-500 text-sm mb-4 md:mb-0">
-                    &copy; <span id="year"></span> VidToAudio. All rights reserved.
+                    &copy; <span id="year"></span> <span id="footer-custom-text">VidToAudio. All rights reserved. 100% On-Device Audio Extraction.</span>
                 </div>
                 <div class="flex gap-6 text-sm">
+                    <a href="/blog" data-route-link class="text-slate-500 hover:text-slate-300 transition-colors">Blog</a>
                     <a href="/privacy-policy.html" class="text-slate-500 hover:text-slate-300 transition-colors">Privacy Policy</a>
                     <a href="/terms.html" class="text-slate-500 hover:text-slate-300 transition-colors">Terms of Service</a>
                 </div>

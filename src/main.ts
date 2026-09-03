@@ -1,10 +1,13 @@
 import { 
   fetchSEOTemplate, 
   fetchFormatToggles, 
+  fetchSiteSettings,
+  fetchBlogBySlug,
   DEFAULT_SEO_TEMPLATE, 
-  DEFAULT_FORMAT_TOGGLES 
+  DEFAULT_FORMAT_TOGGLES,
+  DEFAULT_SITE_SETTINGS
 } from './services/configService';
-import { FormatTogglesConfig } from './types';
+import { FormatTogglesConfig, SiteSettingsConfig } from './types';
 
 // Format definitions
 export const validInputs = ['mp4', 'mkv', 'avi', 'webm', 'mov', 'flv', 'wmv', 'hevc', 'm4v'];
@@ -25,6 +28,164 @@ export const formatDisplayNames: Record<string, string> = {
 // Cached dynamic configs from Firestore
 let cachedSEOTemplate = DEFAULT_SEO_TEMPLATE;
 let cachedFormatToggles: FormatTogglesConfig = { ...DEFAULT_FORMAT_TOGGLES };
+let cachedSiteSettings: SiteSettingsConfig = { ...DEFAULT_SITE_SETTINGS };
+
+// Load instantaneous local cached settings to avoid UI flash
+try {
+  const localSaved = localStorage.getItem('vidtoaudio_site_settings');
+  if (localSaved) {
+    cachedSiteSettings = { ...DEFAULT_SITE_SETTINGS, ...JSON.parse(localSaved) };
+  }
+} catch {
+  // Ignore localStorage read errors in restricted contexts
+}
+
+/**
+ * Dynamically applies global site settings across the entire app
+ * (Primary Theme Color, Site Title, and Footer Text)
+ */
+export function applyGlobalSettings(settings: Partial<SiteSettingsConfig>, toggles?: FormatTogglesConfig) {
+  if (!settings) return;
+
+  // 1. Primary Theme Color injection
+  if (settings.primaryColor) {
+    cachedSiteSettings.primaryColor = settings.primaryColor;
+    let styleTag = document.getElementById('dynamic-brand-styles') as HTMLStyleElement | null;
+    if (!styleTag) {
+      styleTag = document.createElement('style');
+      styleTag.id = 'dynamic-brand-styles';
+      document.head.appendChild(styleTag);
+    }
+    const color = settings.primaryColor;
+    styleTag.innerHTML = `
+      :root {
+        --brand-custom: ${color};
+      }
+      .text-brand-300, .text-brand-400, .text-brand-500 { color: ${color} !important; }
+      .bg-brand-600, .bg-brand-500 { background-color: ${color} !important; }
+      .hover\\:bg-brand-500:hover, .hover\\:bg-brand-600:hover { filter: brightness(1.15) !important; }
+      .border-brand-500, .border-brand-400, .border-brand-800 { border-color: ${color} !important; }
+      .focus\\:border-brand-500:focus { border-color: ${color} !important; }
+      .focus\\:ring-brand-500:focus { --tw-ring-color: ${color} !important; }
+    `;
+  }
+
+  // 2. Global Site Meta Title
+  if (settings.siteMetaTitle) {
+    cachedSiteSettings.siteMetaTitle = settings.siteMetaTitle;
+    const currentRoute = parseRoute(window.location.pathname);
+    if (currentRoute.type === 'converter' && currentRoute.isFallback) {
+      document.title = settings.siteMetaTitle;
+      updateMetaTag('og:title', settings.siteMetaTitle, true);
+    }
+  }
+
+  // 3. Global Footer Text
+  if (settings.footerText) {
+    cachedSiteSettings.footerText = settings.footerText;
+    const footerCustomText = document.getElementById('footer-custom-text');
+    if (footerCustomText) {
+      footerCustomText.textContent = settings.footerText;
+    }
+  }
+
+  // 4. Update format toggles if supplied
+  if (toggles) {
+    cachedFormatToggles = { ...toggles };
+    renderMatrixLinks();
+    updateFormatDropdown();
+  }
+}
+
+// Expose globally for Admin save callbacks
+if (typeof window !== 'undefined') {
+  (window as any).applyGlobalSettings = applyGlobalSettings;
+}
+
+// Meta Tag Helper Functions for SEO Perfection
+export function updateMetaTag(name: string, content: string, isProperty = false) {
+  const attr = isProperty ? 'property' : 'name';
+  let el = document.querySelector(`meta[${attr}="${name}"]`);
+  if (!el) {
+    el = document.createElement('meta');
+    el.setAttribute(attr, name);
+    document.head.appendChild(el);
+  }
+  el.setAttribute('content', content);
+}
+
+export function updateCanonical(url: string) {
+  let link = document.querySelector('link[rel="canonical"]');
+  if (!link) {
+    link = document.createElement('link');
+    link.setAttribute('rel', 'canonical');
+    document.head.appendChild(link);
+  }
+  link.setAttribute('href', url);
+}
+
+export function updateRobots(allowIndex = true) {
+  updateMetaTag('robots', allowIndex ? 'index, follow, max-image-preview:large' : 'noindex, nofollow');
+}
+
+/**
+ * Updates the Top Navigation Bar active states (Home, Converters, Blog, About, Privacy, Admin)
+ */
+export function updateNavbarActiveState(pathname: string) {
+  const route = parseRoute(pathname);
+  const cleanPath = (pathname || window.location.pathname || '/').toLowerCase().split('?')[0].split('#')[0].replace(/\/$/, '') || '/';
+
+  // Desktop navigation items
+  const navItems = {
+    home: document.getElementById('nav-link-home'),
+    converters: document.getElementById('nav-link-converters'),
+    blog: document.getElementById('nav-link-blog'),
+    about: document.getElementById('nav-link-about'),
+    privacy: document.getElementById('nav-link-privacy'),
+    admin: document.getElementById('nav-link-admin'),
+  };
+
+  // Mobile navigation items
+  const mobItems = {
+    home: document.getElementById('mob-link-home'),
+    converters: document.getElementById('mob-link-converters'),
+    blog: document.getElementById('mob-link-blog'),
+    about: document.getElementById('mob-link-about'),
+    privacy: document.getElementById('mob-link-privacy'),
+  };
+
+  const resetEl = (el: HTMLElement | null) => {
+    if (!el) return;
+    el.classList.remove('bg-dark-800', 'text-brand-400', 'border', 'border-brand-500/50');
+    el.classList.add('text-slate-300');
+  };
+
+  const activeEl = (el: HTMLElement | null) => {
+    if (!el) return;
+    el.classList.remove('text-slate-300');
+    el.classList.add('bg-dark-800', 'text-brand-400', 'border', 'border-brand-500/50');
+  };
+
+  Object.values(navItems).forEach(resetEl);
+  Object.values(mobItems).forEach(resetEl);
+
+  if (route.type === 'admin') {
+    activeEl(navItems.admin);
+  } else if (route.type === 'blog-list' || route.type === 'blog-post') {
+    activeEl(navItems.blog);
+    activeEl(mobItems.blog);
+  } else if (cleanPath.includes('privacy')) {
+    activeEl(navItems.privacy);
+    activeEl(mobItems.privacy);
+  } else if (route.type === 'converter' && !route.isFallback) {
+    activeEl(navItems.converters);
+    activeEl(mobItems.converters);
+  } else {
+    // Default homepage
+    activeEl(navItems.home);
+    activeEl(mobItems.home);
+  }
+}
 
 export function parseRoute(pathname: string) {
   let clean = (pathname || window.location.pathname || '/').toLowerCase().trim();
@@ -225,12 +386,15 @@ export function updateFormatDropdown(selectedExt?: string) {
   }
 }
 
-// Master Route Applicator
+// Master Route Applicator with Strict SEO Perfection & Security Guards
 export async function navigateTo(pathname = window.location.pathname) {
   const route = parseRoute(pathname);
 
   const publicConverterView = document.getElementById('public-converter-view');
   const dynamicRouteView = document.getElementById('dynamic-route-view');
+
+  // Update top navigation bar active links
+  updateNavbarActiveState(pathname);
 
   if (route.type === 'admin') {
     // -----------------------------------------------------------------
@@ -242,19 +406,25 @@ export async function navigateTo(pathname = window.location.pathname) {
       dynamicRouteView.innerHTML = `
         <div class="py-24 text-center">
           <div class="w-10 h-10 border-2 border-brand-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p class="text-slate-400 text-sm">Loading Protected Admin Portal...</p>
+          <p class="text-slate-400 text-sm font-medium">Loading Protected Admin Portal...</p>
         </div>
       `;
 
-      // Security & Performance: Code-split and lazy-load admin app module
+      // Code-split and lazy-load admin app module
       const { renderAdminApp } = await import('./admin/adminApp');
       renderAdminApp(dynamicRouteView);
     }
 
-    document.title = 'Admin Dashboard | VidToAudio';
+    // SEO Rule for Admin: Strictly noindex to prevent indexing of internal admin tools
+    document.title = 'Admin Portal | VidToAudio';
+    updateRobots(false);
+    updateCanonical('https://vidtoaudio.com/admin');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
   }
+
+  // Public pages must be indexed by search engines
+  updateRobots(true);
 
   if (route.type === 'blog-list' || route.type === 'blog-post') {
     // -----------------------------------------------------------------
@@ -266,7 +436,7 @@ export async function navigateTo(pathname = window.location.pathname) {
       dynamicRouteView.innerHTML = `
         <div class="py-24 text-center">
           <div class="w-10 h-10 border-2 border-brand-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p class="text-slate-400 text-sm">Loading Blog...</p>
+          <p class="text-slate-400 text-sm font-medium">Loading Blog Articles...</p>
         </div>
       `;
 
@@ -274,12 +444,50 @@ export async function navigateTo(pathname = window.location.pathname) {
       await renderBlogView(dynamicRouteView, route.type === 'blog-post' ? route.slug : undefined);
     }
 
+    if (route.type === 'blog-list') {
+      // Blog Directory Meta Tags
+      const blogTitle = 'Audio Extraction Guides & Technical Tutorials | VidToAudio Blog';
+      const blogDesc = 'In-depth tutorials on video-to-audio extraction, audio codec benchmarks (MP3 vs WAV vs FLAC), and private offline processing.';
+      const blogUrl = 'https://vidtoaudio.com/blog';
+
+      document.title = blogTitle;
+      updateMetaTag('description', blogDesc);
+      updateCanonical(blogUrl);
+      updateMetaTag('og:title', blogTitle, true);
+      updateMetaTag('og:description', blogDesc, true);
+      updateMetaTag('og:url', blogUrl, true);
+      updateMetaTag('og:type', 'website', true);
+      updateMetaTag('twitter:card', 'summary_large_image');
+      updateMetaTag('twitter:title', blogTitle);
+      updateMetaTag('twitter:description', blogDesc);
+    } else {
+      // Single Article Dynamic Meta Tags
+      const slug = route.slug;
+      const article = await fetchBlogBySlug(slug);
+      const articleTitle = article?.title 
+        ? `${article.title} | VidToAudio` 
+        : `${slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} | VidToAudio Blog`;
+      const articleDesc = article?.excerpt || 'Discover technical audio extraction insights and lossless audio tips.';
+      const articleUrl = `https://vidtoaudio.com/blog/${slug}`;
+
+      document.title = articleTitle;
+      updateMetaTag('description', articleDesc);
+      updateCanonical(articleUrl);
+      updateMetaTag('og:title', articleTitle, true);
+      updateMetaTag('og:description', articleDesc, true);
+      updateMetaTag('og:url', articleUrl, true);
+      updateMetaTag('og:type', 'article', true);
+      updateMetaTag('twitter:card', 'summary_large_image');
+      updateMetaTag('twitter:title', articleTitle);
+      updateMetaTag('twitter:description', articleDesc);
+    }
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
   }
 
   // -----------------------------------------------------------------
-  // CONVERTER ROUTE: Show main tool & update SEO text and matrix
+  // CONVERTER & HOMEPAGE ROUTE: Show main tool & update SEO tags & matrix
   // -----------------------------------------------------------------
   if (dynamicRouteView) dynamicRouteView.classList.add('hidden');
   if (publicConverterView) publicConverterView.classList.remove('hidden');
@@ -287,26 +495,38 @@ export async function navigateTo(pathname = window.location.pathname) {
   const inUpper = route.displayInput || (route.input ? route.input.toUpperCase() : 'MP4');
   const outUpper = route.output ? route.output.toUpperCase() : 'WAV';
 
-  // 1. Dynamic document <title>
-  document.title = `Convert ${inUpper} to ${outUpper} Audio Offline & Free`;
+  if (route.isFallback) {
+    // 1. Root / Homepage Dynamic Meta Tags
+    const homeTitle = cachedSiteSettings.siteMetaTitle || 'VidToAudio - Free, Offline & On-Device Audio Converter';
+    const homeDesc = 'Extract high-quality audio (MP3, WAV, AAC, FLAC, OGG, M4A) from video 100% offline in your browser. Private, hardware-accelerated, and free.';
+    const homeUrl = 'https://vidtoaudio.com/';
 
-  // 2. Dynamic <meta name="description">
-  const metaDescContent = `Extract high-quality ${outUpper} audio from ${inUpper} video files securely on your device with zero uploads.`;
-  let metaDesc = document.querySelector('meta[name="description"]');
-  if (!metaDesc) {
-    metaDesc = document.createElement('meta');
-    metaDesc.setAttribute('name', 'description');
-    document.head.appendChild(metaDesc);
-  }
-  metaDesc.setAttribute('content', metaDescContent);
+    document.title = homeTitle;
+    updateMetaTag('description', homeDesc);
+    updateCanonical(homeUrl);
+    updateMetaTag('og:title', homeTitle, true);
+    updateMetaTag('og:description', homeDesc, true);
+    updateMetaTag('og:url', homeUrl, true);
+    updateMetaTag('og:type', 'website', true);
+    updateMetaTag('twitter:card', 'summary_large_image');
+    updateMetaTag('twitter:title', homeTitle);
+    updateMetaTag('twitter:description', homeDesc);
+  } else {
+    // 2. Programmatic /{input}-to-{output} Landing Page Meta Tags
+    const pageTitle = `Convert ${inUpper} to ${outUpper} Audio Offline & Free | VidToAudio`;
+    const pageDesc = `Extract high-quality ${outUpper} audio from ${inUpper} video files securely on your device with zero uploads. Lossless and fast.`;
+    const pageUrl = `https://vidtoaudio.com${route.canonicalPath}`;
 
-  // Dynamic Canonical & OpenGraph tags
-  const canonicalLink = document.querySelector('link[rel="canonical"]');
-  if (canonicalLink) {
-    const canonicalHref = route.canonicalPath === '/' 
-      ? 'https://vidtoaudio.com/' 
-      : `https://vidtoaudio.com${route.canonicalPath}`;
-    canonicalLink.setAttribute('href', canonicalHref);
+    document.title = pageTitle;
+    updateMetaTag('description', pageDesc);
+    updateCanonical(pageUrl);
+    updateMetaTag('og:title', pageTitle, true);
+    updateMetaTag('og:description', pageDesc, true);
+    updateMetaTag('og:url', pageUrl, true);
+    updateMetaTag('og:type', 'website', true);
+    updateMetaTag('twitter:card', 'summary_large_image');
+    updateMetaTag('twitter:title', pageTitle);
+    updateMetaTag('twitter:description', pageDesc);
   }
 
   // 3. Dynamic main <h1> text
@@ -366,9 +586,73 @@ export async function navigateTo(pathname = window.location.pathname) {
   });
 }
 
+// Expose navigateTo globally
+if (typeof window !== 'undefined') {
+  (window as any).navigateTo = navigateTo;
+}
+
+// Setup responsive navbar interactions (toggle menu & in-page smooth scrolls)
+function initNavbarInteractions() {
+  const toggleBtn = document.getElementById('mobile-menu-toggle');
+  const menu = document.getElementById('mobile-nav-menu');
+  const hamburger = document.getElementById('hamburger-icon');
+  const closeIcon = document.getElementById('close-icon');
+
+  if (toggleBtn && menu) {
+    toggleBtn.addEventListener('click', () => {
+      const isHidden = menu.classList.contains('hidden');
+      if (isHidden) {
+        menu.classList.remove('hidden');
+        hamburger?.classList.add('hidden');
+        closeIcon?.classList.remove('hidden');
+      } else {
+        menu.classList.add('hidden');
+        hamburger?.classList.remove('hidden');
+        closeIcon?.classList.add('hidden');
+      }
+    });
+
+    // Close mobile menu whenever a menu link is tapped
+    menu.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        menu.classList.add('hidden');
+        hamburger?.classList.remove('hidden');
+        closeIcon?.classList.add('hidden');
+      });
+    });
+  }
+
+  // Handle smooth scroll for anchors like /#all-converters-section and /#about
+  document.querySelectorAll('a[href^="/#"]').forEach(anchor => {
+    anchor.addEventListener('click', (e) => {
+      const href = anchor.getAttribute('href');
+      if (!href) return;
+      const targetId = href.replace('/#', '');
+      
+      const currentRoute = parseRoute(window.location.pathname);
+      if (currentRoute.type !== 'converter' || !currentRoute.isFallback) {
+        e.preventDefault();
+        window.history.pushState({}, '', '/');
+        navigateTo('/').then(() => {
+          setTimeout(() => {
+            const targetEl = document.getElementById(targetId);
+            if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth' });
+          }, 100);
+        });
+      } else {
+        e.preventDefault();
+        const targetEl = document.getElementById(targetId);
+        if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  });
+}
+
 // Initialize Application
 async function initApp() {
-  // 1. Instant initial render and routing (synchronous first paint)
+  // 1. Synchronous initial setup
+  initNavbarInteractions();
+  applyGlobalSettings(cachedSiteSettings);
   renderMatrixLinks();
   await navigateTo(window.location.pathname);
 
@@ -400,16 +684,26 @@ async function initApp() {
 
 async function fetchRemoteConfigs() {
   try {
-    const [seo, toggles] = await Promise.all([
+    const [seo, toggles, settings] = await Promise.all([
       fetchSEOTemplate(),
-      fetchFormatToggles()
+      fetchFormatToggles(),
+      fetchSiteSettings()
     ]);
     cachedSEOTemplate = seo;
     cachedFormatToggles = toggles;
+    cachedSiteSettings = settings;
+
+    try {
+      localStorage.setItem('vidtoaudio_site_settings', JSON.stringify(settings));
+    } catch {
+      // Ignore storage errors
+    }
+
+    applyGlobalSettings(settings, toggles);
     renderMatrixLinks();
     updateFormatDropdown();
     
-    // If we are currently on a converter page, re-inject SEO content
+    // If currently on a converter page, re-inject SEO content
     const currentRoute = parseRoute(window.location.pathname);
     if (currentRoute.type === 'converter') {
       const seoContainer = document.getElementById('dynamic-seo-content');
@@ -418,7 +712,7 @@ async function fetchRemoteConfigs() {
       }
     }
   } catch (e) {
-    console.warn('Using default configurations for SEO and Toggles:', e);
+    console.warn('Using default configurations for SEO, Toggles and Settings:', e);
   }
 }
 
@@ -427,3 +721,4 @@ if (document.readyState === 'loading') {
 } else {
   initApp();
 }
+

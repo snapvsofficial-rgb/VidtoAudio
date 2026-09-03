@@ -18,3 +18,11 @@ export interface SEOTemplateConfig {
 export interface FormatTogglesConfig {
   [formatKey: string]: boolean;
 }
+
+export interface SiteSettingsConfig {
+  primaryColor?: string;
+  siteMetaTitle?: string;
+  footerText?: string;
+  vercelDeployHook?: string;
+  updatedAt?: any;
+}
