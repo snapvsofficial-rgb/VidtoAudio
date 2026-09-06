@@ -197,7 +197,7 @@ export function parseRoute(pathname: string) {
   }
 
   if (!clean || clean === '404') {
-    return { type: 'converter', input: 'mp4', output: 'wav', isFallback: true, canonicalPath: '/' };
+    return { type: 'converter', input: 'mp4', output: 'mp3', isFallback: true, canonicalPath: '/' };
   }
 
   if (clean === 'admin' || clean.startsWith('admin/')) {
@@ -228,7 +228,7 @@ export function parseRoute(pathname: string) {
     }
   }
 
-  return { type: 'converter', input: 'mp4', output: 'wav', isFallback: true, canonicalPath: '/' };
+  return { type: 'converter', input: 'mp4', output: 'mp3', isFallback: true, canonicalPath: '/' };
 }
 
 // Render dynamic matrix footer links
@@ -487,8 +487,8 @@ export async function navigateTo(pathname = window.location.pathname) {
 
   if (route.isFallback) {
     // 1. Root / Homepage Dynamic Meta Tags
-    const homeTitle = cachedSiteSettings.siteMetaTitle || 'VidToAudio - Free, Offline & On-Device Audio Converter';
-    const homeDesc = 'Extract high-quality audio (MP3, WAV, AAC, FLAC, OGG, M4A) from video 100% offline in your browser. Private, hardware-accelerated, and free.';
+    const homeTitle = cachedSiteSettings.siteMetaTitle || 'Bulk MP4 to MP3 Converter (Offline, Batch & 320kbps) - Free';
+    const homeDesc = 'Batch convert multiple MP4 to MP3 files offline directly in your browser. Fastest bulk conversion, no server uploads required. Get 320kbps studio quality instantly.';
     const homeUrl = 'https://vidtoaudio.com/';
 
     document.title = homeTitle;
@@ -520,24 +520,28 @@ export async function navigateTo(pathname = window.location.pathname) {
   }
 
   // 3. Dynamic main <h1> text
-  const heroTitleHighlight = document.getElementById('hero-title-highlight');
-  if (heroTitleHighlight) {
-    heroTitleHighlight.textContent = `${inUpper} to ${outUpper} Converter`;
-  }
-  const heroTitleSub = document.getElementById('hero-title-sub');
-  if (heroTitleSub) {
-    heroTitleSub.textContent = 'Free, Offline & On-Device';
+  const heroTitle = document.getElementById('hero-title');
+  if (heroTitle) {
+    if (route.isFallback) {
+      heroTitle.textContent = 'Fastest Bulk & Batch MP4 to MP3 Converter (Offline)';
+    } else {
+      heroTitle.textContent = `Fastest Bulk & Batch ${inUpper} to ${outUpper} Converter (Offline)`;
+    }
   }
 
   const converterTitle = document.getElementById('converter-title');
   if (converterTitle) {
-    converterTitle.textContent = `Try it here: Free ${inUpper} to ${outUpper} Converter`;
+    if (route.isFallback) {
+      converterTitle.textContent = 'Try it here: Bulk & Batch MP4 to MP3 Converter';
+    } else {
+      converterTitle.textContent = `Try it here: Bulk & Batch ${inUpper} to ${outUpper} Converter`;
+    }
   }
 
   // 4. Dynamic Upload Box Text
   const dropzoneText = document.getElementById('dropzone-text');
   if (dropzoneText) {
-    dropzoneText.textContent = `Click to select ${inUpper} video`;
+    dropzoneText.textContent = `Click or drag & drop ${inUpper} video files for bulk conversion`;
   }
 
   // 5. Update dropdown options & selection based on active toggles

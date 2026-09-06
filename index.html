@@ -6,12 +6,15 @@
     <link rel="canonical" href="https://vidtoaudio.com/" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MP4 to WAV Converter - Free, Offline & On-Device | VidToAudio</title>
-    <meta name="description" content="Extract audio from video with this free, offline MP4 to WAV converter. VidToAudio provides secure on-device processing without internet. Get it for Android.">
+    <title>Bulk MP4 to MP3 Converter (Offline, Batch & 320kbps) - Free</title>
+    <meta name="description" content="Batch convert multiple MP4 to MP3 files offline directly in your browser. Fastest bulk conversion, no server uploads required. Get 320kbps studio quality instantly.">
     
-    <meta property="og:title" content="VidToAudio - Offline MP4 to WAV Converter">
-    <meta property="og:description" content="Convert video to audio without internet. Secure, fast, and 100% on-device processing.">
+    <meta property="og:title" content="Bulk MP4 to MP3 Converter (Offline, Batch & 320kbps) - Free">
+    <meta property="og:description" content="Batch convert multiple MP4 to MP3 files offline directly in your browser. Fastest bulk conversion, no server uploads required. Get 320kbps studio quality instantly.">
     <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Bulk MP4 to MP3 Converter (Offline, Batch & 320kbps) - Free">
+    <meta name="twitter:description" content="Batch convert multiple MP4 to MP3 files offline directly in your browser. Fastest bulk conversion, no server uploads required. Get 320kbps studio quality instantly.">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -41,6 +44,9 @@
     <!-- WaveSurfer.js CDN -->
     <script src="https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js"></script>
     <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
+
+    <!-- JSZip for Client-Side Bulk ZIP Download -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
     <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
     <script src="https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
@@ -79,50 +85,18 @@
           "mainEntity": [
             {
               "@type": "Question",
-              "name": "Does VidToAudio need internet?",
+              "name": "Is this bulk MP4 to MP3 converter really offline?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "No, VidToAudio is a completely offline audio converter. All processing happens on your device, meaning you can convert video to audio without internet."
+                "text": "Yes, all processing happens locally in your browser to save data and ensure 100% privacy."
               }
             },
             {
               "@type": "Question",
-              "name": "What formats are supported?",
+              "name": "Is there a limit to batch conversion?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "You can extract audio into multiple formats including MP3, AAC, WAV, M4A, FLAC, and OGG."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "Does noise reduction affect voice quality?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Our AI Noise Reduction (Beta) is tuned to isolate vocals and preserve audio fidelity while removing background hums and noise."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "Is there a file size limit?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Because VidToAudio utilizes on-device processing, there are no artificial file size limits. It depends entirely on your phone's available storage and memory."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "Where are converted files saved?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "Converted files are saved directly to your phone's local storage. You can set a custom output folder path in the app settings, and view all files in the Library section."
-              }
-            },
-            {
-              "@type": "Question",
-              "name": "Does VidToAudio require a subscription?",
-              "acceptedAnswer": {
-                "@type": "Answer",
-                "text": "No, the core MP4 to WAV converter and extraction features are completely free to use. There are no mandatory subscriptions to extract audio from video."
+                "text": "No limits! You can convert as many files as your device memory allows, completely free."
               }
             }
           ]
@@ -218,17 +192,15 @@
         <div id="public-converter-view">
             <!-- Hero Section -->
             <section class="pt-20 pb-12 px-4 text-center">
-            <h1 id="hero-title" class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6 max-w-4xl mx-auto leading-tight">
-                <span id="hero-title-highlight" class="text-brand-400">MP4 to WAV Converter</span> <br/>
-                <span id="hero-title-sub">Free, Offline & On-Device</span>
-            </h1>
+            <h1 id="hero-title" class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6 max-w-4xl mx-auto leading-tight">Fastest Bulk & Batch MP4 to MP3 Converter (Offline)</h1>
             <p class="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto mb-8">
-                Extract audio from video with zero uploads. Our audio extraction app runs 100% locally on your phone for maximum privacy and speed.
+                Extract high-bitrate audio from single or multiple video files in bulk with zero uploads. Runs 100% locally in your browser for absolute privacy, zero data usage, and maximum speed.
             </p>
 
             <!-- Route Quick Links for Format Landing Pages -->
             <div class="flex flex-wrap justify-center items-center gap-2 max-w-2xl mx-auto mb-10 text-xs sm:text-sm font-medium">
                 <span class="text-slate-500 mr-1">Popular Converters:</span>
+                <a href="/mp4-to-mp3" data-route-link class="px-3 py-1.5 rounded-lg border transition-colors bg-dark-900 border-slate-700 text-slate-300 hover:border-brand-500 hover:text-white">MP4 to MP3</a>
                 <a href="/mp4-to-wav" data-route-link class="px-3 py-1.5 rounded-lg border transition-colors bg-dark-900 border-slate-700 text-slate-300 hover:border-brand-500 hover:text-white">MP4 to WAV</a>
                 <a href="/hevc-to-mp3" data-route-link class="px-3 py-1.5 rounded-lg border transition-colors bg-dark-900 border-slate-700 text-slate-300 hover:border-brand-500 hover:text-white">HEVC to MP3</a>
                 <a href="/video-to-flac" data-route-link class="px-3 py-1.5 rounded-lg border transition-colors bg-dark-900 border-slate-700 text-slate-300 hover:border-brand-500 hover:text-white">Video to FLAC</a>
@@ -252,50 +224,66 @@
             <div class="max-w-5xl mx-auto px-4 py-6 flex flex-wrap justify-center items-center gap-x-8 gap-y-4 text-sm font-medium text-slate-400">
                 <div class="flex items-center gap-2"><svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 100% Offline</div>
                 <div class="hidden sm:block text-slate-700">&bull;</div>
-                <div class="flex items-center gap-2"><svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> On-Device Processing</div>
+                <div class="flex items-center gap-2"><svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg> Sequential Bulk Queue</div>
+                <div class="hidden sm:block text-slate-700">&bull;</div>
+                <div class="flex items-center gap-2"><svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> 128 / 192 / 320 kbps</div>
                 <div class="hidden sm:block text-slate-700">&bull;</div>
                 <div class="flex items-center gap-2"><svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> No Uploads Required</div>
             </div>
         </section>
 
         <!-- Functional Web Tool -->
-        <section class="max-w-3xl mx-auto mt-12 mb-20 px-4">
+        <section class="max-w-3xl mx-auto mt-12 mb-16 px-4">
             <div class="bg-dark-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
                 <div class="text-center mb-6">
-                    <h2 id="converter-title" class="text-xl font-semibold text-white mb-2">Try it here: Free MP4 to WAV Converter</h2>
-                    <p class="text-slate-400 text-sm">For best performance, use files under 200MB. Processed entirely in your browser using FFmpeg WASM.</p>
+                    <h2 id="converter-title" class="text-xl font-semibold text-white mb-2">Try it here: Bulk & Batch MP4 to MP3 Converter</h2>
+                    <p class="text-slate-400 text-sm">Select single or multiple video files. Converted sequentially in your browser via FFmpeg WebAssembly.</p>
                 </div>
 
                 <div id="converter-ui" class="flex flex-col items-center w-full">
-                    <input type="file" id="video-file" accept="video/mp4,video/*" class="hidden" />
-                    <label for="video-file" class="cursor-pointer group border-2 border-dashed border-slate-700 hover:border-brand-500 rounded-xl w-full py-12 flex flex-col items-center transition-colors bg-dark-800/50 mb-6">
+                    <!-- Multiple file input with accessible label -->
+                    <input type="file" id="video-file" accept="video/*,.mp4,.mkv,.avi,.webm,.mov,.flv,.wmv,.m4v" multiple class="hidden" aria-label="Select MP4 and video files for batch audio extraction" />
+                    <label for="video-file" id="dropzone-label" aria-label="Upload video files for bulk conversion" class="cursor-pointer group border-2 border-dashed border-slate-700 hover:border-brand-500 rounded-xl w-full py-10 px-4 flex flex-col items-center transition-all bg-dark-800/50 mb-6 focus-within:ring-2 focus-within:ring-brand-500">
                         <svg class="w-10 h-10 text-slate-500 group-hover:text-brand-400 mb-3 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                        <span id="dropzone-text" class="text-slate-300 font-medium group-hover:text-white transition-colors">Click to select MP4 video</span>
-                        <span class="text-slate-500 text-xs mt-2" id="file-name-display">No file chosen</span>
+                        <span id="dropzone-text" class="text-slate-200 font-medium group-hover:text-white transition-colors text-center text-sm sm:text-base">Click or drag & drop video files for bulk conversion</span>
+                        <span class="text-slate-400 text-xs mt-2 text-center" id="file-name-display">No files chosen (Select one or multiple files)</span>
+                        <span class="text-slate-500 text-[11px] mt-1 text-center">Supports MP4, MKV, AVI, WEBM, MOV, FLV, WMV & more</span>
                     </label>
 
-                    <div class="w-full max-w-sm mb-6 text-left">
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Output Format</label>
-                        <select id="output-format" class="w-full bg-dark-800 border border-slate-700 text-white text-sm rounded-lg focus:ring-brand-500 focus:border-brand-500 block p-3">
-                            <option value="wav">WAV (Lossless, High Quality)</option>
-                            <option value="mp3">MP3 (Compressed, Universal)</option>
-                            <option value="aac">AAC (Advanced Audio Coding)</option>
-                            <option value="flac">FLAC (Free Lossless Audio Codec)</option>
-                            <option value="ogg">OGG (Vorbis Audio)</option>
-                            <option value="m4a">M4A (Apple Audio)</option>
-                            <option value="wma">WMA (Windows Media Audio)</option>
-                            <option value="opus">OPUS (High Efficiency Audio)</option>
-                            <option value="aiff">AIFF (Audio Interchange Format)</option>
-                        </select>
+                    <!-- Format and Audio Quality Dropdowns -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md mb-6 text-left">
+                        <div>
+                            <label for="output-format" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Output Format</label>
+                            <select id="output-format" class="w-full bg-dark-800 border border-slate-700 text-white text-sm rounded-lg focus:ring-brand-500 focus:border-brand-500 block p-3">
+                                <option value="mp3" selected>MP3 (Compressed, Universal)</option>
+                                <option value="wav">WAV (Lossless, High Quality)</option>
+                                <option value="aac">AAC (Advanced Audio Coding)</option>
+                                <option value="flac">FLAC (Free Lossless Audio Codec)</option>
+                                <option value="ogg">OGG (Vorbis Audio)</option>
+                                <option value="m4a">M4A (Apple Audio)</option>
+                                <option value="wma">WMA (Windows Media Audio)</option>
+                                <option value="opus">OPUS (High Efficiency Audio)</option>
+                                <option value="aiff">AIFF (Audio Interchange Format)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="audio-bitrate" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Audio Quality</label>
+                            <select id="audio-bitrate" class="w-full bg-dark-800 border border-slate-700 text-white text-sm rounded-lg focus:ring-brand-500 focus:border-brand-500 block p-3">
+                                <option value="320k" selected>Studio (320kbps)</option>
+                                <option value="192k">High (192kbps)</option>
+                                <option value="128k">Standard (128kbps)</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <button id="convert-btn" class="w-full sm:w-auto px-8 py-3 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-lg shadow-lg shadow-brand-500/20 transition-all opacity-50 cursor-not-allowed" disabled>
+                    <button id="convert-btn" class="w-full sm:w-auto px-8 py-3.5 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl shadow-lg shadow-brand-500/20 transition-all opacity-50 cursor-not-allowed text-sm flex items-center justify-center gap-2" disabled>
                         Extract Audio
                     </button>
-                    <p id="format-summary" class="text-xs text-slate-500 text-center mt-3 font-medium">Output: WAV (Lossless, High Quality)</p>
+                    <p id="format-summary" class="text-xs text-slate-500 text-center mt-3 font-medium">Output: MP3 (Studio 320kbps)</p>
                 </div>
 
-                <div id="processing-ui" class="hidden flex-col items-center py-8">
+                <!-- Processing UI with detailed progress state -->
+                <div id="processing-ui" class="hidden flex-col items-center py-8 w-full">
                     <div class="relative w-24 h-24 mb-4">
                         <svg class="w-full h-full transform -rotate-90">
                             <circle cx="48" cy="48" r="44" stroke="currentColor" stroke-width="8" fill="transparent" class="text-slate-800" />
@@ -305,21 +293,57 @@
                             <span id="progress-text" class="text-white font-bold text-lg">0%</span>
                         </div>
                     </div>
-                    <p class="text-slate-400 animate-pulse text-center">Extracting audio... <br/> <span class="text-xs">Loading FFmpeg core on first run may take a few seconds.</span></p>
+                    <p id="processing-status" class="text-white font-semibold text-base text-center">Processing file 1 of 1... 0%</p>
+                    <p id="processing-filename" class="text-xs text-brand-400 font-mono mt-1 text-center truncate max-w-sm"></p>
+                    <p class="text-xs text-slate-500 mt-2 text-center">Sequential offline processing &bull; Zero server uploads</p>
                 </div>
 
+                <!-- Success UI with ZIP download and individual buttons -->
                 <div id="success-ui" class="hidden flex-col items-center py-6 w-full relative">
                     <button id="reset-btn" class="absolute top-2 right-2 sm:right-4 text-slate-400 hover:text-white p-2 rounded-full hover:bg-dark-700 transition-colors" title="Clear and Start Over">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-10 h-10 bg-brand-900/30 text-brand-400 border border-brand-800 rounded-full flex items-center justify-center">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-10 h-10 bg-brand-900/30 text-brand-400 border border-brand-800 rounded-full flex items-center justify-center flex-shrink-0">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         </div>
-                        <h3 class="text-white font-semibold text-xl">Conversion Complete!</h3>
+                        <div>
+                            <h3 id="success-title" class="text-white font-semibold text-xl">Conversion Complete!</h3>
+                            <p id="success-subtitle" class="text-xs text-slate-400">All files processed locally on your device</p>
+                        </div>
+                    </div>
+
+                    <!-- Batch Action Buttons (Download All as ZIP) -->
+                    <div id="batch-action-bar" class="w-full flex flex-col sm:flex-row items-center justify-center gap-3 my-6">
+                        <button id="download-zip-btn" class="w-full sm:w-auto px-7 py-3.5 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl shadow-lg shadow-brand-500/25 flex items-center justify-center gap-2.5 transition-all text-sm group">
+                            <svg class="w-5 h-5 text-brand-200 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4m6 10l2 2m0 0l2-2m-2 2V8"></path></svg>
+                            <span id="download-zip-btn-text">Download All as ZIP</span>
+                        </button>
+                        <button id="convert-another-btn" class="w-full sm:w-auto px-6 py-3.5 bg-dark-800 hover:bg-dark-700 border border-slate-700 text-slate-300 hover:text-white font-semibold rounded-xl transition-colors flex items-center justify-center text-sm gap-2">
+                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            <span>Convert More Files</span>
+                        </button>
+                    </div>
+
+                    <!-- Converted Items List with Individual Download Buttons -->
+                    <div id="batch-results-container" class="w-full mb-6">
+                        <div class="w-full bg-dark-800/60 border border-slate-700/80 rounded-xl overflow-hidden shadow-inner">
+                            <div class="px-4 py-3 bg-dark-800/90 border-b border-slate-700/80 flex items-center justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                <span id="batch-results-count">Converted Tracks</span>
+                                <span>Actions</span>
+                            </div>
+                            <div id="batch-results-list" class="divide-y divide-slate-800/80 max-h-72 overflow-y-auto">
+                                <!-- Dynamic File Items -->
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="w-full bg-dark-800/50 border border-slate-700 rounded-xl p-5 mb-8">
+                    <!-- Audio Player & Trimmer for active/preview track -->
+                    <div id="single-player-container" class="w-full bg-dark-800/50 border border-slate-700 rounded-xl p-5 mb-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Audio Preview</span>
+                            <span id="preview-file-name" class="text-xs text-brand-400 font-mono truncate max-w-xs"></span>
+                        </div>
                         <div id="waveform" class="w-full h-24 mb-4"></div>
                         
                         <div class="flex items-center justify-between flex-wrap gap-4">
@@ -358,27 +382,43 @@
                             </button>
                         </div>
                     </div>
-                    
-                    <div class="flex flex-col sm:flex-row gap-4 w-full justify-center mb-8">
-                        <a id="download-link" href="#" download="extracted_audio.wav" class="w-full sm:w-auto px-8 py-3 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-lg shadow-lg flex items-center justify-center gap-2 transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                            Download <span id="dl-format-label">WAV</span>
-                        </a>
-                        <button id="convert-another-btn" class="w-full sm:w-auto px-6 py-3 bg-dark-800 hover:bg-dark-700 border border-slate-700 text-slate-300 font-semibold rounded-lg transition-colors flex items-center justify-center">
-                            Start Over
-                        </button>
-                    </div>
-
-                    <div class="bg-dark-800/50 border border-slate-700 p-5 rounded-xl max-w-sm w-full text-center">
-                        <p class="text-sm text-slate-300 mb-3">Want batch conversion and AI noise reduction?</p>
-                        <a href="#download" class="text-brand-400 text-sm font-semibold hover:text-brand-300 flex items-center justify-center gap-1">Get the VidToAudio Android app <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg></a>
-                    </div>
                 </div>
 
                 <div id="error-ui" class="hidden mt-4 p-4 bg-red-900/30 border border-red-800 rounded-lg text-red-400 text-sm text-center">
                 </div>
             </div>
         </section>
+
+        <!-- SEO Article: Offline Batch & Bulk Audio Extraction Saves Data & Time -->
+        <article id="batch-conversion-seo" class="max-w-3xl mx-auto px-4 -mt-8 mb-16">
+            <div class="bg-dark-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-brand-950 text-brand-400 border border-brand-800/60">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        Offline Batch Processing
+                    </span>
+                    <span class="text-xs text-slate-500 font-mono">100% Client-Side WebAssembly</span>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-bold text-white mb-3 tracking-tight">How Offline Batch & Bulk MP4 to MP3 Conversion Saves Data and Time</h2>
+                <p class="text-slate-300 leading-relaxed text-sm sm:text-base mb-4">
+                    Traditional online media converters require uploading heavy video files to remote cloud servers before extraction can even begin. When processing batches of high-definition MP4 clips, this results in hundreds of megabytes of wasted internet data and agonizing upload bottlenecks. Our offline batch MP4 to MP3 converter completely eliminates cloud uploads by running FFmpeg WebAssembly directly on your device. Every video is converted sequentially in client memory, conserving your mobile bandwidth, safeguarding sensitive personal media from third-party servers, and allowing instant one-click ZIP downloads of your high-bitrate MP3 tracks.
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-800/80 text-xs text-slate-400">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-brand-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <span><strong>Zero Data Consumption:</strong> No cloud file uploads</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-brand-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <span><strong>Sequential Memory Safety:</strong> No browser crashes</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-brand-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <span><strong>One-Click ZIP Export:</strong> Packaged in browser</span>
+                    </div>
+                </div>
+            </div>
+        </article>
 
         <!-- Dynamic SEO Content Container -->
         <section class="max-w-4xl mx-auto px-4 -mt-10 mb-16">
@@ -705,13 +745,14 @@
     <script>
         document.getElementById('year').textContent = new Date().getFullYear();
 
-        // Web Audio & FFmpeg WASM Local Engine Logic
+        // Web Audio, Sequential Batch Queue & FFmpeg WASM Local Engine
         document.addEventListener('DOMContentLoaded', () => {
             const fileInput = document.getElementById('video-file');
+            const dropzoneLabel = document.getElementById('dropzone-label');
             const fileNameDisplay = document.getElementById('file-name-display');
             const convertBtn = document.getElementById('convert-btn');
             const formatSelect = document.getElementById('output-format');
-            const dlFormatLabel = document.getElementById('dl-format-label');
+            const bitrateSelect = document.getElementById('audio-bitrate');
             
             const uiConverter = document.getElementById('converter-ui');
             const uiProcessing = document.getElementById('processing-ui');
@@ -720,7 +761,16 @@
             
             const progressCircle = document.getElementById('progress-circle');
             const progressText = document.getElementById('progress-text');
-            const downloadLink = document.getElementById('download-link');
+            const processingStatus = document.getElementById('processing-status');
+            const processingFileName = document.getElementById('processing-filename');
+
+            const successTitle = document.getElementById('success-title');
+            const successSubtitle = document.getElementById('success-subtitle');
+            const downloadZipBtn = document.getElementById('download-zip-btn');
+            const downloadZipBtnText = document.getElementById('download-zip-btn-text');
+            const batchResultsList = document.getElementById('batch-results-list');
+            const batchResultsCount = document.getElementById('batch-results-count');
+            const previewFileName = document.getElementById('preview-file-name');
             const convertAnotherBtn = document.getElementById('convert-another-btn');
             const resetBtn = document.getElementById('reset-btn');
             
@@ -744,8 +794,10 @@
             let currentBlobUrl = null;
             let currentAudioBlob = null;
             let activeRegion = null;
-            let originalFileName = "";
-            let selectedFormatExt = "wav";
+            let activePreviewTrackName = "";
+            let selectedFormatExt = "mp3";
+            let selectedFiles = [];
+            let convertedBatchResults = [];
 
             const circumference = 2 * Math.PI * 44;
             progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
@@ -757,6 +809,25 @@
                 progressText.innerText = `${Math.round(percent)}%`;
             }
 
+            function updateFormatSummary() {
+                const formatText = formatSelect.options[formatSelect.selectedIndex]?.text.split(' ')[0] || selectedFormatExt.toUpperCase();
+                const bitrateText = bitrateSelect.value;
+                if (['flac', 'wav', 'aiff'].includes(selectedFormatExt)) {
+                    formatSummary.innerText = `Output: ${formatText} (Lossless Uncompressed)`;
+                } else {
+                    formatSummary.innerText = `Output: ${formatText} (${bitrateText} Audio Bitrate)`;
+                }
+            }
+
+            formatSelect.addEventListener('change', (e) => {
+                selectedFormatExt = e.target.value;
+                updateFormatSummary();
+            });
+
+            bitrateSelect.addEventListener('change', () => {
+                updateFormatSummary();
+            });
+
             function showError(msg) {
                 uiError.innerText = msg;
                 uiError.classList.remove('hidden');
@@ -764,61 +835,107 @@
                 uiProcessing.classList.remove('flex');
                 uiConverter.classList.remove('hidden');
                 convertBtn.disabled = false;
-                convertBtn.innerHTML = 'Extract Audio';
+                convertBtn.innerText = selectedFiles.length > 1 ? `Extract Audio (${selectedFiles.length} Files)` : 'Extract Audio';
             }
 
             function formatTime(seconds) {
+                if (isNaN(seconds) || seconds < 0) return "00:00";
                 const m = Math.floor(seconds / 60);
                 const s = Math.floor(seconds % 60);
                 return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
             }
 
-            fileInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    fileNameDisplay.innerText = file.name;
-                    fileNameDisplay.classList.add('text-brand-400');
-                    convertBtn.disabled = false;
-                    convertBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                } else {
-                    fileNameDisplay.innerText = 'No file chosen';
+            function handleFilesSelection(files) {
+                selectedFiles = Array.from(files).filter(f => f && f.size > 0);
+                if (selectedFiles.length === 0) {
+                    fileNameDisplay.innerText = 'No files chosen (Select one or multiple files)';
                     fileNameDisplay.classList.remove('text-brand-400');
                     convertBtn.disabled = true;
                     convertBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    convertBtn.innerText = 'Extract Audio';
+                    return;
                 }
+
+                if (selectedFiles.length === 1) {
+                    const mb = (selectedFiles[0].size / 1024 / 1024).toFixed(1);
+                    fileNameDisplay.innerText = `${selectedFiles[0].name} (${mb} MB)`;
+                    convertBtn.innerText = 'Extract Audio (1 File)';
+                } else {
+                    const totalMB = (selectedFiles.reduce((sum, f) => sum + f.size, 0) / 1024 / 1024).toFixed(1);
+                    fileNameDisplay.innerText = `${selectedFiles.length} files selected (${totalMB} MB total)`;
+                    convertBtn.innerText = `Extract Audio (${selectedFiles.length} Files)`;
+                }
+
+                fileNameDisplay.classList.add('text-brand-400');
+                convertBtn.disabled = false;
+                convertBtn.classList.remove('opacity-50', 'cursor-not-allowed');
                 uiError.classList.add('hidden');
+            }
+
+            fileInput.addEventListener('change', (e) => {
+                handleFilesSelection(e.target.files);
             });
 
-            convertAnotherBtn.addEventListener('click', () => {
+            // Accessible Drag and Drop support
+            if (dropzoneLabel) {
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    dropzoneLabel.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dropzoneLabel.classList.add('border-brand-500', 'bg-brand-950/20');
+                    }, false);
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    dropzoneLabel.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dropzoneLabel.classList.remove('border-brand-500', 'bg-brand-950/20');
+                    }, false);
+                });
+
+                dropzoneLabel.addEventListener('drop', (e) => {
+                    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                        fileInput.files = e.dataTransfer.files;
+                        handleFilesSelection(e.dataTransfer.files);
+                    }
+                }, false);
+            }
+
+            function resetAllState() {
                 uiSuccess.classList.add('hidden');
                 uiSuccess.classList.remove('flex');
+                uiProcessing.classList.add('hidden');
+                uiProcessing.classList.remove('flex');
                 uiConverter.classList.remove('hidden');
+                uiError.classList.add('hidden');
                 fileInput.value = "";
-                fileNameDisplay.innerText = 'No file chosen';
+                selectedFiles = [];
+                convertedBatchResults = [];
+                fileNameDisplay.innerText = 'No files chosen (Select one or multiple files)';
                 fileNameDisplay.classList.remove('text-brand-400');
                 convertBtn.disabled = true;
                 convertBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                convertBtn.innerText = 'Extract Audio';
                 trimControls.classList.add('hidden');
                 if (wavesurfer) {
                     wavesurfer.destroy();
                     wavesurfer = null;
                 }
-            });
+                if (currentBlobUrl) {
+                    URL.revokeObjectURL(currentBlobUrl);
+                    currentBlobUrl = null;
+                }
+                currentAudioBlob = null;
+            }
 
-            resetBtn.addEventListener('click', () => {
-                convertAnotherBtn.click();
-            });
+            convertAnotherBtn.addEventListener('click', resetAllState);
+            resetBtn.addEventListener('click', resetAllState);
 
             volumeSlider.addEventListener('input', (e) => {
                 if (wavesurfer) {
                     wavesurfer.setVolume(Number(e.target.value));
                 }
-            });
-
-            formatSelect.addEventListener('change', (e) => {
-                selectedFormatExt = e.target.value;
-                const selectedOptionText = e.target.options[e.target.selectedIndex]?.text || formatDisplayNames[selectedFormatExt] || selectedFormatExt.toUpperCase();
-                formatSummary.innerText = `Output: ${selectedOptionText}`;
             });
 
             playPauseBtn.addEventListener('click', () => {
@@ -831,7 +948,7 @@
                 if (trimControls.classList.contains('hidden')) {
                     trimControls.classList.remove('hidden');
                     trimControls.classList.add('flex');
-                    if (wsRegions && !activeRegion) {
+                    if (wsRegions && !activeRegion && wavesurfer) {
                         activeRegion = wsRegions.addRegion({
                             start: 0,
                             end: Math.min(wavesurfer.getDuration(), 10),
@@ -852,18 +969,13 @@
 
             let ffmpeg = null;
 
-            async function processAudio(inputFileBlob, outputExt, startOffset = 0, duration = null) {
+            async function processAudio(inputFileBlob, outputExt, bitrate = '320k', onProgress = null, startOffset = 0, duration = null) {
                 if (!ffmpeg) {
                     const { FFmpeg } = window.FFmpegWASM;
                     ffmpeg = new FFmpeg();
                     
-                    ffmpeg.on('progress', ({ progress }) => {
-                        const percent = Math.max(0, Math.min(100, (progress || 0) * 100));
-                        setProgress(percent);
-                    });
-
                     const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
-                    const { fetchFile, toBlobURL } = window.FFmpegUtil;
+                    const { toBlobURL } = window.FFmpegUtil;
                     
                     const coreURL = `${baseURL}/ffmpeg-core.js`;
                     const wasmURL = `${baseURL}/ffmpeg-core.wasm`;
@@ -872,59 +984,72 @@
                     await ffmpeg.load({ coreURL, wasmURL, classWorkerURL });
                 }
 
-                const { fetchFile } = window.FFmpegUtil;
-                const inputName = 'input_' + Date.now() + (inputFileBlob.type.includes('mp4') ? '.mp4' : '.wav');
-                const outputName = 'output_' + Date.now() + '.' + outputExt;
-
-                await ffmpeg.writeFile(inputName, await fetchFile(inputFileBlob));
-                
-                let args = [];
-                if (duration !== null) {
-                    args.push('-ss', startOffset.toString(), '-t', duration.toString());
-                }
-                args.push('-i', inputName);
-                
-                // Comprehensive Codec Support for all validOutputs
-                if (outputExt === 'mp3') {
-                    args.push('-c:a', 'libmp3lame', '-q:a', '2');
-                } else if (outputExt === 'aac' || outputExt === 'm4a') {
-                    args.push('-c:a', 'aac', '-b:a', '192k');
-                } else if (outputExt === 'flac') {
-                    args.push('-c:a', 'flac');
-                } else if (outputExt === 'ogg') {
-                    args.push('-c:a', 'libvorbis', '-q:a', '4');
-                } else if (outputExt === 'opus') {
-                    args.push('-c:a', 'libopus', '-b:a', '128k');
-                } else if (outputExt === 'wma') {
-                    args.push('-c:a', 'wmav2', '-b:a', '192k');
-                } else if (outputExt === 'aiff') {
-                    args.push('-c:a', 'pcm_s16be');
-                } else {
-                    args.push('-c:a', 'pcm_s16le'); // wav default
-                }
-                
-                args.push(outputName);
-                
-                await ffmpeg.exec(args);
-                const data = await ffmpeg.readFile(outputName);
-
-                const mimeTypes = {
-                    wav: 'audio/wav',
-                    mp3: 'audio/mpeg',
-                    aac: 'audio/aac',
-                    flac: 'audio/flac',
-                    ogg: 'audio/ogg',
-                    m4a: 'audio/mp4',
-                    wma: 'audio/x-ms-wma',
-                    opus: 'audio/opus',
-                    aiff: 'audio/aiff'
+                const progressHandler = ({ progress }) => {
+                    const percent = Math.max(0, Math.min(100, (progress || 0) * 100));
+                    if (onProgress) onProgress(percent);
                 };
-                const mime = mimeTypes[outputExt] || 'audio/wav';
-                
-                const blob = new Blob([data.buffer], { type: mime });
-                ffmpeg.deleteFile(inputName);
-                ffmpeg.deleteFile(outputName);
-                return blob;
+                ffmpeg.on('progress', progressHandler);
+
+                const { fetchFile } = window.FFmpegUtil;
+                const safeRand = Math.random().toString(36).substring(2, 7);
+                const inExt = (inputFileBlob.name || '').split('.').pop() || 'mp4';
+                const inputName = `input_${Date.now()}_${safeRand}.${inExt}`;
+                const outputName = `output_${Date.now()}_${safeRand}.${outputExt}`;
+
+                try {
+                    await ffmpeg.writeFile(inputName, await fetchFile(inputFileBlob));
+                    
+                    let args = [];
+                    if (duration !== null && duration > 0) {
+                        args.push('-ss', startOffset.toString(), '-t', duration.toString());
+                    }
+                    args.push('-i', inputName);
+                    
+                    // Dynamic Bitrate & Codec Arguments
+                    const chosenBitrate = bitrate || '320k';
+
+                    if (outputExt === 'mp3') {
+                        args.push('-c:a', 'libmp3lame', '-b:a', chosenBitrate);
+                    } else if (outputExt === 'aac' || outputExt === 'm4a') {
+                        args.push('-c:a', 'aac', '-b:a', chosenBitrate);
+                    } else if (outputExt === 'flac') {
+                        args.push('-c:a', 'flac');
+                    } else if (outputExt === 'ogg') {
+                        args.push('-c:a', 'libvorbis', '-b:a', chosenBitrate);
+                    } else if (outputExt === 'opus') {
+                        args.push('-c:a', 'libopus', '-b:a', chosenBitrate);
+                    } else if (outputExt === 'wma') {
+                        args.push('-c:a', 'wmav2', '-b:a', chosenBitrate);
+                    } else if (outputExt === 'aiff') {
+                        args.push('-c:a', 'pcm_s16be');
+                    } else {
+                        args.push('-c:a', 'pcm_s16le'); // WAV default
+                    }
+                    
+                    args.push(outputName);
+                    
+                    await ffmpeg.exec(args);
+                    const data = await ffmpeg.readFile(outputName);
+
+                    const mimeTypes = {
+                        wav: 'audio/wav',
+                        mp3: 'audio/mpeg',
+                        aac: 'audio/aac',
+                        flac: 'audio/flac',
+                        ogg: 'audio/ogg',
+                        m4a: 'audio/mp4',
+                        wma: 'audio/x-ms-wma',
+                        opus: 'audio/opus',
+                        aiff: 'audio/aiff'
+                    };
+                    const mime = mimeTypes[outputExt] || 'audio/wav';
+                    
+                    return new Blob([data.buffer], { type: mime });
+                } finally {
+                    try { await ffmpeg.deleteFile(inputName); } catch {}
+                    try { await ffmpeg.deleteFile(outputName); } catch {}
+                    try { ffmpeg.off('progress', progressHandler); } catch {}
+                }
             }
 
             function setupWavesurfer(url) {
@@ -973,17 +1098,16 @@
                 });
             }
 
-            function applySuccessBlob(blob, ext) {
+            function loadTrackInWaveSurfer(blob, filename) {
                 if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
                 currentAudioBlob = blob;
                 currentBlobUrl = URL.createObjectURL(blob);
-                
-                downloadLink.href = currentBlobUrl;
-                downloadLink.download = `${originalFileName}_vidtoaudio.${ext}`;
-                dlFormatLabel.innerText = ext.toUpperCase();
-                
+                activePreviewTrackName = filename;
+
+                if (previewFileName) previewFileName.innerText = filename;
+
                 setupWavesurfer(currentBlobUrl);
-                
+
                 if (wavesurfer && volumeSlider) {
                     wavesurfer.setVolume(Number(volumeSlider.value));
                 }
@@ -1002,46 +1126,193 @@
                 } catch (e) {
                     console.error("AudioContext not supported", e);
                 }
-
-                uiProcessing.classList.remove('flex');
-                uiProcessing.classList.add('hidden');
-                uiSuccess.classList.remove('hidden');
-                uiSuccess.classList.add('flex');
-                
-                trimControls.classList.add('hidden');
-                trimControls.classList.remove('flex');
-                activeRegion = null;
             }
 
-            convertBtn.addEventListener('click', async () => {
-                const file = fileInput.files[0];
-                if (!file) return;
-                
-                if (file.size > 200 * 1024 * 1024) {
-                    showError("File is too large for the web version. For best performance, use files under 200MB. For larger files or batch conversion, please try the VidToAudio Android app.");
+            function renderBatchSuccess(results, ext) {
+                uiProcessing.classList.remove('flex');
+                uiProcessing.classList.add('hidden');
+
+                const successful = results.filter(r => r.success && r.blob);
+                if (successful.length === 0) {
+                    showError("All files in the queue failed to convert. Please verify your video formats and try again.");
                     return;
                 }
 
+                uiSuccess.classList.remove('hidden');
+                uiSuccess.classList.add('flex');
+
+                if (successTitle) {
+                    successTitle.innerText = results.length > 1 ? 'Batch Conversion Complete!' : 'Conversion Complete!';
+                }
+                if (successSubtitle) {
+                    successSubtitle.innerText = `${successful.length} of ${results.length} files extracted successfully to ${ext.toUpperCase()}`;
+                }
+                if (batchResultsCount) {
+                    batchResultsCount.innerText = `Converted Tracks (${successful.length}/${results.length})`;
+                }
+
+                // Render Results List with Individual Download Buttons
+                if (batchResultsList) {
+                    batchResultsList.innerHTML = results.map((item, idx) => {
+                        if (item.success) {
+                            const mb = (item.size / 1024 / 1024).toFixed(2);
+                            const trackUrl = URL.createObjectURL(item.blob);
+                            return `
+                                <div class="p-3.5 sm:px-4 flex items-center justify-between gap-3 hover:bg-dark-800/80 transition-colors">
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        <div class="w-8 h-8 rounded-lg bg-brand-950/80 border border-brand-800/60 text-brand-400 flex items-center justify-center flex-shrink-0">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-sm font-medium text-white truncate">${item.name}</p>
+                                            <p class="text-xs text-slate-400 font-mono">${mb} MB &bull; ${ext.toUpperCase()}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2 flex-shrink-0">
+                                        <button data-track-idx="${idx}" class="preview-track-btn px-2.5 py-1.5 bg-dark-700 hover:bg-dark-600 border border-slate-600 text-slate-300 hover:text-white rounded-lg text-xs font-medium transition-colors hidden sm:flex items-center gap-1" title="Preview Audio">
+                                            <svg class="w-3.5 h-3.5 text-brand-400" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                            <span>Play</span>
+                                        </button>
+                                        <a href="${trackUrl}" download="${item.name}" class="px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-sm">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                            <span>Download</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            return `
+                                <div class="p-3.5 sm:px-4 flex items-center justify-between gap-3 bg-red-950/20">
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        <div class="w-8 h-8 rounded-lg bg-red-950 border border-red-800 text-red-400 flex items-center justify-center flex-shrink-0">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-sm font-medium text-slate-300 truncate">${item.name}</p>
+                                            <p class="text-xs text-red-400 font-mono">${item.error || 'Conversion failed'}</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs text-red-400 font-medium px-2 py-1 bg-red-950/60 border border-red-900 rounded">Error</span>
+                                </div>
+                            `;
+                        }
+                    }).join('');
+
+                    // Wire preview track buttons
+                    document.querySelectorAll('.preview-track-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const trackIdx = parseInt(btn.getAttribute('data-track-idx'), 10);
+                            const track = results[trackIdx];
+                            if (track && track.blob) {
+                                loadTrackInWaveSurfer(track.blob, track.name);
+                            }
+                        });
+                    });
+                }
+
+                // Wire Download All as ZIP button with JSZip
+                if (downloadZipBtn) {
+                    downloadZipBtn.onclick = async () => {
+                        const originalBtnContent = downloadZipBtn.innerHTML;
+                        downloadZipBtn.disabled = true;
+                        downloadZipBtn.innerHTML = `
+                            <svg class="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            <span>Archiving ZIP...</span>
+                        `;
+
+                        try {
+                            const JSZipClass = window.JSZip;
+                            if (!JSZipClass) {
+                                throw new Error("JSZip is not available. Please download individual tracks.");
+                            }
+                            const zip = new JSZipClass();
+                            successful.forEach(r => {
+                                zip.file(r.name, r.blob);
+                            });
+
+                            const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+                            const zipUrl = URL.createObjectURL(zipBlob);
+                            const a = document.createElement('a');
+                            a.href = zipUrl;
+                            a.download = `VidToAudio_Batch_${ext.toUpperCase()}_${Date.now()}.zip`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            setTimeout(() => URL.revokeObjectURL(zipUrl), 30000);
+                        } catch (err) {
+                            console.error("ZIP Generation error:", err);
+                            showError("Could not generate ZIP archive. You can still download individual tracks directly.");
+                        } finally {
+                            downloadZipBtn.disabled = false;
+                            downloadZipBtn.innerHTML = originalBtnContent;
+                        }
+                    };
+                }
+
+                // Initialize preview player with first successful track
+                if (successful.length > 0) {
+                    loadTrackInWaveSurfer(successful[0].blob, successful[0].name);
+                }
+            }
+
+            // Core Sequential Batch Conversion Queue
+            convertBtn.addEventListener('click', async () => {
+                if (!selectedFiles || selectedFiles.length === 0) return;
+
                 selectedFormatExt = formatSelect.value;
-                originalFileName = file.name.replace(/\.[^/.]+$/, "");
+                const selectedBitrate = bitrateSelect ? bitrateSelect.value : '320k';
 
                 uiConverter.classList.add('hidden');
                 uiError.classList.add('hidden');
                 uiProcessing.classList.remove('hidden');
                 uiProcessing.classList.add('flex');
                 setProgress(0);
-                const infoText = uiProcessing.querySelector('p');
-                if (infoText) infoText.innerHTML = "Extracting audio... <br/> <span class='text-xs'>Loading FFmpeg core on first run may take a few seconds.</span>";
 
-                try {
-                    const blob = await processAudio(file, selectedFormatExt);
-                    applySuccessBlob(blob, selectedFormatExt);
-                } catch (err) {
-                    console.error(err);
-                    showError("An error occurred during conversion. Your browser may not support WASM properly or the file is invalid.");
+                const totalFiles = selectedFiles.length;
+                convertedBatchResults = [];
+
+                // Sequential processing queue to avoid browser memory saturation
+                for (let i = 0; i < totalFiles; i++) {
+                    const currentFile = selectedFiles[i];
+                    const fileIndex = i + 1;
+
+                    processingStatus.innerText = `Processing file ${fileIndex} of ${totalFiles}... 0%`;
+                    processingFileName.innerText = currentFile.name;
+                    setProgress(0);
+
+                    try {
+                        const blob = await processAudio(
+                            currentFile,
+                            selectedFormatExt,
+                            selectedBitrate,
+                            (filePercent) => {
+                                const rounded = Math.round(filePercent);
+                                processingStatus.innerText = `Processing file ${fileIndex} of ${totalFiles}... ${rounded}%`;
+                                setProgress(filePercent);
+                            }
+                        );
+
+                        const outBase = currentFile.name.replace(/\.[^/.]+$/, "");
+                        convertedBatchResults.push({
+                            name: `${outBase}.${selectedFormatExt}`,
+                            blob: blob,
+                            size: blob.size,
+                            success: true
+                        });
+                    } catch (fileErr) {
+                        console.error(`Error processing file ${currentFile.name}:`, fileErr);
+                        convertedBatchResults.push({
+                            name: currentFile.name,
+                            error: fileErr?.message || 'Conversion failed',
+                            success: false
+                        });
+                    }
                 }
+
+                renderBatchSuccess(convertedBatchResults, selectedFormatExt);
             });
 
+            // Audio Cropping & Trimming
             applyTrimBtn.addEventListener('click', async () => {
                 if (!activeRegion || !currentAudioBlob) return;
                 
@@ -1051,25 +1322,45 @@
 
                 if (duration <= 0) return;
 
-                if (wavesurfer.isPlaying()) {
+                if (wavesurfer && wavesurfer.isPlaying()) {
                     wavesurfer.pause();
                 }
+
+                const selectedBitrate = bitrateSelect ? bitrateSelect.value : '320k';
 
                 uiSuccess.classList.add('hidden');
                 uiSuccess.classList.remove('flex');
                 uiProcessing.classList.remove('hidden');
                 uiProcessing.classList.add('flex');
                 setProgress(0);
-                const infoText = uiProcessing.querySelector('p');
-                if (infoText) infoText.innerHTML = "Cropping audio... <br/> <span class='text-xs'>Processing trim selection.</span>";
+
+                processingStatus.innerText = "Cropping audio selection...";
+                processingFileName.innerText = activePreviewTrackName;
 
                 try {
-                    const newBlob = await processAudio(currentAudioBlob, selectedFormatExt, start, duration);
-                    originalFileName = originalFileName + "_trimmed";
-                    applySuccessBlob(newBlob, selectedFormatExt);
+                    const trimmedBlob = await processAudio(
+                        currentAudioBlob,
+                        selectedFormatExt,
+                        selectedBitrate,
+                        (percent) => setProgress(percent),
+                        start,
+                        duration
+                    );
+
+                    const trimmedName = activePreviewTrackName.replace(/\.[^/.]+$/, "") + "_trimmed." + selectedFormatExt;
+                    
+                    // Add trimmed track to results and refresh success view
+                    convertedBatchResults.unshift({
+                        name: trimmedName,
+                        blob: trimmedBlob,
+                        size: trimmedBlob.size,
+                        success: true
+                    });
+
+                    renderBatchSuccess(convertedBatchResults, selectedFormatExt);
                 } catch (err) {
-                    console.error(err);
-                    showError("An error occurred while trimming.");
+                    console.error("Trimming error:", err);
+                    showError("An error occurred while cropping the audio.");
                 }
             });
         });

@@ -1,6 +1,6 @@
 {
   "name": "VidToAudio",
-  "description": "Free, offline MP4 to WAV converter and audio extractor for video files.",
+  "description": "Batch convert multiple MP4 to MP3 files offline directly in your browser. Fastest bulk conversion, no server uploads required. Get 320kbps studio quality instantly.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
