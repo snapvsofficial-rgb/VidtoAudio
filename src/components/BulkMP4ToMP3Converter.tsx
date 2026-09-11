@@ -96,6 +96,8 @@ export default function BulkMP4ToMP3Converter() {
   const [files, setFiles] = useState<File[]>([]);
   const [bitrate, setBitrate] = useState<AudioBitrate>('320k');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [initStatusText, setInitStatusText] = useState<string>('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [currentFileIndex, setCurrentFileIndex] = useState<number>(0);
   const [currentFileProgress, setCurrentFileProgress] = useState<number>(0);
   const [currentFileName, setCurrentFileName] = useState<string>('');
@@ -115,18 +117,19 @@ export default function BulkMP4ToMP3Converter() {
       setFiles(selected);
       setResults([]);
       setIsComplete(false);
+      setErrorMessage(null);
     }
   };
 
   // Helper to load FFmpeg via CDN if not present
-  const loadFFmpegInstance = async () => {
+  const loadFFmpegInstance = async (onStatus?: (msg: string) => void) => {
     const win = window as any;
     if (!win.FFmpegWASM) {
       await new Promise<void>((resolve, reject) => {
         const script = document.createElement('script');
         script.src = 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js';
         script.onload = () => resolve();
-        script.onerror = () => reject(new Error('Failed to load FFmpeg script'));
+        script.onerror = () => reject(new Error('Failed to load FFmpeg WebAssembly library. Please check your internet connection.'));
         document.head.appendChild(script);
       });
     }
@@ -135,7 +138,7 @@ export default function BulkMP4ToMP3Converter() {
         const script = document.createElement('script');
         script.src = 'https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js';
         script.onload = () => resolve();
-        script.onerror = () => reject(new Error('Failed to load FFmpeg Util script'));
+        script.onerror = () => reject(new Error('Failed to load FFmpeg utility library. Please check your internet connection.'));
         document.head.appendChild(script);
       });
     }
@@ -153,12 +156,59 @@ export default function BulkMP4ToMP3Converter() {
       };
     }
 
-    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
-    const coreURL = `${baseURL}/ffmpeg-core.js`;
-    const wasmURL = `${baseURL}/ffmpeg-core.wasm`;
-    const classWorkerURL = await toBlobURL('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/814.ffmpeg.js', 'text/javascript');
+    // Force single-threaded core (@ffmpeg/core) - strictly avoid @ffmpeg/core-mt
+    // Explicit unpkg and jsdelivr URLs with blob conversion to prevent mobile CORS worker freezing
+    const cdnSources = [
+      {
+        name: 'unpkg',
+        coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.js',
+        wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.wasm',
+        workerURL: 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/814.ffmpeg.js',
+      },
+      {
+        name: 'jsdelivr',
+        coreURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.js',
+        wasmURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.wasm',
+        workerURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/814.ffmpeg.js',
+      },
+    ];
 
-    await ffmpeg.load({ coreURL, wasmURL, classWorkerURL });
+    let loaded = false;
+    let lastError: any = null;
+
+    for (const cdn of cdnSources) {
+      try {
+        if (onStatus) onStatus(`Fetching single-threaded FFmpeg (${cdn.name})...`);
+
+        // Explicit unpkg/jsdelivr URLs for coreURL and wasmURL converted via toBlobURL
+        const coreBlobURL = await toBlobURL(cdn.coreURL, 'text/javascript');
+        const wasmBlobURL = await toBlobURL(cdn.wasmURL, 'application/wasm');
+        const workerBlobURL = await toBlobURL(cdn.workerURL, 'text/javascript');
+
+        if (onStatus) onStatus('Loading WebAssembly audio engine...');
+
+        // Robust try-catch wrapper for ffmpeg.load()
+        await ffmpeg.load({
+          coreURL: coreBlobURL,
+          wasmURL: wasmBlobURL,
+          classWorkerURL: workerBlobURL,
+        });
+
+        loaded = true;
+        break;
+      } catch (loadErr: any) {
+        console.warn(`[FFmpeg] Loading failed via ${cdn.name}:`, loadErr);
+        lastError = loadErr;
+      }
+    }
+
+    if (!loaded) {
+      throw new Error(
+        `Failed to initialize WebAssembly core components (${lastError?.message || 'Network / browser timeout'}). ` +
+        `Please check your internet connection or disable aggressive mobile content blockers.`
+      );
+    }
+
     return ffmpeg;
   };
 
@@ -168,14 +218,20 @@ export default function BulkMP4ToMP3Converter() {
 
     setIsProcessing(true);
     setIsComplete(false);
+    setErrorMessage(null);
     setResults([]);
-    setCurrentFileIndex(1);
-    setCurrentFileProgress(0);
+    setCurrentFileIndex(0);
+    setCurrentFileProgress(5);
+    setCurrentFileName('Preparing WebAssembly audio extractor...');
+    setInitStatusText('Loading FFmpeg core components...');
 
     const convertedList: ConvertedTrack[] = [];
 
     try {
-      const ffmpeg = await loadFFmpegInstance();
+      const ffmpeg = await loadFFmpegInstance((statusMsg) => {
+        setInitStatusText(statusMsg);
+      });
+      setInitStatusText('');
       const { fetchFile } = (window as any).FFmpegUtil;
       let fileIndex = 1;
 
@@ -287,10 +343,16 @@ export default function BulkMP4ToMP3Converter() {
       }
     } catch (globalErr: any) {
       console.error('Fatal conversion error:', globalErr);
+      setErrorMessage(globalErr?.message || 'Failed to initialize audio converter components.');
+      setIsProcessing(false);
+      setCurrentFileProgress(0);
+      return;
     } finally {
       setIsProcessing(false);
-      setIsComplete(true);
-      setResults(convertedList);
+      if (convertedList.length > 0) {
+        setIsComplete(true);
+        setResults(convertedList);
+      }
     }
   };
 
@@ -368,6 +430,22 @@ export default function BulkMP4ToMP3Converter() {
 
       {/* 3. Main Tool Card */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl relative">
+        {errorMessage && (
+          <div className="mb-6 p-4 bg-red-950/40 border border-red-800/80 rounded-xl text-red-300 text-sm flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-semibold text-red-200 mb-1">Initialization or Conversion Failed</p>
+              <p className="text-xs text-red-300/90 leading-relaxed">{errorMessage}</p>
+            </div>
+            <button 
+              onClick={() => setErrorMessage(null)} 
+              className="text-xs text-red-400 hover:text-red-200 px-2 py-1 rounded bg-red-900/40 border border-red-800"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
         {!isProcessing && !isComplete && (
           <div className="flex flex-col items-center">
             {/* Multi-file input with accessible label */}
@@ -437,7 +515,7 @@ export default function BulkMP4ToMP3Converter() {
           <div className="py-8 flex flex-col items-center text-center">
             <div className="w-16 h-16 border-4 border-slate-800 border-t-teal-500 rounded-full animate-spin mb-6" />
             <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">
-              Processing file {currentFileIndex} of {files.length}... {currentFileProgress}%
+              {initStatusText || `Processing file ${currentFileIndex} of ${files.length}... ${currentFileProgress}%`}
             </h2>
             <p className="text-sm font-mono text-teal-400 max-w-md truncate mb-4">
               {currentFileName}

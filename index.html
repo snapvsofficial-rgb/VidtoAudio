@@ -838,11 +838,19 @@
             });
 
             function showError(msg) {
-                uiError.innerText = msg;
+                uiError.innerHTML = `
+                    <div class="flex items-center justify-center gap-2 font-medium">
+                        <svg class="w-5 h-5 flex-shrink-0 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span>${msg}</span>
+                    </div>
+                `;
                 uiError.classList.remove('hidden');
                 uiProcessing.classList.add('hidden');
                 uiProcessing.classList.remove('flex');
                 uiConverter.classList.remove('hidden');
+                setProgress(0);
                 convertBtn.disabled = false;
                 convertBtn.innerText = selectedFiles.length > 1 ? `Extract Audio (${selectedFiles.length} Files)` : 'Extract Audio';
             }
@@ -981,8 +989,13 @@
             async function getFFmpegInstance(onStatus = null) {
                 if (ffmpeg) return ffmpeg;
 
-                if (onStatus) onStatus('Loading FFmpeg core components...');
-                const { FFmpeg } = window.FFmpegWASM;
+                const { FFmpeg } = window.FFmpegWASM || {};
+                const { toBlobURL } = window.FFmpegUtil || {};
+
+                if (!FFmpeg || !toBlobURL) {
+                    throw new Error("FFmpeg WebAssembly library is not loaded. Please check your internet connection or reload the page.");
+                }
+
                 const instance = new FFmpeg();
 
                 // Memory Management & Compatibility: Expose .FS interface on FFmpeg instance
@@ -994,14 +1007,60 @@
                     };
                 }
 
-                const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
-                const { toBlobURL } = window.FFmpegUtil;
-                
-                const coreURL = `${baseURL}/ffmpeg-core.js`;
-                const wasmURL = `${baseURL}/ffmpeg-core.wasm`;
-                const classWorkerURL = await toBlobURL('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/814.ffmpeg.js', 'text/javascript');
+                // Explicit unpkg and jsdelivr URLs for single-threaded @ffmpeg/core (STRICTLY NOT @ffmpeg/core-mt)
+                // Single-threaded core avoids SharedArrayBuffer multi-threading crashes on mobile browsers
+                const cdnSources = [
+                    {
+                        name: 'unpkg',
+                        coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.js',
+                        wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.wasm',
+                        workerURL: 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/814.ffmpeg.js'
+                    },
+                    {
+                        name: 'jsdelivr',
+                        coreURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.js',
+                        wasmURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.wasm',
+                        workerURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/814.ffmpeg.js'
+                    }
+                ];
 
-                await instance.load({ coreURL, wasmURL, classWorkerURL });
+                let loaded = false;
+                let lastError = null;
+
+                for (const cdn of cdnSources) {
+                    try {
+                        if (onStatus) onStatus(`Fetching single-threaded FFmpeg (${cdn.name})...`);
+
+                        // Explicit unpkg/jsdelivr URLs for coreURL and wasmURL converted via toBlobURL
+                        // toBlobURL is REQUIRED so workers can load WebAssembly without cross-origin blocks on mobile
+                        const coreBlobURL = await toBlobURL(cdn.coreURL, 'text/javascript');
+                        const wasmBlobURL = await toBlobURL(cdn.wasmURL, 'application/wasm');
+                        const workerBlobURL = await toBlobURL(cdn.workerURL, 'text/javascript');
+
+                        if (onStatus) onStatus('Loading WebAssembly audio engine...');
+
+                        // Robust try-catch for instance.load()
+                        await instance.load({
+                            coreURL: coreBlobURL,
+                            wasmURL: wasmBlobURL,
+                            classWorkerURL: workerBlobURL
+                        });
+
+                        loaded = true;
+                        break;
+                    } catch (loadErr) {
+                        console.warn(`[FFmpeg] Loading failed via ${cdn.name}:`, loadErr);
+                        lastError = loadErr;
+                    }
+                }
+
+                if (!loaded) {
+                    throw new Error(
+                        `Failed to load FFmpeg core components (${lastError?.message || 'Network / WebAssembly error'}). ` +
+                        `Please verify your connection or try disabling mobile browser content blockers.`
+                    );
+                }
+
                 ffmpeg = instance;
                 return ffmpeg;
             }
