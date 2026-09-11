@@ -157,59 +157,76 @@ export default function BulkMP4ToMP3Converter() {
     }
 
     // Force single-threaded core (@ffmpeg/core) - strictly avoid @ffmpeg/core-mt
-    // Explicit unpkg and jsdelivr URLs with blob conversion to prevent mobile CORS worker freezing
+    // Prioritize local same-origin assets to guarantee 100% offline & fast loading,
+    // followed by reliable public CDNs as fallbacks
     const cdnSources = [
       {
-        name: 'unpkg',
-        coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.js',
-        wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.wasm',
-        workerURL: 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/814.ffmpeg.js',
+        name: 'local',
+        coreURL: '/ffmpeg/ffmpeg-core.js',
+        wasmURL: '/ffmpeg/ffmpeg-core.wasm',
       },
       {
         name: 'jsdelivr',
         coreURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.js',
         wasmURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.wasm',
-        workerURL: 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/814.ffmpeg.js',
+      },
+      {
+        name: 'unpkg',
+        coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.js',
+        wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.wasm',
       },
     ];
 
     let loaded = false;
     let lastError: any = null;
+    let ffmpegInstance: any = null;
 
     for (const cdn of cdnSources) {
+      let instance: any = null;
       try {
-        if (onStatus) onStatus(`Fetching single-threaded FFmpeg (${cdn.name})...`);
+        if (onStatus) onStatus(`Loading audio engine (${cdn.name})...`);
 
-        // Explicit unpkg/jsdelivr URLs for coreURL and wasmURL converted via toBlobURL
+        instance = new FFmpeg();
+        if (!instance.FS) {
+          instance.FS = async (action: string, ...args: any[]) => {
+            if (action === 'unlink') return instance.deleteFile(args[0]);
+            if (action === 'writeFile') return instance.writeFile(args[0], args[1]);
+            if (action === 'readFile') return instance.readFile(args[0]);
+          };
+        }
+
+        // Explicit URLs for coreURL and wasmURL converted via toBlobURL
         const coreBlobURL = await toBlobURL(cdn.coreURL, 'text/javascript');
         const wasmBlobURL = await toBlobURL(cdn.wasmURL, 'application/wasm');
-        const workerBlobURL = await toBlobURL(cdn.workerURL, 'text/javascript');
 
-        if (onStatus) onStatus('Loading WebAssembly audio engine...');
+        if (onStatus) onStatus('Initializing WebAssembly core...');
 
-        // Robust try-catch wrapper for ffmpeg.load()
-        await ffmpeg.load({
+        // Robust instance.load() without classWorkerURL to avoid module worker mobile crash
+        await instance.load({
           coreURL: coreBlobURL,
           wasmURL: wasmBlobURL,
-          classWorkerURL: workerBlobURL,
         });
 
+        ffmpegInstance = instance;
         loaded = true;
         break;
       } catch (loadErr: any) {
         console.warn(`[FFmpeg] Loading failed via ${cdn.name}:`, loadErr);
         lastError = loadErr;
+        if (instance) {
+          try { instance.terminate(); } catch (e) {}
+        }
       }
     }
 
     if (!loaded) {
       throw new Error(
         `Failed to initialize WebAssembly core components (${lastError?.message || 'Network / browser timeout'}). ` +
-        `Please check your internet connection or disable aggressive mobile content blockers.`
+        `Please check your internet connection or reload the page.`
       );
     }
 
-    return ffmpeg;
+    return ffmpegInstance;
   };
 
   // Sequential Processing Queue
