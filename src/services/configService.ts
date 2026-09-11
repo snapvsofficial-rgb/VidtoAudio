@@ -11,7 +11,7 @@ import {
   where,
   limit
 } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, hasFirebaseConfig } from '../firebase';
 import { BlogPost, SEOTemplateConfig, FormatTogglesConfig, SiteSettingsConfig } from '../types';
 
 export const DEFAULT_SEO_TEMPLATE = 
@@ -38,6 +38,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettingsConfig = {
 
 // --- SEO Template Management (Cloud Firestore) ---
 export async function fetchSEOTemplate(): Promise<string> {
+  if (!hasFirebaseConfig) return DEFAULT_SEO_TEMPLATE;
   try {
     const docRef = doc(db, 'config', 'seo_template');
     const docSnap = await getDoc(docRef);
@@ -47,13 +48,18 @@ export async function fetchSEOTemplate(): Promise<string> {
         return data.template;
       }
     }
-  } catch (err) {
-    console.error('Failed to fetch SEO template from Firestore:', err);
+  } catch (err: any) {
+    if (err?.message?.includes('offline') || err?.code === 'unavailable') {
+      console.warn('[Firestore] Using default SEO template (offline mode).');
+    } else {
+      console.warn('Failed to fetch SEO template from Firestore:', err?.message || err);
+    }
   }
   return DEFAULT_SEO_TEMPLATE;
 }
 
 export async function saveSEOTemplate(template: string): Promise<void> {
+  if (!hasFirebaseConfig) return;
   const cleanTemplate = template.trim();
   const docRef = doc(db, 'config', 'seo_template');
   await setDoc(docRef, {
@@ -64,6 +70,7 @@ export async function saveSEOTemplate(template: string): Promise<void> {
 
 // --- Format Toggles Management (Cloud Firestore) ---
 export async function fetchFormatToggles(): Promise<FormatTogglesConfig> {
+  if (!hasFirebaseConfig) return { ...DEFAULT_FORMAT_TOGGLES };
   try {
     const docRef = doc(db, 'config', 'format_toggles');
     const docSnap = await getDoc(docRef);
@@ -73,13 +80,18 @@ export async function fetchFormatToggles(): Promise<FormatTogglesConfig> {
         return { ...DEFAULT_FORMAT_TOGGLES, ...data.enabledFormats };
       }
     }
-  } catch (err) {
-    console.error('Failed to fetch format toggles from Firestore:', err);
+  } catch (err: any) {
+    if (err?.message?.includes('offline') || err?.code === 'unavailable') {
+      console.warn('[Firestore] Using default format toggles (offline mode).');
+    } else {
+      console.warn('Failed to fetch format toggles from Firestore:', err?.message || err);
+    }
   }
   return { ...DEFAULT_FORMAT_TOGGLES };
 }
 
 export async function saveFormatToggles(toggles: FormatTogglesConfig): Promise<void> {
+  if (!hasFirebaseConfig) return;
   const docRef = doc(db, 'config', 'format_toggles');
   await setDoc(docRef, {
     enabledFormats: toggles,
@@ -89,6 +101,7 @@ export async function saveFormatToggles(toggles: FormatTogglesConfig): Promise<v
 
 // --- Site Settings Management (Cloud Firestore) ---
 export async function fetchSiteSettings(): Promise<SiteSettingsConfig> {
+  if (!hasFirebaseConfig) return { ...DEFAULT_SITE_SETTINGS };
   try {
     const docRef = doc(db, 'config', 'site_settings');
     const docSnap = await getDoc(docRef);
@@ -98,13 +111,18 @@ export async function fetchSiteSettings(): Promise<SiteSettingsConfig> {
         return { ...DEFAULT_SITE_SETTINGS, ...data };
       }
     }
-  } catch (err) {
-    console.error('Failed to fetch site settings from Firestore:', err);
+  } catch (err: any) {
+    if (err?.message?.includes('offline') || err?.code === 'unavailable') {
+      console.warn('[Firestore] Using default site settings (offline mode).');
+    } else {
+      console.warn('Failed to fetch site settings from Firestore:', err?.message || err);
+    }
   }
   return { ...DEFAULT_SITE_SETTINGS };
 }
 
 export async function saveSiteSettings(settings: SiteSettingsConfig): Promise<void> {
+  if (!hasFirebaseConfig) return;
   const merged: SiteSettingsConfig = { ...DEFAULT_SITE_SETTINGS, ...settings };
   const docRef = doc(db, 'config', 'site_settings');
   await setDoc(docRef, {
@@ -115,6 +133,7 @@ export async function saveSiteSettings(settings: SiteSettingsConfig): Promise<vo
 
 // --- Blog Posts Management (Cloud Firestore) ---
 export async function fetchAllBlogs(): Promise<BlogPost[]> {
+  if (!hasFirebaseConfig) return [];
   try {
     const blogsCol = collection(db, 'blogs');
     const q = query(blogsCol, orderBy('createdAt', 'desc'));
@@ -134,13 +153,18 @@ export async function fetchAllBlogs(): Promise<BlogPost[]> {
         published: data.published !== false
       };
     });
-  } catch (err) {
-    console.error('Failed to fetch blogs from Firestore:', err);
+  } catch (err: any) {
+    if (err?.message?.includes('offline') || err?.code === 'unavailable') {
+      console.warn('[Firestore] Blogs unavailable in offline mode.');
+    } else {
+      console.warn('Failed to fetch blogs from Firestore:', err?.message || err);
+    }
     return [];
   }
 }
 
 export async function fetchBlogBySlug(slug: string): Promise<BlogPost | null> {
+  if (!hasFirebaseConfig) return null;
   try {
     const blogsCol = collection(db, 'blogs');
     const q = query(blogsCol, where('slug', '==', slug), limit(1));
@@ -160,8 +184,12 @@ export async function fetchBlogBySlug(slug: string): Promise<BlogPost | null> {
         published: data.published !== false
       };
     }
-  } catch (err) {
-    console.error('Failed to fetch blog by slug from Firestore:', err);
+  } catch (err: any) {
+    if (err?.message?.includes('offline') || err?.code === 'unavailable') {
+      console.warn('[Firestore] Blog unavailable in offline mode.');
+    } else {
+      console.warn('Failed to fetch blog by slug from Firestore:', err?.message || err);
+    }
   }
   return null;
 }

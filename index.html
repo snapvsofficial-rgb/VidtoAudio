@@ -1087,6 +1087,50 @@
                 return ffmpeg;
             }
 
+            async function readBytesFromFile(fileOrBlob) {
+                if (window.FFmpegUtil && typeof window.FFmpegUtil.fetchFile === 'function') {
+                    try {
+                        return await window.FFmpegUtil.fetchFile(fileOrBlob);
+                    } catch (e) {
+                        console.warn('fetchFile failed, fallback to native arrayBuffer:', e);
+                    }
+                }
+                const buf = await fileOrBlob.arrayBuffer();
+                return new Uint8Array(buf);
+            }
+
+            function createSilentWavBuffer(durationSeconds = 3, sampleRate = 44100) {
+                const numChannels = 2;
+                const dur = Math.max(0.5, Number(durationSeconds) || 3);
+                const numFrames = Math.max(1, Math.round(dur * sampleRate));
+                const bytesPerSample = 2;
+                const blockAlign = numChannels * bytesPerSample;
+                const byteRate = sampleRate * blockAlign;
+                const dataSize = numFrames * blockAlign;
+                const buffer = new ArrayBuffer(44 + dataSize);
+                const view = new DataView(buffer);
+
+                function writeString(offset, str) {
+                    for (let i = 0; i < str.length; i++) {
+                        view.setUint8(offset + i, str.charCodeAt(i));
+                    }
+                }
+                writeString(0, 'RIFF');
+                view.setUint32(4, 36 + dataSize, true);
+                writeString(8, 'WAVE');
+                writeString(12, 'fmt ');
+                view.setUint32(16, 16, true);
+                view.setUint16(20, 1, true); // PCM
+                view.setUint16(22, numChannels, true);
+                view.setUint32(24, sampleRate, true);
+                view.setUint32(28, byteRate, true);
+                view.setUint16(32, blockAlign, true);
+                view.setUint16(34, 16, true); // 16-bit
+                writeString(36, 'data');
+                view.setUint32(40, dataSize, true);
+                return new Uint8Array(buffer);
+            }
+
             async function processAudio(inputFileBlob, outputExt, bitrate = '320k', onProgress = null, startOffset = 0, duration = null) {
                 const ff = await getFFmpegInstance();
 
@@ -1098,7 +1142,13 @@
                 };
                 ff.on('progress', progressHandler);
 
-                const { fetchFile } = window.FFmpegUtil;
+                const recentLogs = [];
+                const logHandler = ({ message }) => {
+                    if (message) recentLogs.push(message);
+                    if (recentLogs.length > 25) recentLogs.shift();
+                };
+                try { ff.on('log', logHandler); } catch (e) {}
+
                 const safeRand = Math.random().toString(36).substring(2, 7);
                 const inExt = (inputFileBlob.name || '').split('.').pop() || 'mp4';
                 const inputName = `input_${Date.now()}_${safeRand}.${inExt}`;
@@ -1106,14 +1156,16 @@
 
                 try {
                     // Lazy Loading: Write file to FS only when processing begins
-                    const fileBytes = await fetchFile(inputFileBlob);
-                    if (typeof ff.FS === 'function') {
+                    const fileBytes = await readBytesFromFile(inputFileBlob);
+                    if (typeof ff.writeFile === 'function') {
+                        await ff.writeFile(inputName, fileBytes);
+                    } else if (typeof ff.FS === 'function') {
                         await ff.FS('writeFile', inputName, fileBytes);
                     } else {
                         await ff.writeFile(inputName, fileBytes);
                     }
                     
-                    let args = [];
+                    let args = ['-y', '-nostdin'];
                     if (duration !== null && duration > 0) {
                         args.push('-ss', startOffset.toString(), '-t', duration.toString());
                     }
@@ -1122,29 +1174,86 @@
                     const chosenBitrate = bitrate || '320k';
 
                     if (outputExt === 'mp3') {
-                        args.push('-c:a', 'libmp3lame', '-b:a', chosenBitrate);
+                        args.push('-c:a', 'libmp3lame', '-b:a', chosenBitrate, '-ac', '2');
                     } else if (outputExt === 'aac' || outputExt === 'm4a') {
-                        args.push('-c:a', 'aac', '-b:a', chosenBitrate);
+                        args.push('-c:a', 'aac', '-b:a', chosenBitrate, '-ac', '2');
                     } else if (outputExt === 'flac') {
                         args.push('-c:a', 'flac');
                     } else if (outputExt === 'ogg') {
-                        args.push('-c:a', 'libvorbis', '-b:a', chosenBitrate);
+                        args.push('-c:a', 'libvorbis', '-b:a', chosenBitrate, '-ac', '2');
                     } else if (outputExt === 'opus') {
-                        args.push('-c:a', 'libopus', '-b:a', chosenBitrate);
+                        args.push('-c:a', 'libopus', '-b:a', chosenBitrate, '-ac', '2');
                     } else if (outputExt === 'wma') {
-                        args.push('-c:a', 'wmav2', '-b:a', chosenBitrate);
+                        args.push('-c:a', 'wmav2', '-b:a', chosenBitrate, '-ac', '2');
                     } else if (outputExt === 'aiff') {
-                        args.push('-c:a', 'pcm_s16be');
+                        args.push('-c:a', 'pcm_s16be', '-ac', '2');
                     } else {
-                        args.push('-c:a', 'pcm_s16le'); // WAV default
+                        args.push('-c:a', 'pcm_s16le', '-ac', '2'); // WAV default
                     }
                     
                     args.push(outputName);
                     
-                    await ff.exec(args);
+                    const exitCode = await ff.exec(args);
+                    if (exitCode !== 0) {
+                        const errorMsg = recentLogs.filter(l => 
+                            l.toLowerCase().includes('error') || 
+                            l.toLowerCase().includes('invalid') || 
+                            l.toLowerCase().includes('does not contain any stream')
+                        ).join('; ') || recentLogs.slice(-3).join('; ');
+
+                        // If video has no audio stream, synthesize a synchronized silent audio file matching duration
+                        if (errorMsg.includes('does not contain any stream') || !recentLogs.some(l => l.includes('Audio:'))) {
+                            let durSec = duration && duration > 0 ? duration : 5;
+                            for (const logLine of recentLogs) {
+                                const durMatch = logLine.match(/Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)/);
+                                if (durMatch) {
+                                    durSec = Math.max(1, parseInt(durMatch[1], 10) * 3600 + parseInt(durMatch[2], 10) * 60 + parseFloat(durMatch[3]));
+                                    break;
+                                }
+                            }
+                            const silentWav = createSilentWavBuffer(durSec);
+                            const silentInput = `silent_${Date.now()}_${safeRand}.wav`;
+                            if (typeof ff.writeFile === 'function') {
+                                await ff.writeFile(silentInput, silentWav);
+                            } else if (typeof ff.FS === 'function') {
+                                await ff.FS('writeFile', silentInput, silentWav);
+                            } else {
+                                await ff.writeFile(silentInput, silentWav);
+                            }
+
+                            let silentArgs = ['-y', '-nostdin', '-i', silentInput];
+                            if (outputExt === 'mp3') {
+                                silentArgs.push('-c:a', 'libmp3lame', '-b:a', chosenBitrate);
+                            } else if (outputExt === 'aac' || outputExt === 'm4a') {
+                                silentArgs.push('-c:a', 'aac', '-b:a', chosenBitrate);
+                            } else if (outputExt === 'flac') {
+                                silentArgs.push('-c:a', 'flac');
+                            } else if (outputExt === 'ogg') {
+                                silentArgs.push('-c:a', 'libvorbis', '-b:a', chosenBitrate);
+                            } else if (outputExt === 'opus') {
+                                silentArgs.push('-c:a', 'libopus', '-b:a', chosenBitrate);
+                            } else {
+                                silentArgs.push('-c:a', 'pcm_s16le');
+                            }
+                            silentArgs.push(outputName);
+                            await ff.exec(silentArgs);
+
+                            try {
+                                if (typeof ff.deleteFile === 'function') {
+                                    await ff.deleteFile(silentInput);
+                                } else if (typeof ff.FS === 'function') {
+                                    await ff.FS('unlink', silentInput);
+                                }
+                            } catch (e) {}
+                        } else {
+                            throw new Error(`Audio processing failed (code ${exitCode}): ${errorMsg || 'Could not process audio stream'}`);
+                        }
+                    }
                     
                     let data;
-                    if (typeof ff.FS === 'function') {
+                    if (typeof ff.readFile === 'function') {
+                        data = await ff.readFile(outputName);
+                    } else if (typeof ff.FS === 'function') {
                         data = await ff.FS('readFile', outputName);
                     } else {
                         data = await ff.readFile(outputName);
@@ -1167,14 +1276,21 @@
                     return resultBlob;
                 } finally {
                     try {
-                        if (typeof ff.FS === 'function') await ff.FS('unlink', inputName);
-                        else await ff.deleteFile(inputName);
-                    } catch {}
+                        if (typeof ff.deleteFile === 'function') {
+                            await ff.deleteFile(inputName);
+                        } else if (typeof ff.FS === 'function') {
+                            await ff.FS('unlink', inputName);
+                        }
+                    } catch (e) {}
                     try {
-                        if (typeof ff.FS === 'function') await ff.FS('unlink', outputName);
-                        else await ff.deleteFile(outputName);
-                    } catch {}
-                    try { ff.off('progress', progressHandler); } catch {}
+                        if (typeof ff.deleteFile === 'function') {
+                            await ff.deleteFile(outputName);
+                        } else if (typeof ff.FS === 'function') {
+                            await ff.FS('unlink', outputName);
+                        }
+                    } catch (e) {}
+                    try { ff.off('progress', progressHandler); } catch (e) {}
+                    try { ff.off('log', logHandler); } catch (e) {}
                 }
             }
 
@@ -1291,7 +1407,7 @@
                                         </div>
                                         <div class="min-w-0">
                                             <p class="text-sm font-medium text-white truncate">${item.name}</p>
-                                            <p class="text-xs text-slate-400 font-mono">${mb} MB &bull; ${ext.toUpperCase()}</p>
+                                            <p class="text-xs text-slate-400 font-mono">${mb} MB &bull; ${ext.toUpperCase()}${item.note ? ' &bull; <span class="text-amber-400">' + item.note + '</span>' : ''}</p>
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-2 flex-shrink-0">
@@ -1438,45 +1554,121 @@
                     };
                     ff.on('progress', progressHandler);
 
+                    // Dynamic log collector to capture exact FFmpeg errors
+                    const currentLogs = [];
+                    const logHandler = ({ message }) => {
+                        if (message) currentLogs.push(message);
+                        if (currentLogs.length > 30) currentLogs.shift();
+                    };
+                    try { ff.on('log', logHandler); } catch (e) {}
+
                     try {
                         // 4. Lazy Loading to FS: Do not read all files into ffmpeg.FS at the start.
-                        // Only use fetchFile to write the specific file to memory exactly when its turn comes in the loop.
-                        const fileBuffer = await fetchFile(currentFile);
-                        if (typeof ff.FS === 'function') {
+                        // Only use readBytesFromFile to write the specific file to memory exactly when its turn comes in the loop.
+                        const fileBuffer = await readBytesFromFile(currentFile);
+                        if (typeof ff.writeFile === 'function') {
+                            await ff.writeFile(inputFileName, fileBuffer);
+                        } else if (typeof ff.FS === 'function') {
                             await ff.FS('writeFile', inputFileName, fileBuffer);
                         } else {
                             await ff.writeFile(inputFileName, fileBuffer);
                         }
 
-                        // Build arguments: -vn strips video data immediately to avoid RAM choking on mobile
-                        let args = ['-i', inputFileName, '-vn'];
+                        // Build arguments: -y, -nostdin, -vn strips video data immediately to avoid RAM choking on mobile
+                        // -ac 2 downmixes multi-channel / 5.1 smartphone camera audio to standard stereo
+                        let args = ['-y', '-nostdin', '-i', inputFileName, '-vn'];
 
                         if (selectedFormatExt === 'mp3') {
-                            args.push('-c:a', 'libmp3lame', '-b:a', selectedBitrate);
+                            args.push('-c:a', 'libmp3lame', '-b:a', selectedBitrate, '-ac', '2');
                         } else if (selectedFormatExt === 'aac' || selectedFormatExt === 'm4a') {
-                            args.push('-c:a', 'aac', '-b:a', selectedBitrate);
+                            args.push('-c:a', 'aac', '-b:a', selectedBitrate, '-ac', '2');
                         } else if (selectedFormatExt === 'flac') {
                             args.push('-c:a', 'flac');
                         } else if (selectedFormatExt === 'ogg') {
-                            args.push('-c:a', 'libvorbis', '-b:a', selectedBitrate);
+                            args.push('-c:a', 'libvorbis', '-b:a', selectedBitrate, '-ac', '2');
                         } else if (selectedFormatExt === 'opus') {
-                            args.push('-c:a', 'libopus', '-b:a', selectedBitrate);
+                            args.push('-c:a', 'libopus', '-b:a', selectedBitrate, '-ac', '2');
                         } else if (selectedFormatExt === 'wma') {
-                            args.push('-c:a', 'wmav2', '-b:a', selectedBitrate);
+                            args.push('-c:a', 'wmav2', '-b:a', selectedBitrate, '-ac', '2');
                         } else if (selectedFormatExt === 'aiff') {
-                            args.push('-c:a', 'pcm_s16be');
+                            args.push('-c:a', 'pcm_s16be', '-ac', '2');
                         } else {
-                            args.push('-c:a', 'pcm_s16le'); // WAV default
+                            args.push('-c:a', 'pcm_s16le', '-ac', '2'); // WAV default
                         }
 
                         args.push(outputFileName);
 
                         // Execute FFmpeg
-                        await ff.exec(args);
+                        let silentTrackSynthesized = false;
+                        const exitCode = await ff.exec(args);
+                        if (exitCode !== 0) {
+                            const errorMsg = currentLogs.filter(l => 
+                                l.toLowerCase().includes('error') || 
+                                l.toLowerCase().includes('invalid') || 
+                                l.toLowerCase().includes('does not contain any stream') ||
+                                l.toLowerCase().includes('cannot find')
+                            ).join('; ') || currentLogs.slice(-3).join('; ');
+
+                            // If video contains no audio stream, synthesize a synchronized silent audio track matching video duration
+                            if (errorMsg.includes('does not contain any stream') || !currentLogs.some(l => l.includes('Audio:'))) {
+                                silentTrackSynthesized = true;
+                                let durSec = 5;
+                                for (const logLine of currentLogs) {
+                                    const durMatch = logLine.match(/Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)/);
+                                    if (durMatch) {
+                                        durSec = Math.max(1, parseInt(durMatch[1], 10) * 3600 + parseInt(durMatch[2], 10) * 60 + parseFloat(durMatch[3]));
+                                        break;
+                                    }
+                                }
+                                const silentWav = createSilentWavBuffer(durSec);
+                                const silentInputName = `silent_${fileIndex}_${safeRand}.wav`;
+                                if (typeof ff.writeFile === 'function') {
+                                    await ff.writeFile(silentInputName, silentWav);
+                                } else if (typeof ff.FS === 'function') {
+                                    await ff.FS('writeFile', silentInputName, silentWav);
+                                } else {
+                                    await ff.writeFile(silentInputName, silentWav);
+                                }
+
+                                let silentArgs = ['-y', '-nostdin', '-i', silentInputName];
+                                if (selectedFormatExt === 'mp3') {
+                                    silentArgs.push('-c:a', 'libmp3lame', '-b:a', selectedBitrate);
+                                } else if (selectedFormatExt === 'aac' || selectedFormatExt === 'm4a') {
+                                    silentArgs.push('-c:a', 'aac', '-b:a', selectedBitrate);
+                                } else if (selectedFormatExt === 'flac') {
+                                    silentArgs.push('-c:a', 'flac');
+                                } else if (selectedFormatExt === 'ogg') {
+                                    silentArgs.push('-c:a', 'libvorbis', '-b:a', selectedBitrate);
+                                } else if (selectedFormatExt === 'opus') {
+                                    silentArgs.push('-c:a', 'libopus', '-b:a', selectedBitrate);
+                                } else if (selectedFormatExt === 'wma') {
+                                    silentArgs.push('-c:a', 'wmav2', '-b:a', selectedBitrate);
+                                } else if (selectedFormatExt === 'aiff') {
+                                    silentArgs.push('-c:a', 'pcm_s16be');
+                                } else {
+                                    silentArgs.push('-c:a', 'pcm_s16le');
+                                }
+                                silentArgs.push(outputFileName);
+
+                                await ff.exec(silentArgs);
+
+                                try {
+                                    if (typeof ff.deleteFile === 'function') {
+                                        await ff.deleteFile(silentInputName);
+                                    } else if (typeof ff.FS === 'function') {
+                                        await ff.FS('unlink', silentInputName);
+                                    }
+                                } catch (e) {}
+                            } else {
+                                throw new Error(`Audio extraction failed (code ${exitCode}): ${errorMsg || 'Invalid or unsupported audio track'}`);
+                            }
+                        }
 
                         // Read output audio file from FS
                         let outputData;
-                        if (typeof ff.FS === 'function') {
+                        if (typeof ff.readFile === 'function') {
+                            outputData = await ff.readFile(outputFileName);
+                        } else if (typeof ff.FS === 'function') {
                             outputData = await ff.FS('readFile', outputFileName);
                         } else {
                             outputData = await ff.readFile(outputFileName);
@@ -1502,7 +1694,8 @@
                             name: `${outBase}.${selectedFormatExt}`,
                             blob: blob,
                             size: blob.size,
-                            success: true
+                            success: true,
+                            note: silentTrackSynthesized ? 'Silent track (original video had no audio)' : null
                         });
 
                         // 5. UI Feedback: Update progress state AFTER file conversion completes
@@ -1517,31 +1710,27 @@
                         });
                     } finally {
                         // 6. Memory Management (Crucial): Clear memory immediately after each file is converted.
-                        // Use ffmpeg.FS('unlink', inputFileName) and ffmpeg.FS('unlink', outputFileName) inside the loop.
-                        try {
-                            if (typeof ff.FS === 'function') {
-                                await ff.FS('unlink', inputFileName);
-                            }
-                        } catch (e) {}
                         try {
                             if (typeof ff.deleteFile === 'function') {
                                 await ff.deleteFile(inputFileName);
+                            } else if (typeof ff.FS === 'function') {
+                                await ff.FS('unlink', inputFileName);
                             }
                         } catch (e) {}
 
                         try {
-                            if (typeof ff.FS === 'function') {
-                                await ff.FS('unlink', outputFileName);
-                            }
-                        } catch (e) {}
-                        try {
                             if (typeof ff.deleteFile === 'function') {
                                 await ff.deleteFile(outputFileName);
+                            } else if (typeof ff.FS === 'function') {
+                                await ff.FS('unlink', outputFileName);
                             }
                         } catch (e) {}
 
                         try {
                             ff.off('progress', progressHandler);
+                        } catch (e) {}
+                        try {
+                            ff.off('log', logHandler);
                         } catch (e) {}
 
                         // Yield event loop to let browser Garbage Collector reclaim memory on low-RAM mobile devices

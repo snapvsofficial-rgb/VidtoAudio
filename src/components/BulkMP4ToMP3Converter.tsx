@@ -90,6 +90,39 @@ export interface ConvertedTrack {
   size?: number;
   success: boolean;
   error?: string;
+  note?: string;
+}
+
+function createSilentWavBuffer(durationSeconds = 3, sampleRate = 44100): Uint8Array {
+  const numChannels = 2;
+  const dur = Math.max(0.5, Number(durationSeconds) || 3);
+  const numFrames = Math.max(1, Math.round(dur * sampleRate));
+  const bytesPerSample = 2;
+  const blockAlign = numChannels * bytesPerSample;
+  const byteRate = sampleRate * blockAlign;
+  const dataSize = numFrames * blockAlign;
+  const buffer = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(buffer);
+
+  function writeString(offset: number, str: string) {
+    for (let i = 0; i < str.length; i++) {
+      view.setUint8(offset + i, str.charCodeAt(i));
+    }
+  }
+  writeString(0, 'RIFF');
+  view.setUint32(4, 36 + dataSize, true);
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true); // PCM
+  view.setUint16(22, numChannels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, byteRate, true);
+  view.setUint16(32, blockAlign, true);
+  view.setUint16(34, 16, true); // 16-bit
+  writeString(36, 'data');
+  view.setUint32(40, dataSize, true);
+  return new Uint8Array(buffer);
 }
 
 export default function BulkMP4ToMP3Converter() {
@@ -272,28 +305,100 @@ export default function BulkMP4ToMP3Converter() {
 
         ffmpeg.on('progress', progressListener);
 
+        const currentLogs: string[] = [];
+        const logListener = ({ message }: { message: string }) => {
+          if (message) currentLogs.push(message);
+          if (currentLogs.length > 30) currentLogs.shift();
+        };
+        try { ffmpeg.on('log', logListener); } catch (e) {}
+
         try {
           // Lazy Loading to FS: Do not read all files into ffmpeg.FS at the start.
-          // Only use fetchFile to write the specific file to memory exactly when its turn comes in the loop.
-          const fileBuffer = await fetchFile(file);
-          if (typeof ffmpeg.FS === 'function') {
+          let fileBuffer: Uint8Array;
+          try {
+            fileBuffer = await fetchFile(file);
+          } catch (e) {
+            fileBuffer = new Uint8Array(await file.arrayBuffer());
+          }
+
+          if (typeof ffmpeg.writeFile === 'function') {
+            await ffmpeg.writeFile(inputFileName, fileBuffer);
+          } else if (typeof ffmpeg.FS === 'function') {
             await ffmpeg.FS('writeFile', inputFileName, fileBuffer);
           } else {
             await ffmpeg.writeFile(inputFileName, fileBuffer);
           }
 
-          // Run FFmpeg: -vn disables video streams to avoid memory saturation on mobile
-          await ffmpeg.exec([
+          // Run FFmpeg: -y, -nostdin, -vn disables video streams to avoid memory saturation on mobile
+          // -ac 2 downmixes multi-channel / 5.1 smartphone camera audio to standard stereo
+          let silentTrackSynthesized = false;
+          const exitCode = await ffmpeg.exec([
+            '-y',
+            '-nostdin',
             '-i', inputFileName,
             '-vn',
             '-c:a', 'libmp3lame',
             '-b:a', bitrate,
+            '-ac', '2',
             outputFileName
           ]);
 
+          if (exitCode !== 0) {
+            const errorMsg = currentLogs.filter(l => 
+              l.toLowerCase().includes('error') || 
+              l.toLowerCase().includes('invalid') || 
+              l.toLowerCase().includes('does not contain any stream') ||
+              l.toLowerCase().includes('cannot find')
+            ).join('; ') || currentLogs.slice(-3).join('; ');
+
+            if (errorMsg.includes('does not contain any stream') || !currentLogs.some(l => l.includes('Audio:'))) {
+              silentTrackSynthesized = true;
+              let durSec = 5;
+              for (const logLine of currentLogs) {
+                const durMatch = logLine.match(/Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)/);
+                if (durMatch) {
+                  durSec = Math.max(1, parseInt(durMatch[1], 10) * 3600 + parseInt(durMatch[2], 10) * 60 + parseFloat(durMatch[3]));
+                  break;
+                }
+              }
+
+              const silentWav = createSilentWavBuffer(durSec);
+              const silentInputName = `silent_${fileIndex}_${Date.now()}.wav`;
+
+              if (typeof ffmpeg.writeFile === 'function') {
+                await ffmpeg.writeFile(silentInputName, silentWav);
+              } else if (typeof ffmpeg.FS === 'function') {
+                await ffmpeg.FS('writeFile', silentInputName, silentWav);
+              } else {
+                await ffmpeg.writeFile(silentInputName, silentWav);
+              }
+
+              await ffmpeg.exec([
+                '-y',
+                '-nostdin',
+                '-i', silentInputName,
+                '-c:a', 'libmp3lame',
+                '-b:a', bitrate,
+                outputFileName
+              ]);
+
+              try {
+                if (typeof ffmpeg.deleteFile === 'function') {
+                  await ffmpeg.deleteFile(silentInputName);
+                } else if (typeof ffmpeg.FS === 'function') {
+                  await ffmpeg.FS('unlink', silentInputName);
+                }
+              } catch (e) {}
+            } else {
+              throw new Error(`Audio extraction failed (code ${exitCode}): ${errorMsg || 'Invalid or unsupported audio track'}`);
+            }
+          }
+
           // Read output MP3 file from memory
           let outputData: any;
-          if (typeof ffmpeg.FS === 'function') {
+          if (typeof ffmpeg.readFile === 'function') {
+            outputData = await ffmpeg.readFile(outputFileName);
+          } else if (typeof ffmpeg.FS === 'function') {
             outputData = await ffmpeg.FS('readFile', outputFileName);
           } else {
             outputData = await ffmpeg.readFile(outputFileName);
@@ -310,7 +415,8 @@ export default function BulkMP4ToMP3Converter() {
             blob,
             url,
             size: blob.size,
-            success: true
+            success: true,
+            note: silentTrackSynthesized ? 'Silent audio (video had no sound)' : undefined
           });
 
           // UI Feedback: Complete progress state after file finishes
@@ -325,27 +431,27 @@ export default function BulkMP4ToMP3Converter() {
           });
         } finally {
           // Memory Management (Crucial): Clear memory immediately after each file is converted.
-          // Use ffmpeg.FS('unlink', inputFileName) and ffmpeg.FS('unlink', outputFileName) inside the loop.
-          try {
-            if (typeof ffmpeg.FS === 'function') {
-              await ffmpeg.FS('unlink', inputFileName);
-            }
-          } catch (e) {}
           try {
             if (typeof ffmpeg.deleteFile === 'function') {
               await ffmpeg.deleteFile(inputFileName);
+            } else if (typeof ffmpeg.FS === 'function') {
+              await ffmpeg.FS('unlink', inputFileName);
             }
           } catch (e) {}
 
           try {
-            if (typeof ffmpeg.FS === 'function') {
+            if (typeof ffmpeg.deleteFile === 'function') {
+              await ffmpeg.deleteFile(outputFileName);
+            } else if (typeof ffmpeg.FS === 'function') {
               await ffmpeg.FS('unlink', outputFileName);
             }
           } catch (e) {}
+
           try {
-            if (typeof ffmpeg.deleteFile === 'function') {
-              await ffmpeg.deleteFile(outputFileName);
-            }
+            ffmpeg.off('progress', progressListener);
+          } catch (e) {}
+          try {
+            ffmpeg.off('log', logListener);
           } catch (e) {}
 
           try {
@@ -602,7 +708,7 @@ export default function BulkMP4ToMP3Converter() {
                       <p className="text-sm font-medium text-white truncate">{track.name}</p>
                       <p className="text-xs text-slate-400 font-mono">
                         {track.success && track.size 
-                          ? `${(track.size / 1024 / 1024).toFixed(2)} MB • MP3 (${bitrate.replace('k', ' kbps')})`
+                          ? `${(track.size / 1024 / 1024).toFixed(2)} MB • MP3 (${bitrate.replace('k', ' kbps')})${track.note ? ' • ' + track.note : ''}`
                           : track.error || 'Failed'
                         }
                       </p>
