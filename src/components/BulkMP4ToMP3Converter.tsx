@@ -144,6 +144,15 @@ export default function BulkMP4ToMP3Converter() {
     const { toBlobURL } = win.FFmpegUtil;
     const ffmpeg = new FFmpeg();
 
+    // Memory Management & Compatibility: Expose .FS interface
+    if (!ffmpeg.FS) {
+      ffmpeg.FS = async (action: string, ...args: any[]) => {
+        if (action === 'unlink') return ffmpeg.deleteFile(args[0]);
+        if (action === 'writeFile') return ffmpeg.writeFile(args[0], args[1]);
+        if (action === 'readFile') return ffmpeg.readFile(args[0]);
+      };
+    }
+
     const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
     const coreURL = `${baseURL}/ffmpeg-core.js`;
     const wasmURL = `${baseURL}/ffmpeg-core.wasm`;
@@ -168,67 +177,113 @@ export default function BulkMP4ToMP3Converter() {
     try {
       const ffmpeg = await loadFFmpegInstance();
       const { fetchFile } = (window as any).FFmpegUtil;
+      let fileIndex = 1;
 
-      // Sequential loop through all queued files to prevent browser memory crashes
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const fileNumber = i + 1;
-        setCurrentFileIndex(fileNumber);
+      // Sequential Processing: MUST process files one by one using a for...of loop (NO Promise.all)
+      for (const file of files) {
+        const safeExt = file.name.split('.').pop() || 'mp4';
+        const inputFileName = `input_${fileIndex}_${Date.now()}.${safeExt}`;
+        const outputFileName = `output_${fileIndex}_${Date.now()}.mp3`;
+
+        // UI Feedback: Update state before file starts
+        setCurrentFileIndex(fileIndex);
         setCurrentFileName(file.name);
         setCurrentFileProgress(0);
 
-        const safeExt = file.name.split('.').pop() || 'mp4';
-        const inputName = `input_${Date.now()}_${i}.${safeExt}`;
-        const outputName = `output_${Date.now()}_${i}.mp3`;
-
         const progressListener = ({ progress }: { progress: number }) => {
-          const pct = Math.max(0, Math.min(100, Math.round((progress || 0) * 100)));
-          setCurrentFileProgress(pct);
+          if (typeof progress === 'number' && !isNaN(progress)) {
+            const pct = Math.max(0, Math.min(99, Math.round(progress * 100)));
+            setCurrentFileProgress(pct);
+          }
         };
 
         ffmpeg.on('progress', progressListener);
 
         try {
-          // Write file to virtual memory
-          await ffmpeg.writeFile(inputName, await fetchFile(file));
+          // Lazy Loading to FS: Do not read all files into ffmpeg.FS at the start.
+          // Only use fetchFile to write the specific file to memory exactly when its turn comes in the loop.
+          const fileBuffer = await fetchFile(file);
+          if (typeof ffmpeg.FS === 'function') {
+            await ffmpeg.FS('writeFile', inputFileName, fileBuffer);
+          } else {
+            await ffmpeg.writeFile(inputFileName, fileBuffer);
+          }
 
-          // Run FFmpeg with dynamic bitrate argument (e.g. -b:a 320k)
+          // Run FFmpeg: -vn disables video streams to avoid memory saturation on mobile
           await ffmpeg.exec([
-            '-i', inputName,
+            '-i', inputFileName,
             '-vn',
             '-c:a', 'libmp3lame',
             '-b:a', bitrate,
-            outputName
+            outputFileName
           ]);
 
           // Read output MP3 file from memory
-          const outputData = await ffmpeg.readFile(outputName);
+          let outputData: any;
+          if (typeof ffmpeg.FS === 'function') {
+            outputData = await ffmpeg.FS('readFile', outputFileName);
+          } else {
+            outputData = await ffmpeg.readFile(outputFileName);
+          }
+
           const blob = new Blob([outputData.buffer], { type: 'audio/mpeg' });
+          outputData = null; // Release JS array buffer reference
           const url = URL.createObjectURL(blob);
           const outBaseName = file.name.replace(/\.[^/.]+$/, "");
 
           convertedList.push({
-            id: `track-${i}-${Date.now()}`,
+            id: `track-${fileIndex}-${Date.now()}`,
             name: `${outBaseName}.mp3`,
             blob,
             url,
             size: blob.size,
             success: true
           });
+
+          // UI Feedback: Complete progress state after file finishes
+          setCurrentFileProgress(100);
         } catch (fileErr: any) {
           console.error(`Error converting ${file.name}:`, fileErr);
           convertedList.push({
-            id: `track-${i}-${Date.now()}`,
+            id: `track-${fileIndex}-${Date.now()}`,
             name: file.name,
             success: false,
             error: fileErr?.message || 'Conversion failed'
           });
         } finally {
-          // Free memory
-          try { await ffmpeg.deleteFile(inputName); } catch {}
-          try { await ffmpeg.deleteFile(outputName); } catch {}
-          try { ffmpeg.off('progress', progressListener); } catch {}
+          // Memory Management (Crucial): Clear memory immediately after each file is converted.
+          // Use ffmpeg.FS('unlink', inputFileName) and ffmpeg.FS('unlink', outputFileName) inside the loop.
+          try {
+            if (typeof ffmpeg.FS === 'function') {
+              await ffmpeg.FS('unlink', inputFileName);
+            }
+          } catch (e) {}
+          try {
+            if (typeof ffmpeg.deleteFile === 'function') {
+              await ffmpeg.deleteFile(inputFileName);
+            }
+          } catch (e) {}
+
+          try {
+            if (typeof ffmpeg.FS === 'function') {
+              await ffmpeg.FS('unlink', outputFileName);
+            }
+          } catch (e) {}
+          try {
+            if (typeof ffmpeg.deleteFile === 'function') {
+              await ffmpeg.deleteFile(outputFileName);
+            }
+          } catch (e) {}
+
+          try {
+            ffmpeg.off('progress', progressListener);
+          } catch (e) {}
+
+          // Yield event loop to allow Garbage Collector to reclaim RAM
+          await new Promise((r) => setTimeout(r, 60));
         }
+
+        fileIndex++;
       }
     } catch (globalErr: any) {
       console.error('Fatal conversion error:', globalErr);

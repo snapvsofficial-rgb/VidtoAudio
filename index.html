@@ -978,26 +978,44 @@
 
             let ffmpeg = null;
 
-            async function processAudio(inputFileBlob, outputExt, bitrate = '320k', onProgress = null, startOffset = 0, duration = null) {
-                if (!ffmpeg) {
-                    const { FFmpeg } = window.FFmpegWASM;
-                    ffmpeg = new FFmpeg();
-                    
-                    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
-                    const { toBlobURL } = window.FFmpegUtil;
-                    
-                    const coreURL = `${baseURL}/ffmpeg-core.js`;
-                    const wasmURL = `${baseURL}/ffmpeg-core.wasm`;
-                    const classWorkerURL = await toBlobURL('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/814.ffmpeg.js', 'text/javascript');
+            async function getFFmpegInstance(onStatus = null) {
+                if (ffmpeg) return ffmpeg;
 
-                    await ffmpeg.load({ coreURL, wasmURL, classWorkerURL });
+                if (onStatus) onStatus('Loading FFmpeg core components...');
+                const { FFmpeg } = window.FFmpegWASM;
+                const instance = new FFmpeg();
+
+                // Memory Management & Compatibility: Expose .FS interface on FFmpeg instance
+                if (!instance.FS) {
+                    instance.FS = async (action, ...args) => {
+                        if (action === 'unlink') return instance.deleteFile(args[0]);
+                        if (action === 'writeFile') return instance.writeFile(args[0], args[1]);
+                        if (action === 'readFile') return instance.readFile(args[0]);
+                    };
                 }
 
+                const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
+                const { toBlobURL } = window.FFmpegUtil;
+                
+                const coreURL = `${baseURL}/ffmpeg-core.js`;
+                const wasmURL = `${baseURL}/ffmpeg-core.wasm`;
+                const classWorkerURL = await toBlobURL('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/814.ffmpeg.js', 'text/javascript');
+
+                await instance.load({ coreURL, wasmURL, classWorkerURL });
+                ffmpeg = instance;
+                return ffmpeg;
+            }
+
+            async function processAudio(inputFileBlob, outputExt, bitrate = '320k', onProgress = null, startOffset = 0, duration = null) {
+                const ff = await getFFmpegInstance();
+
                 const progressHandler = ({ progress }) => {
-                    const percent = Math.max(0, Math.min(100, (progress || 0) * 100));
-                    if (onProgress) onProgress(percent);
+                    if (typeof progress === 'number' && !isNaN(progress)) {
+                        const percent = Math.max(0, Math.min(100, Math.round(progress * 100)));
+                        if (onProgress) onProgress(percent);
+                    }
                 };
-                ffmpeg.on('progress', progressHandler);
+                ff.on('progress', progressHandler);
 
                 const { fetchFile } = window.FFmpegUtil;
                 const safeRand = Math.random().toString(36).substring(2, 7);
@@ -1006,15 +1024,20 @@
                 const outputName = `output_${Date.now()}_${safeRand}.${outputExt}`;
 
                 try {
-                    await ffmpeg.writeFile(inputName, await fetchFile(inputFileBlob));
+                    // Lazy Loading: Write file to FS only when processing begins
+                    const fileBytes = await fetchFile(inputFileBlob);
+                    if (typeof ff.FS === 'function') {
+                        await ff.FS('writeFile', inputName, fileBytes);
+                    } else {
+                        await ff.writeFile(inputName, fileBytes);
+                    }
                     
                     let args = [];
                     if (duration !== null && duration > 0) {
                         args.push('-ss', startOffset.toString(), '-t', duration.toString());
                     }
-                    args.push('-i', inputName);
+                    args.push('-i', inputName, '-vn'); // -vn prevents video demuxing/decoding memory crashes
                     
-                    // Dynamic Bitrate & Codec Arguments
                     const chosenBitrate = bitrate || '320k';
 
                     if (outputExt === 'mp3') {
@@ -1037,8 +1060,14 @@
                     
                     args.push(outputName);
                     
-                    await ffmpeg.exec(args);
-                    const data = await ffmpeg.readFile(outputName);
+                    await ff.exec(args);
+                    
+                    let data;
+                    if (typeof ff.FS === 'function') {
+                        data = await ff.FS('readFile', outputName);
+                    } else {
+                        data = await ff.readFile(outputName);
+                    }
 
                     const mimeTypes = {
                         wav: 'audio/wav',
@@ -1052,12 +1081,19 @@
                         aiff: 'audio/aiff'
                     };
                     const mime = mimeTypes[outputExt] || 'audio/wav';
-                    
-                    return new Blob([data.buffer], { type: mime });
+                    const resultBlob = new Blob([data.buffer], { type: mime });
+                    data = null;
+                    return resultBlob;
                 } finally {
-                    try { await ffmpeg.deleteFile(inputName); } catch {}
-                    try { await ffmpeg.deleteFile(outputName); } catch {}
-                    try { ffmpeg.off('progress', progressHandler); } catch {}
+                    try {
+                        if (typeof ff.FS === 'function') await ff.FS('unlink', inputName);
+                        else await ff.deleteFile(inputName);
+                    } catch {}
+                    try {
+                        if (typeof ff.FS === 'function') await ff.FS('unlink', outputName);
+                        else await ff.deleteFile(outputName);
+                    } catch {}
+                    try { ff.off('progress', progressHandler); } catch {}
                 }
             }
 
@@ -1280,26 +1316,105 @@
                 const totalFiles = selectedFiles.length;
                 convertedBatchResults = [];
 
-                // Sequential processing queue to avoid browser memory saturation
-                for (let i = 0; i < totalFiles; i++) {
-                    const currentFile = selectedFiles[i];
-                    const fileIndex = i + 1;
+                // 1. Initialize WebAssembly engine once before starting the loop
+                processingStatus.innerText = 'Initializing conversion engine...';
+                processingFileName.innerText = 'Preparing WebAssembly audio extractor';
+                setProgress(5);
 
+                let ff;
+                try {
+                    ff = await getFFmpegInstance((statusMsg) => {
+                        processingStatus.innerText = statusMsg;
+                    });
+                } catch (initErr) {
+                    console.error('Engine initialization error:', initErr);
+                    showError('Failed to initialize audio converter: ' + (initErr?.message || initErr));
+                    return;
+                }
+
+                const { fetchFile } = window.FFmpegUtil;
+                let fileIndex = 1;
+
+                // 2. Sequential Processing: MUST process files one by one using a for...of loop (NO Promise.all)
+                for (const currentFile of selectedFiles) {
+                    const safeRand = Math.random().toString(36).substring(2, 7);
+                    const inExt = (currentFile.name || '').split('.').pop() || 'mp4';
+                    const inputFileName = `input_${fileIndex}_${safeRand}.${inExt}`;
+                    const outputFileName = `output_${fileIndex}_${safeRand}.${selectedFormatExt}`;
+
+                    // 3. UI Feedback: Update progress state BEFORE file conversion starts
                     processingStatus.innerText = `Processing file ${fileIndex} of ${totalFiles}... 0%`;
                     processingFileName.innerText = currentFile.name;
                     setProgress(0);
 
+                    // Dynamic per-file progress handler
+                    const progressHandler = ({ progress }) => {
+                        if (typeof progress === 'number' && !isNaN(progress)) {
+                            const pct = Math.max(1, Math.min(99, Math.round(progress * 100)));
+                            processingStatus.innerText = `Processing file ${fileIndex} of ${totalFiles}... ${pct}%`;
+                            setProgress(pct);
+                        }
+                    };
+                    ff.on('progress', progressHandler);
+
                     try {
-                        const blob = await processAudio(
-                            currentFile,
-                            selectedFormatExt,
-                            selectedBitrate,
-                            (filePercent) => {
-                                const rounded = Math.round(filePercent);
-                                processingStatus.innerText = `Processing file ${fileIndex} of ${totalFiles}... ${rounded}%`;
-                                setProgress(filePercent);
-                            }
-                        );
+                        // 4. Lazy Loading to FS: Do not read all files into ffmpeg.FS at the start.
+                        // Only use fetchFile to write the specific file to memory exactly when its turn comes in the loop.
+                        const fileBuffer = await fetchFile(currentFile);
+                        if (typeof ff.FS === 'function') {
+                            await ff.FS('writeFile', inputFileName, fileBuffer);
+                        } else {
+                            await ff.writeFile(inputFileName, fileBuffer);
+                        }
+
+                        // Build arguments: -vn strips video data immediately to avoid RAM choking on mobile
+                        let args = ['-i', inputFileName, '-vn'];
+
+                        if (selectedFormatExt === 'mp3') {
+                            args.push('-c:a', 'libmp3lame', '-b:a', selectedBitrate);
+                        } else if (selectedFormatExt === 'aac' || selectedFormatExt === 'm4a') {
+                            args.push('-c:a', 'aac', '-b:a', selectedBitrate);
+                        } else if (selectedFormatExt === 'flac') {
+                            args.push('-c:a', 'flac');
+                        } else if (selectedFormatExt === 'ogg') {
+                            args.push('-c:a', 'libvorbis', '-b:a', selectedBitrate);
+                        } else if (selectedFormatExt === 'opus') {
+                            args.push('-c:a', 'libopus', '-b:a', selectedBitrate);
+                        } else if (selectedFormatExt === 'wma') {
+                            args.push('-c:a', 'wmav2', '-b:a', selectedBitrate);
+                        } else if (selectedFormatExt === 'aiff') {
+                            args.push('-c:a', 'pcm_s16be');
+                        } else {
+                            args.push('-c:a', 'pcm_s16le'); // WAV default
+                        }
+
+                        args.push(outputFileName);
+
+                        // Execute FFmpeg
+                        await ff.exec(args);
+
+                        // Read output audio file from FS
+                        let outputData;
+                        if (typeof ff.FS === 'function') {
+                            outputData = await ff.FS('readFile', outputFileName);
+                        } else {
+                            outputData = await ff.readFile(outputFileName);
+                        }
+
+                        const mimeTypes = {
+                            wav: 'audio/wav',
+                            mp3: 'audio/mpeg',
+                            aac: 'audio/aac',
+                            flac: 'audio/flac',
+                            ogg: 'audio/ogg',
+                            m4a: 'audio/mp4',
+                            wma: 'audio/x-ms-wma',
+                            opus: 'audio/opus',
+                            aiff: 'audio/aiff'
+                        };
+                        const mime = mimeTypes[selectedFormatExt] || 'audio/mpeg';
+                        const blob = new Blob([outputData.buffer], { type: mime });
+                        outputData = null; // Release JS array buffer reference
 
                         const outBase = currentFile.name.replace(/\.[^/.]+$/, "");
                         convertedBatchResults.push({
@@ -1308,6 +1423,10 @@
                             size: blob.size,
                             success: true
                         });
+
+                        // 5. UI Feedback: Update progress state AFTER file conversion completes
+                        processingStatus.innerText = `Processed file ${fileIndex} of ${totalFiles} (100%)`;
+                        setProgress(100);
                     } catch (fileErr) {
                         console.error(`Error processing file ${currentFile.name}:`, fileErr);
                         convertedBatchResults.push({
@@ -1315,7 +1434,40 @@
                             error: fileErr?.message || 'Conversion failed',
                             success: false
                         });
+                    } finally {
+                        // 6. Memory Management (Crucial): Clear memory immediately after each file is converted.
+                        // Use ffmpeg.FS('unlink', inputFileName) and ffmpeg.FS('unlink', outputFileName) inside the loop.
+                        try {
+                            if (typeof ff.FS === 'function') {
+                                await ff.FS('unlink', inputFileName);
+                            }
+                        } catch (e) {}
+                        try {
+                            if (typeof ff.deleteFile === 'function') {
+                                await ff.deleteFile(inputFileName);
+                            }
+                        } catch (e) {}
+
+                        try {
+                            if (typeof ff.FS === 'function') {
+                                await ff.FS('unlink', outputFileName);
+                            }
+                        } catch (e) {}
+                        try {
+                            if (typeof ff.deleteFile === 'function') {
+                                await ff.deleteFile(outputFileName);
+                            }
+                        } catch (e) {}
+
+                        try {
+                            ff.off('progress', progressHandler);
+                        } catch (e) {}
+
+                        // Yield event loop to let browser Garbage Collector reclaim memory on low-RAM mobile devices
+                        await new Promise(resolve => setTimeout(resolve, 60));
                     }
+
+                    fileIndex++;
                 }
 
                 renderBatchSuccess(convertedBatchResults, selectedFormatExt);
