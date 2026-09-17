@@ -8,6 +8,12 @@ import {
   DEFAULT_SITE_SETTINGS
 } from './services/configService';
 import { FormatTogglesConfig, SiteSettingsConfig } from './types';
+import { 
+  generateFormatArticle, 
+  generateFormatFAQAccordionHTML, 
+  generateFormatFAQSchema 
+} from './utils/formatSEOContent';
+import { renderRatingWidget } from './components/RatingWidget';
 
 // Format definitions
 export const validInputs = ['mp4', 'mkv', 'avi', 'webm', 'mov', 'flv', 'wmv', 'hevc', 'm4v'];
@@ -519,44 +525,187 @@ export async function navigateTo(pathname = window.location.pathname) {
     updateMetaTag('twitter:description', pageDesc);
   }
 
-  // 3. Dynamic main <h1> text
+  // 3. Layout and section visibility (AdSense strict uniqueness rules)
+  const isMatrixPage = !route.isFallback;
+
+  const heroBreadcrumbs = document.getElementById('hero-breadcrumbs');
+  const breadcrumbCurrent = document.getElementById('breadcrumb-current');
+  const heroSubtitle = document.getElementById('hero-subtitle');
+  const heroPopularLinks = document.getElementById('hero-popular-links');
+  const heroDownload = document.getElementById('download');
+  const trustBarSection = document.getElementById('trust-bar-section');
+
+  const converterTitle = document.getElementById('converter-title');
+  const converterSubtitle = document.getElementById('converter-subtitle');
+  const dropzoneText = document.getElementById('dropzone-text');
+
+  const batchConversionSeo = document.getElementById('batch-conversion-seo');
+  const whyWeBuiltSection = document.getElementById('why-we-built-section');
+  const howItWorksSection = document.getElementById('how-it-works');
+  const featuresSection = document.getElementById('features');
+  const screenshotSection = document.getElementById('screenshot-showcase-section');
+  const comparisonSection = document.getElementById('comparison-section');
+  const faqSection = document.getElementById('faq');
+  const aboutSection = document.getElementById('about');
+
+  const matrixFaqSection = document.getElementById('matrix-faq-section');
+  const matrixFaqTitle = document.getElementById('matrix-faq-title');
+  const matrixFaqSubtitle = document.getElementById('matrix-faq-subtitle');
+  const matrixFaqAccordion = document.getElementById('matrix-faq-accordion');
+  const matrixFaqSchemaScript = document.getElementById('matrix-faq-schema') as HTMLScriptElement | null;
+
+  const matrixRatingSection = document.getElementById('matrix-rating-section');
+  const matrixRatingContainer = document.getElementById('matrix-rating-container');
+  const matrixRatingSchemaScript = document.getElementById('matrix-rating-schema') as HTMLScriptElement | null;
+
+  // Dynamic main <h1> and converter headings
   const heroTitle = document.getElementById('hero-title');
   if (heroTitle) {
-    if (route.isFallback) {
-      heroTitle.textContent = 'Fastest Bulk & Batch MP4 to MP3 Converter (Offline)';
-    } else {
+    if (isMatrixPage) {
       heroTitle.textContent = `Fastest Bulk & Batch ${inUpper} to ${outUpper} Converter (Offline)`;
+    } else {
+      heroTitle.textContent = 'Fastest Bulk & Batch MP4 to MP3 Converter (Offline)';
     }
   }
 
-  const converterTitle = document.getElementById('converter-title');
   if (converterTitle) {
-    if (route.isFallback) {
-      converterTitle.textContent = 'Try it here: Bulk & Batch MP4 to MP3 Converter';
-    } else {
+    if (isMatrixPage) {
       converterTitle.textContent = `Try it here: Bulk & Batch ${inUpper} to ${outUpper} Converter`;
+    } else {
+      converterTitle.textContent = 'Try it here: Bulk & Batch MP4 to MP3 Converter';
+    }
+  }
+
+  if (converterSubtitle) {
+    if (isMatrixPage) {
+      converterSubtitle.textContent = `Select single or multiple ${inUpper} video files. Converted to ${outUpper} sequentially in your browser via FFmpeg WebAssembly.`;
+    } else {
+      converterSubtitle.textContent = 'Select single or multiple video files. Converted sequentially in your browser via FFmpeg WebAssembly.';
     }
   }
 
   // 4. Dynamic Upload Box Text
-  const dropzoneText = document.getElementById('dropzone-text');
   if (dropzoneText) {
-    dropzoneText.textContent = `Click or drag & drop ${inUpper} video files for bulk conversion`;
+    if (isMatrixPage) {
+      dropzoneText.textContent = `Click or drag & drop ${inUpper} video files for ${outUpper} conversion`;
+    } else {
+      dropzoneText.textContent = 'Click or drag & drop video files for bulk conversion';
+    }
   }
 
   // 5. Update dropdown options & selection based on active toggles
   updateFormatDropdown(route.output);
 
-  // 6. Inject Dynamic SEO Description Block (fetched from Firestore)
+  // 6. Section Visibility & Content Strategy
   const seoContainer = document.getElementById('dynamic-seo-content');
-  if (seoContainer) {
-    seoContainer.innerHTML = generateSEOContent(route.input || 'mp4', route.output || 'wav');
-  }
-
-  // 7. Inject Dynamic FAQ Block
   const faqContainer = document.getElementById('dynamic-faq');
-  if (faqContainer) {
-    faqContainer.innerHTML = generateDynamicFAQs(route.input || 'mp4', route.output || 'wav');
+
+  if (isMatrixPage) {
+    // MATRIX / CONVERTER PAGES (/:slug):
+    // Display ONLY: top header, conversion tool, dynamic SEO title, and unique ~200-word format description.
+    // Explicitly hide repetitive blocks (the generic MP4-to-MP3 WebAssembly article, 4-step screenshots grid, Why We Built, features, and long FAQs).
+    if (heroBreadcrumbs) {
+      heroBreadcrumbs.classList.remove('hidden');
+      heroBreadcrumbs.classList.add('flex');
+    }
+    if (breadcrumbCurrent) breadcrumbCurrent.textContent = `${inUpper} to ${outUpper}`;
+    if (heroSubtitle) {
+      heroSubtitle.textContent = `Extract high-quality ${outUpper} audio directly from ${inUpper} video files in your browser with zero server uploads, complete offline security, and hardware-accelerated processing.`;
+    }
+
+    // Hide repetitive promotional / heavy elements on subpages
+    if (heroPopularLinks) heroPopularLinks.classList.add('hidden');
+    if (heroDownload) heroDownload.classList.add('hidden');
+    if (trustBarSection) trustBarSection.classList.add('hidden');
+
+    // Hide generic MP4-to-MP3 WebAssembly article on matrix pages
+    if (batchConversionSeo) batchConversionSeo.classList.add('hidden');
+
+    // Hide heavy repetitive sections
+    if (whyWeBuiltSection) whyWeBuiltSection.classList.add('hidden');
+    if (howItWorksSection) howItWorksSection.classList.add('hidden');
+    if (featuresSection) featuresSection.classList.add('hidden');
+    if (screenshotSection) screenshotSection.classList.add('hidden');
+    if (comparisonSection) comparisonSection.classList.add('hidden');
+    if (faqSection) faqSection.classList.add('hidden');
+    if (aboutSection) aboutSection.classList.add('hidden');
+
+    // Inject unique, technically rich ~200-word format description for Google AdSense uniqueness
+    if (seoContainer) {
+      seoContainer.innerHTML = generateFormatArticle(route.input || 'mp4', route.output || 'mp3');
+    }
+
+    // Show and render interactive 5-star rating system (local state & AggregateRating schema)
+    if (matrixRatingSection) matrixRatingSection.classList.remove('hidden');
+    if (matrixRatingContainer) {
+      const matrixSlug = (route.input && route.output) ? `${route.input}-to-${route.output}` : (route.canonicalPath ? route.canonicalPath.replace(/^\//, '') : 'converter');
+      renderRatingWidget(
+        matrixRatingContainer,
+        matrixSlug,
+        route.input || 'mp4',
+        route.output || 'mp3',
+        matrixRatingSchemaScript
+      );
+    }
+
+    // Show and inject dynamic format-specific FAQs accordion for matrix pages
+    if (matrixFaqSection) matrixFaqSection.classList.remove('hidden');
+    if (matrixFaqTitle) {
+      matrixFaqTitle.textContent = `Frequently Asked Questions: ${inUpper} to ${outUpper}`;
+    }
+    if (matrixFaqSubtitle) {
+      matrixFaqSubtitle.textContent = `Common questions and verified technical details for extracting high-fidelity ${outUpper} audio from ${inUpper} video files offline.`;
+    }
+    if (matrixFaqAccordion) {
+      matrixFaqAccordion.innerHTML = generateFormatFAQAccordionHTML(route.input || 'mp4', route.output || 'mp3');
+    }
+    if (matrixFaqSchemaScript) {
+      matrixFaqSchemaScript.textContent = JSON.stringify(generateFormatFAQSchema(route.input || 'mp4', route.output || 'mp3'));
+    }
+  } else {
+    // HOMEPAGE (/):
+    // Keep fully loaded with all sections, features, tool, screenshot grid, Why We Built, and FAQs.
+    if (heroBreadcrumbs) {
+      heroBreadcrumbs.classList.add('hidden');
+      heroBreadcrumbs.classList.remove('flex');
+    }
+    if (heroSubtitle) {
+      heroSubtitle.textContent = 'Extract high-bitrate audio from single or multiple video files in bulk with zero uploads. Runs 100% locally in your browser for absolute privacy, zero data usage, and maximum speed.';
+    }
+
+    if (heroPopularLinks) heroPopularLinks.classList.remove('hidden');
+    if (heroDownload) heroDownload.classList.remove('hidden');
+    if (trustBarSection) trustBarSection.classList.remove('hidden');
+
+    // Show the generic MP4-to-MP3 WebAssembly article on homepage
+    if (batchConversionSeo) batchConversionSeo.classList.remove('hidden');
+
+    // Show all homepage sections
+    if (whyWeBuiltSection) whyWeBuiltSection.classList.remove('hidden');
+    if (howItWorksSection) howItWorksSection.classList.remove('hidden');
+    if (featuresSection) featuresSection.classList.remove('hidden');
+    if (screenshotSection) screenshotSection.classList.remove('hidden');
+    if (comparisonSection) comparisonSection.classList.remove('hidden');
+    if (faqSection) faqSection.classList.remove('hidden');
+    if (aboutSection) aboutSection.classList.remove('hidden');
+
+    // Hide matrix-specific rating system on homepage
+    if (matrixRatingSection) matrixRatingSection.classList.add('hidden');
+    if (matrixRatingContainer) matrixRatingContainer.innerHTML = '';
+    if (matrixRatingSchemaScript) matrixRatingSchemaScript.textContent = '{}';
+
+    // Hide matrix-specific FAQ accordion on homepage
+    if (matrixFaqSection) matrixFaqSection.classList.add('hidden');
+    if (matrixFaqAccordion) matrixFaqAccordion.innerHTML = '';
+    if (matrixFaqSchemaScript) matrixFaqSchemaScript.textContent = '{}';
+
+    // On homepage, keep SEO container clear so as not to duplicate the batch conversion SEO article
+    if (seoContainer) {
+      seoContainer.innerHTML = '';
+    }
+    if (faqContainer) {
+      faqContainer.innerHTML = generateDynamicFAQs(route.input || 'mp4', route.output || 'wav');
+    }
   }
 
   // 8. Update active states for route pills and matrix links

@@ -122,6 +122,8 @@
       ]
     }
     </script>
+    <script type="application/ld+json" id="matrix-faq-schema">{}</script>
+    <script type="application/ld+json" id="matrix-rating-schema">{}</script>
 </head>
 <body class="bg-dark-950 text-slate-300 antialiased selection:bg-brand-500 selection:text-white flex flex-col min-h-screen">
 
@@ -209,14 +211,22 @@
         <!-- Public Converter View (Landing & Conversion Interface) -->
         <div id="public-converter-view">
             <!-- Hero Section -->
-            <section class="pt-20 pb-12 px-4 text-center">
+            <section id="hero-section" class="pt-20 pb-12 px-4 text-center">
+            <!-- Breadcrumbs for Matrix/Converter Pages -->
+            <nav id="hero-breadcrumbs" aria-label="Breadcrumb" class="hidden max-w-4xl mx-auto mb-6 flex items-center justify-center gap-2 text-xs sm:text-sm text-slate-400">
+                <a href="/" data-route-link class="hover:text-brand-400 transition-colors">Home</a>
+                <span class="text-slate-600">/</span>
+                <span class="text-slate-500">Converters</span>
+                <span class="text-slate-600">/</span>
+                <span id="breadcrumb-current" class="text-brand-400 font-medium">MP4 to MP3</span>
+            </nav>
             <h1 id="hero-title" class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6 max-w-4xl mx-auto leading-tight">Fastest Bulk & Batch MP4 to MP3 Converter (Offline)</h1>
-            <p class="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto mb-8">
+            <p id="hero-subtitle" class="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto mb-8">
                 Extract high-bitrate audio from single or multiple video files in bulk with zero uploads. Runs 100% locally in your browser for absolute privacy, zero data usage, and maximum speed.
             </p>
 
             <!-- Route Quick Links for Format Landing Pages -->
-            <div class="flex flex-wrap justify-center items-center gap-2 max-w-2xl mx-auto mb-10 text-xs sm:text-sm font-medium">
+            <div id="hero-popular-links" class="flex flex-wrap justify-center items-center gap-2 max-w-2xl mx-auto mb-10 text-xs sm:text-sm font-medium">
                 <span class="text-slate-500 mr-1">Popular Converters:</span>
                 <a href="/mp4-to-mp3" data-route-link class="px-3 py-1.5 rounded-lg border transition-colors bg-dark-900 border-slate-700 text-slate-300 hover:border-brand-500 hover:text-white">MP4 to MP3</a>
                 <a href="/mp4-to-wav" data-route-link class="px-3 py-1.5 rounded-lg border transition-colors bg-dark-900 border-slate-700 text-slate-300 hover:border-brand-500 hover:text-white">MP4 to WAV</a>
@@ -238,7 +248,7 @@
         </section>
 
         <!-- Trust Bar -->
-        <section class="border-y border-slate-800/50 bg-dark-900/30">
+        <section id="trust-bar-section" class="border-y border-slate-800/50 bg-dark-900/30">
             <div class="max-w-5xl mx-auto px-4 py-6 flex flex-wrap justify-center items-center gap-x-8 gap-y-4 text-sm font-medium text-slate-400">
                 <div class="flex items-center gap-2"><svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 100% Offline</div>
                 <div class="hidden sm:block text-slate-700">&bull;</div>
@@ -251,11 +261,11 @@
         </section>
 
         <!-- Functional Web Tool -->
-        <section class="max-w-3xl mx-auto mt-12 mb-16 px-4">
+        <section id="converter-tool-section" class="max-w-3xl mx-auto mt-12 mb-16 px-4">
             <div class="bg-dark-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
                 <div class="text-center mb-6">
                     <h2 id="converter-title" class="text-xl font-semibold text-white mb-2">Try it here: Bulk & Batch MP4 to MP3 Converter</h2>
-                    <p class="text-slate-400 text-sm">Select single or multiple video files. Converted sequentially in your browser via FFmpeg WebAssembly.</p>
+                    <p id="converter-subtitle" class="text-slate-400 text-sm">Select single or multiple video files. Converted sequentially in your browser via FFmpeg WebAssembly.</p>
                 </div>
 
                 <div id="converter-ui" class="flex flex-col items-center w-full">
@@ -408,7 +418,7 @@
         </section>
 
         <!-- SEO Article: Offline Batch & Bulk Audio Extraction Saves Data & Time -->
-        <article id="batch-conversion-seo" class="max-w-3xl mx-auto px-4 -mt-8 mb-16">
+        <article id="batch-conversion-seo" class="max-w-3xl mx-auto px-4 mb-16">
             <div class="bg-dark-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
                 <div class="flex items-center gap-2 mb-3">
                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-brand-950 text-brand-400 border border-brand-800/60">
@@ -439,12 +449,37 @@
         </article>
 
         <!-- Dynamic SEO Content Container -->
-        <section class="max-w-4xl mx-auto px-4 -mt-10 mb-16">
+        <section id="dynamic-seo-section" class="max-w-4xl mx-auto px-4 mb-16">
             <div id="dynamic-seo-content"></div>
         </section>
 
+        <!-- Interactive 5-Star Rating System for Matrix Pages -->
+        <section id="matrix-rating-section" class="max-w-4xl mx-auto px-4 mb-16 hidden">
+            <div id="matrix-rating-container"></div>
+        </section>
+
+        <!-- Dedicated Matrix FAQs Section (Format-Specific) -->
+        <section id="matrix-faq-section" class="max-w-4xl mx-auto px-4 mb-20 hidden">
+            <div class="border-t border-slate-800/80 pt-10">
+                <div class="text-center mb-8">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-brand-950 text-brand-400 border border-brand-800/60 mb-2">
+                        Format FAQ & Guidance
+                    </span>
+                    <h2 id="matrix-faq-title" class="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                        Frequently Asked Questions
+                    </h2>
+                    <p id="matrix-faq-subtitle" class="text-slate-400 text-sm mt-1 max-w-xl mx-auto">
+                        Common questions regarding audio quality, file size reduction, and offline processing.
+                    </p>
+                </div>
+                <div id="matrix-faq-accordion" class="space-y-4">
+                    <!-- Populated dynamically per format combination -->
+                </div>
+            </div>
+        </section>
+
         <!-- Why We Built This -->
-        <section class="max-w-4xl mx-auto px-4 py-12">
+        <section id="why-we-built-section" class="max-w-4xl mx-auto px-4 py-12">
             <div class="border-l-4 border-brand-500 pl-6 py-2 bg-dark-900/20 rounded-r-xl p-4">
                 <h2 class="text-2xl font-semibold text-white mb-3">Why We Built VidToAudio</h2>
                 <p class="text-slate-400 leading-relaxed mb-4">
@@ -560,7 +595,7 @@
         </section>
 
         <!-- Screenshot Showcase -->
-        <section class="max-w-7xl mx-auto px-4 py-12 border-t border-slate-800/50">
+        <section id="screenshot-showcase-section" class="max-w-7xl mx-auto px-4 py-12 border-t border-slate-800/50">
             <h2 class="text-3xl font-bold text-white text-center mb-4">App Interface & Transparency</h2>
             <p class="text-center text-slate-400 mb-12 max-w-2xl mx-auto">See exactly what you get. A clean, native Android interface designed for rapid audio conversion without the clutter.</p>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
@@ -592,7 +627,7 @@
         </section>
 
         <!-- Why On-Device vs Online Converters -->
-        <section class="bg-dark-900 border-y border-slate-800 py-20 mt-12">
+        <section id="comparison-section" class="bg-dark-900 border-y border-slate-800 py-20 mt-12">
             <div class="max-w-5xl mx-auto px-4 flex flex-col md:flex-row items-center gap-12">
                 <div class="md:w-1/2">
                     <h2 class="text-3xl font-bold text-white mb-6">Why On-Device vs Online Converters?</h2>
