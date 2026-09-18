@@ -26,6 +26,7 @@ import {
   interpolate,
   updateHreflangTags
 } from './i18n';
+import { updateEditorLanguage } from './editor/videoEditorApp';
 
 // Format definitions
 export const validInputs = ['mp4', 'mkv', 'avi', 'webm', 'mov', 'flv', 'wmv', 'hevc', 'm4v'];
@@ -706,6 +707,9 @@ export function applyLanguageToUI(lang: SupportedLanguage) {
   if (footerCustomText) {
     footerCustomText.textContent = t.footer.rightsReserved;
   }
+
+  // 8. Update Video Editor UI in-place if active
+  updateEditorLanguage(lang);
 }
 
 // Master Route Applicator with Strict SEO Perfection & Security Guards
@@ -754,15 +758,20 @@ export async function navigateTo(pathname = window.location.pathname) {
     if (publicConverterView) publicConverterView.classList.add('hidden');
     if (dynamicRouteView) {
       dynamicRouteView.classList.remove('hidden');
-      dynamicRouteView.innerHTML = `
-        <div class="py-24 text-center">
-          <div class="w-10 h-10 border-2 border-teal-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p class="text-slate-400 text-sm font-medium">Initializing VidToAudio Web Video Editor...</p>
-        </div>
-      `;
+      const hasExistingEditor = dynamicRouteView.querySelector('#editor-root');
+      if (!hasExistingEditor) {
+        dynamicRouteView.innerHTML = `
+          <div class="py-24 text-center">
+            <div class="w-10 h-10 border-2 border-teal-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p class="text-slate-400 text-sm font-medium">Initializing VidToAudio Web Video Editor...</p>
+          </div>
+        `;
 
-      const { renderVideoEditor } = await import('./editor/videoEditorApp');
-      renderVideoEditor(dynamicRouteView);
+        const { renderVideoEditor } = await import('./editor/videoEditorApp');
+        renderVideoEditor(dynamicRouteView, lang);
+      } else {
+        updateEditorLanguage(lang);
+      }
     }
 
     const t = getTranslations(lang);
@@ -1179,6 +1188,9 @@ function initLanguageSwitchers() {
 
 // Initialize Application
 async function initApp() {
+  (window as any).navigateTo = navigateTo;
+  (window as any).applyLanguageToUI = applyLanguageToUI;
+
   // 1. Initial setup
   initNavbarInteractions();
   initLanguageSwitchers();
