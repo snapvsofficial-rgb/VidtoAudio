@@ -74,56 +74,73 @@ async function fetchDynamicBlogSlugs() {
 }
 
 async function generateSitemap() {
-  const urls = [];
+  const urlBlocks = [];
 
-  // 1. Root URL (Priority 1.0)
-  urls.push(`  <url>
-    <loc>${BASE_URL}/</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
+  // Helper for generating multilingual URL blocks with Google xhtml:link alternates
+  const addLocalizedUrls = (routePath, changefreq, priorityMap, customLastMod = lastmod) => {
+    const getLoc = (lang, p) => {
+      if (lang === 'en') {
+        return `${BASE_URL}${p}`;
+      }
+      return `${BASE_URL}/${lang}${p === '/' ? '/' : p}`;
+    };
+
+    const xhtmlLinks = [
+      `    <xhtml:link rel="alternate" hreflang="en" href="${getLoc('en', routePath)}"/>`,
+      `    <xhtml:link rel="alternate" hreflang="es" href="${getLoc('es', routePath)}"/>`,
+      `    <xhtml:link rel="alternate" hreflang="fr" href="${getLoc('fr', routePath)}"/>`,
+      `    <xhtml:link rel="alternate" hreflang="x-default" href="${getLoc('en', routePath)}"/>`
+    ].join('\n');
+
+    const langs = [
+      { code: 'en', priority: priorityMap.en || 1.0 },
+      { code: 'es', priority: priorityMap.es || 0.8 },
+      { code: 'fr', priority: priorityMap.fr || 0.8 }
+    ];
+
+    langs.forEach(({ code, priority }) => {
+      const loc = getLoc(code, routePath);
+      urlBlocks.push(`  <url>
+    <loc>${loc}</loc>
+${xhtmlLinks}
+    <lastmod>${customLastMod}</lastmod>
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority.toFixed(1)}</priority>
   </url>`);
+    });
+  };
 
-  // 2. Main Blog Index (Priority 0.8)
-  urls.push(`  <url>
-    <loc>${BASE_URL}/blog</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>`);
+  // 1. Root Homepage (Priority 1.0 EN, 0.9 ES/FR)
+  addLocalizedUrls('/', 'weekly', { en: 1.0, es: 0.9, fr: 0.9 });
 
-  // 3. Dynamic Blog Articles from Firestore
+  // 2. Web Video Editor Studio (Priority 0.9 EN, 0.85 ES/FR)
+  addLocalizedUrls('/editor', 'weekly', { en: 0.9, es: 0.85, fr: 0.85 });
+
+  // 3. Blog Index (Priority 0.8 EN, 0.7 ES/FR)
+  addLocalizedUrls('/blog', 'daily', { en: 0.8, es: 0.7, fr: 0.7 });
+
+  // 4. Dynamic Blog Articles from Firestore
   const blogEntries = await fetchDynamicBlogSlugs();
   blogEntries.forEach(({ slug, lastmod: postMod }) => {
-    urls.push(`  <url>
-    <loc>${BASE_URL}/blog/${slug}</loc>
-    <lastmod>${postMod || lastmod}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>`);
+    addLocalizedUrls(`/blog/${slug}`, 'monthly', { en: 0.7, es: 0.6, fr: 0.6 }, postMod || lastmod);
   });
 
-  // 4. Programmatic Format Converter Routes (81 combinations, Priority 0.8)
+  // 5. Programmatic Format Converter Routes (81 combinations x 3 languages)
   validInputs.forEach(inExt => {
     validOutputs.forEach(outExt => {
-      urls.push(`  <url>
-    <loc>${BASE_URL}/${inExt}-to-${outExt}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>`);
+      addLocalizedUrls(`/${inExt}-to-${outExt}`, 'weekly', { en: 0.8, es: 0.7, fr: 0.7 });
     });
   });
 
-  // 5. Static Pages (Priority 0.5)
-  urls.push(`  <url>
+  // 6. Static Legal & Information Pages (Priority 0.5)
+  urlBlocks.push(`  <url>
     <loc>${BASE_URL}/privacy-policy.html</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>`);
 
-  urls.push(`  <url>
+  urlBlocks.push(`  <url>
     <loc>${BASE_URL}/terms.html</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>monthly</changefreq>
@@ -131,8 +148,9 @@ async function generateSitemap() {
   </url>`);
 
   const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.join('\n')}
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+${urlBlocks.join('\n')}
 </urlset>
 `;
 
@@ -150,7 +168,7 @@ ${urls.join('\n')}
   const rootSitemapPath = path.join(__dirname, 'sitemap.xml');
   fs.writeFileSync(rootSitemapPath, sitemapXml, 'utf-8');
 
-  console.log(`[Sitemap Generator] Successfully generated sitemap with ${urls.length} URLs:`);
+  console.log(`[Sitemap Generator] Successfully generated sitemap with ${urlBlocks.length} URLs across EN, ES, FR:`);
   console.log(` - ${publicSitemapPath}`);
   console.log(` - ${rootSitemapPath}`);
 }
