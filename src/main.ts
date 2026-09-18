@@ -14,6 +14,18 @@ import {
   generateFormatFAQSchema 
 } from './utils/formatSEOContent';
 import { renderRatingWidget } from './components/RatingWidget';
+import {
+  SupportedLanguage,
+  SUPPORTED_LANGUAGES,
+  DEFAULT_LANGUAGE,
+  extractLanguageFromPath,
+  buildLocalizedPath,
+  getCurrentLanguage,
+  setCurrentLanguage,
+  getTranslations,
+  interpolate,
+  updateHreflangTags
+} from './i18n';
 
 // Format definitions
 export const validInputs = ['mp4', 'mkv', 'avi', 'webm', 'mov', 'flv', 'wmv', 'hevc', 'm4v'];
@@ -58,19 +70,19 @@ export function applyGlobalSettings(settings: Partial<SiteSettingsConfig>, toggl
         --brand-custom: ${color};
       }
       .text-brand-300, .text-brand-400, .text-brand-500 { color: ${color} !important; }
-      .bg-brand-600, .bg-brand-500 { background-color: ${color} !important; }
-      .hover\\:bg-brand-500:hover, .hover\\:bg-brand-600:hover { filter: brightness(1.15) !important; }
-      .border-brand-500, .border-brand-400, .border-brand-800 { border-color: ${color} !important; }
-      .focus\\:border-brand-500:focus { border-color: ${color} !important; }
+      .border-brand-500, .border-brand-600 { border-color: ${color} !important; }
+      .bg-brand-500, .bg-brand-600 { background-color: ${color} !important; }
+      .hover\\:bg-brand-500:hover { background-color: ${color} !important; opacity: 0.9; }
       .focus\\:ring-brand-500:focus { --tw-ring-color: ${color} !important; }
+      .selection\\:bg-brand-500::selection { background-color: ${color} !important; }
     `;
   }
 
-  // 2. Global Site Meta Title
+  // 2. Dynamic Browser Title for Homepage
   if (settings.siteMetaTitle) {
     cachedSiteSettings.siteMetaTitle = settings.siteMetaTitle;
     const currentRoute = parseRoute(window.location.pathname);
-    if (currentRoute.type === 'converter' && currentRoute.isFallback) {
+    if (currentRoute.type === 'converter' && currentRoute.isFallback && currentRoute.lang === 'en') {
       document.title = settings.siteMetaTitle;
       updateMetaTag('og:title', settings.siteMetaTitle, true);
     }
@@ -88,7 +100,7 @@ export function applyGlobalSettings(settings: Partial<SiteSettingsConfig>, toggl
   // 4. Update format toggles if supplied
   if (toggles) {
     cachedFormatToggles = { ...toggles };
-    renderMatrixLinks();
+    renderMatrixLinks(getCurrentLanguage());
     updateFormatDropdown();
   }
 }
@@ -124,18 +136,33 @@ export function updateRobots(allowIndex = true) {
   updateMetaTag('robots', allowIndex ? 'index, follow, max-image-preview:large' : 'noindex, nofollow');
 }
 
+export interface ParsedRoute {
+  type: 'converter' | 'admin' | 'editor' | 'blog-list' | 'blog-post';
+  lang: SupportedLanguage;
+  rawPath: string;
+  cleanPath: string;
+  canonicalPath: string;
+  input?: string;
+  output?: string;
+  displayInput?: string;
+  isFallback?: boolean;
+  slug?: string;
+  path?: string;
+}
+
 /**
  * Updates the Top Navigation Bar active states (Home, Converters, Blog, About, Privacy, Admin)
  */
 export function updateNavbarActiveState(pathname: string) {
   const route = parseRoute(pathname);
-  const cleanPath = (pathname || window.location.pathname || '/').toLowerCase().split('?')[0].split('#')[0].replace(/\/$/, '') || '/';
+  const cleanPath = (route.cleanPath || '/').toLowerCase().split('?')[0].split('#')[0].replace(/\/$/, '') || '/';
 
   // Desktop navigation items
   const navItems = {
     home: document.getElementById('nav-link-home'),
     converters: document.getElementById('nav-link-converters'),
     blog: document.getElementById('nav-link-blog'),
+    editor: document.getElementById('nav-link-editor'),
     about: document.getElementById('nav-link-about'),
     privacy: document.getElementById('nav-link-privacy'),
     admin: document.getElementById('nav-link-admin'),
@@ -146,13 +173,14 @@ export function updateNavbarActiveState(pathname: string) {
     home: document.getElementById('mob-link-home'),
     converters: document.getElementById('mob-link-converters'),
     blog: document.getElementById('mob-link-blog'),
+    editor: document.getElementById('mob-link-editor'),
     about: document.getElementById('mob-link-about'),
     privacy: document.getElementById('mob-link-privacy'),
   };
 
   const resetEl = (el: HTMLElement | null) => {
     if (!el) return;
-    el.classList.remove('bg-dark-800', 'text-brand-400', 'border', 'border-brand-500/50');
+    el.classList.remove('bg-dark-800', 'text-brand-400', 'border', 'border-brand-500/50', 'text-teal-400');
     el.classList.add('text-slate-300');
   };
 
@@ -167,6 +195,9 @@ export function updateNavbarActiveState(pathname: string) {
 
   if (route.type === 'admin') {
     activeEl(navItems.admin);
+  } else if (route.type === 'editor') {
+    activeEl(navItems.editor);
+    activeEl(mobItems.editor);
   } else if (route.type === 'blog-list' || route.type === 'blog-post') {
     activeEl(navItems.blog);
     activeEl(mobItems.blog);
@@ -183,40 +214,84 @@ export function updateNavbarActiveState(pathname: string) {
   }
 }
 
-export function parseRoute(pathname: string) {
-  let clean = (pathname || window.location.pathname || '/').toLowerCase().trim();
-  clean = clean.split('?')[0].split('#')[0];
-  clean = clean.replace(/^\/+|\/+$/g, '');
-  clean = clean.replace(/\.html$/, '');
+export function parseRoute(pathname: string): ParsedRoute {
+  let raw = (pathname || (typeof window !== 'undefined' ? window.location.pathname : '/')).toLowerCase().trim();
+  raw = raw.split('?')[0].split('#')[0];
 
   // Handle GitHub Pages SPA redirection patterns if present (e.g., /?/admin or ?p=/admin)
   if (typeof window !== 'undefined' && window.location.search) {
     const search = window.location.search;
     if (search.startsWith('?/')) {
-      clean = search.slice(2).split('&')[0].replace(/^\/+|\/+$/g, '').replace(/\.html$/, '');
+      raw = search.slice(2).split('&')[0];
     } else {
       const matchParam = search.match(/[?&](?:p|path|route)=([^&]+)/);
       if (matchParam) {
-        clean = decodeURIComponent(matchParam[1]).toLowerCase().replace(/^\/+|\/+$/g, '').replace(/\.html$/, '');
+        raw = decodeURIComponent(matchParam[1]).toLowerCase();
       }
     }
   }
 
+  // 1. Extract language prefix
+  const { lang, cleanPath: cleanWithoutLang } = extractLanguageFromPath(raw);
+  let clean = cleanWithoutLang.replace(/^\/+|\/+$/g, '').replace(/\.html$/, '');
+
   if (!clean || clean === '404') {
-    return { type: 'converter', input: 'mp4', output: 'mp3', isFallback: true, canonicalPath: '/' };
+    return { 
+      type: 'converter', 
+      lang, 
+      rawPath: raw, 
+      cleanPath: '/', 
+      canonicalPath: buildLocalizedPath('/', lang), 
+      input: 'mp4', 
+      output: 'mp3', 
+      isFallback: true 
+    };
   }
 
   if (clean === 'admin' || clean.startsWith('admin/')) {
-    return { type: 'admin', path: '/admin' };
+    return { 
+      type: 'admin', 
+      lang, 
+      rawPath: raw, 
+      cleanPath: '/admin', 
+      canonicalPath: '/admin', 
+      path: '/admin' 
+    };
+  }
+
+  if (clean === 'editor' || clean === 'video-editor' || clean.startsWith('editor/')) {
+    return { 
+      type: 'editor', 
+      lang, 
+      rawPath: raw, 
+      cleanPath: '/editor', 
+      canonicalPath: buildLocalizedPath('/editor', lang), 
+      path: '/editor' 
+    };
   }
 
   if (clean === 'blog') {
-    return { type: 'blog-list', path: '/blog' };
+    return { 
+      type: 'blog-list', 
+      lang, 
+      rawPath: raw, 
+      cleanPath: '/blog', 
+      canonicalPath: buildLocalizedPath('/blog', lang), 
+      path: '/blog' 
+    };
   }
 
   if (clean.startsWith('blog/')) {
     const slug = clean.replace(/^blog\//, '');
-    return { type: 'blog-post', slug, path: `/blog/${slug}` };
+    return { 
+      type: 'blog-post', 
+      lang, 
+      rawPath: raw, 
+      cleanPath: `/blog/${slug}`, 
+      canonicalPath: buildLocalizedPath(`/blog/${slug}`, lang), 
+      slug, 
+      path: `/blog/${slug}` 
+    };
   }
 
   // Pattern match /{input}-to-{output} or /convert-{input}-to-{output}
@@ -226,19 +301,47 @@ export function parseRoute(pathname: string) {
     const outExt = match[2];
 
     if (inExt === 'video' && validOutputs.includes(outExt)) {
-      return { type: 'converter', input: 'mp4', output: outExt, isFallback: false, canonicalPath: `/video-to-${outExt}`, displayInput: 'Video' };
+      return { 
+        type: 'converter', 
+        lang, 
+        rawPath: raw, 
+        cleanPath: `/video-to-${outExt}`, 
+        canonicalPath: buildLocalizedPath(`/video-to-${outExt}`, lang), 
+        input: 'mp4', 
+        output: outExt, 
+        isFallback: false, 
+        displayInput: 'Video' 
+      };
     }
 
     if (validInputs.includes(inExt) && validOutputs.includes(outExt)) {
-      return { type: 'converter', input: inExt, output: outExt, isFallback: false, canonicalPath: `/${inExt}-to-${outExt}` };
+      return { 
+        type: 'converter', 
+        lang, 
+        rawPath: raw, 
+        cleanPath: `/${inExt}-to-${outExt}`, 
+        canonicalPath: buildLocalizedPath(`/${inExt}-to-${outExt}`, lang), 
+        input: inExt, 
+        output: outExt, 
+        isFallback: false 
+      };
     }
   }
 
-  return { type: 'converter', input: 'mp4', output: 'mp3', isFallback: true, canonicalPath: '/' };
+  return { 
+    type: 'converter', 
+    lang, 
+    rawPath: raw, 
+    cleanPath: '/', 
+    canonicalPath: buildLocalizedPath('/', lang), 
+    input: 'mp4', 
+    output: 'mp3', 
+    isFallback: true 
+  };
 }
 
-// Render dynamic matrix footer links
-export function renderMatrixLinks() {
+// Render dynamic matrix footer links localized
+export function renderMatrixLinks(lang: SupportedLanguage = getCurrentLanguage()) {
   const matrixContainer = document.getElementById('all-converters-matrix');
   if (!matrixContainer) return;
 
@@ -263,7 +366,7 @@ export function renderMatrixLinks() {
 
       const outUpper = outExt.toUpperCase();
       const a = document.createElement('a');
-      a.href = `/${inExt}-to-${outExt}`;
+      a.href = buildLocalizedPath(`/${inExt}-to-${outExt}`, lang);
       a.setAttribute('data-route-link', '');
       a.className = 'text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5 whitespace-nowrap overflow-hidden text-ellipsis';
       a.textContent = `${inUpper} to ${outUpper}`;
@@ -275,15 +378,23 @@ export function renderMatrixLinks() {
   });
 }
 
-// Generate dynamic SEO description card from Firestore template
-export function generateSEOContent(inExt: string, outExt: string): string {
+// Generate dynamic SEO description card from Firestore template or localized fallback
+export function generateSEOContent(inExt: string, outExt: string, lang: SupportedLanguage = 'en'): string {
   const inUpper = inExt.toUpperCase();
   const outUpper = outExt.toUpperCase();
+  const t = getTranslations(lang);
 
-  // Substitute {INPUT} and {OUTPUT} in the remote Firestore template
   const customText = cachedSEOTemplate
     .replace(/\{INPUT\}/gi, inUpper)
     .replace(/\{OUTPUT\}/gi, outUpper);
+
+  const localizedBadge = lang === 'es' 
+    ? 'Información de Conversión en Dispositivo' 
+    : (lang === 'fr' ? 'Aperçu de la Conversion Locale' : 'On-Device Conversion Overview');
+
+  const localizedTitle = lang === 'es'
+    ? `Extracción de Audio ${inUpper} a ${outUpper} Sin Conexión`
+    : (lang === 'fr' ? `Extraction Audio ${inUpper} vers ${outUpper} Hors Ligne` : `Offline ${inUpper} to ${outUpper} Audio Extraction`);
 
   return `
     <div class="bg-dark-900/90 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
@@ -291,38 +402,81 @@ export function generateSEOContent(inExt: string, outExt: string): string {
       <div class="flex items-center gap-2 mb-4">
         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-brand-950 text-brand-400 border border-brand-800/60">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-          On-Device Conversion Overview
+          ${localizedBadge}
         </span>
         <span class="text-xs text-slate-500 font-mono">${inUpper} &rarr; ${outUpper}</span>
       </div>
-      <h3 class="text-xl sm:text-2xl font-bold text-white mb-3 tracking-tight">Offline ${inUpper} to ${outUpper} Audio Extraction</h3>
+      <h3 class="text-xl sm:text-2xl font-bold text-white mb-3 tracking-tight">${localizedTitle}</h3>
       <p class="text-slate-300 leading-relaxed text-sm sm:text-base mb-6">
         ${customText}
       </p>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-800/80 text-xs text-slate-400">
         <div class="flex items-center gap-2">
           <svg class="w-4 h-4 text-brand-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-          <span><strong>100% Offline:</strong> Zero data uploads</span>
+          <span><strong>100% Offline:</strong> ${t.hero.trustNoUploads}</span>
         </div>
         <div class="flex items-center gap-2">
           <svg class="w-4 h-4 text-brand-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-          <span><strong>High Fidelity:</strong> Native ${outUpper} stream</span>
+          <span><strong>High Fidelity:</strong> Native ${outUpper}</span>
         </div>
         <div class="flex items-center gap-2">
           <svg class="w-4 h-4 text-brand-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-          <span><strong>Hardware Accelerated:</strong> Direct CPU speed</span>
+          <span><strong>Hardware Accelerated:</strong> WebAssembly CPU</span>
         </div>
       </div>
     </div>
   `;
 }
 
-// Generate dynamic FAQs for format combinations
-export function generateDynamicFAQs(inExt: string, outExt: string): string {
+// Generate dynamic FAQs for format combinations localized
+export function generateDynamicFAQs(inExt: string, outExt: string, lang: SupportedLanguage = 'en'): string {
   const inUpper = inExt.toUpperCase();
   const outUpper = outExt.toUpperCase();
 
-  const faqs = [
+  const faqs = {
+    en: [
+      {
+        q: `Is there a file size limit for ${inUpper} to ${outUpper} conversion?`,
+        a: `Because VidToAudio runs locally in your browser and on your device using WebAssembly and hardware acceleration, there is no artificial cloud file size limit for converting ${inUpper} to ${outUpper}. You can extract audio from large ${inUpper} files without uploading a single byte to external servers.`
+      },
+      {
+        q: `Why extract ${outUpper} from ${inUpper} offline?`,
+        a: `Extracting ${outUpper} from ${inUpper} offline ensures complete privacy, instant conversion speeds without bandwidth throttling, and zero cellular data usage. Your ${inUpper} video never leaves your phone or browser, guaranteeing confidential handling of personal recordings.`
+      },
+      {
+        q: `What audio quality can I expect when converting ${inUpper} to ${outUpper}?`,
+        a: `Our conversion engine retains the original sample rate and audio fidelity from your source ${inUpper} file. Exporting to ${outUpper} gives you pristine audio reproduction with full user control over bitrates and lossless encoding.`
+      }
+    ],
+    es: [
+      {
+        q: `¿Existe un límite de tamaño para convertir ${inUpper} a ${outUpper}?`,
+        a: `Dado que VidToAudio se ejecuta de forma local en tu navegador mediante WebAssembly y aceleración por hardware, no hay límites artificiales de subida a la nube al convertir ${inUpper} a ${outUpper}. Puedes extraer audio de vídeos pesados sin enviar ni un solo byte a servidores externos.`
+      },
+      {
+        q: `¿Por qué extraer ${outUpper} de ${inUpper} sin conexión?`,
+        a: `Hacer la conversión sin conexión garantiza privacidad absoluta, velocidad inmediata sin restricciones de ancho de banda y cero gasto de datos móviles. Tu vídeo ${inUpper} nunca sale de tu dispositivo.`
+      },
+      {
+        q: `¿Qué calidad de audio obtendré al convertir ${inUpper} a ${outUpper}?`,
+        a: `El motor de conversión conserva la frecuencia de muestreo y la fidelidad original del archivo ${inUpper}. Exportar a ${outUpper} proporciona un sonido nítido con control total sobre tasas de bits y compresión sin pérdidas.`
+      }
+    ],
+    fr: [
+      {
+        q: `Y a-t-il une limite de taille pour convertir ${inUpper} en ${outUpper} ?`,
+        a: `Comme VidToAudio s’exécute localement dans votre navigateur via WebAssembly et accélération matérielle, il n’y a aucune limite de taille imposée par le cloud. Vous pouvez convertir de gros fichiers ${inUpper} sans téléverser le moindre octet sur un serveur distant.`
+      },
+      {
+        q: `Pourquoi extraire ${outUpper} depuis ${inUpper} hors ligne ?`,
+        a: `L'extraction hors ligne garantit une confidentialité totale, une vitesse instantanée sans étranglement de bande passante et zéro consommation de données mobiles. Vos vidéos ${inUpper} restent strictement sur votre machine.`
+      },
+      {
+        q: `Quelle est la qualité sonore en convertissant ${inUpper} en ${outUpper} ?`,
+        a: `Notre moteur préserve la fréquence d'échantillonnage et la fidélité native du fichier source ${inUpper}. L'exportation en ${outUpper} offre une restitution limpide avec contrôle des débits binaires et prise en charge sans perte.`
+      }
+    ]
+  }[lang] || [
     {
       q: `Is there a file size limit for ${inUpper} to ${outUpper} conversion?`,
       a: `Because VidToAudio runs locally in your browser and on your device using WebAssembly and hardware acceleration, there is no artificial cloud file size limit for converting ${inUpper} to ${outUpper}. You can extract audio from large ${inUpper} files without uploading a single byte to external servers.`
@@ -378,24 +532,203 @@ export function updateFormatDropdown(selectedExt?: string) {
   const formatSummary = document.getElementById('format-summary');
   if (formatSummary) {
     const selectedOptionText = formatSelect.options[formatSelect.selectedIndex]?.text || formatSelect.value.toUpperCase();
-    formatSummary.textContent = `Output: ${selectedOptionText}`;
+    const lang = getCurrentLanguage();
+    const t = getTranslations(lang);
+    formatSummary.textContent = interpolate(t.converter.outputSummary, {
+      format: selectedOptionText,
+      bitrate: '320kbps'
+    });
+  }
+}
+
+/**
+ * Update UI text in HTML layout according to the active language
+ */
+export function applyLanguageToUI(lang: SupportedLanguage) {
+  setCurrentLanguage(lang);
+  const t = getTranslations(lang);
+
+  // 1. Navigation Desktop & Mobile
+  const navLinkHome = document.getElementById('nav-link-home');
+  const navLinkConverters = document.getElementById('nav-link-converters');
+  const navLinkBlog = document.getElementById('nav-link-blog');
+  const navLinkEditor = document.getElementById('nav-link-editor');
+  const navLinkAbout = document.getElementById('nav-link-about');
+  const navLinkPrivacy = document.getElementById('nav-link-privacy');
+  const navLinkAdmin = document.getElementById('nav-link-admin');
+
+  if (navLinkHome) {
+    navLinkHome.textContent = t.nav.home;
+    navLinkHome.setAttribute('href', buildLocalizedPath('/', lang));
+  }
+  if (navLinkConverters) {
+    navLinkConverters.textContent = t.nav.converters;
+    navLinkConverters.setAttribute('href', `${buildLocalizedPath('/', lang)}#all-converters-section`);
+  }
+  if (navLinkBlog) {
+    navLinkBlog.textContent = t.nav.blog;
+    navLinkBlog.setAttribute('href', buildLocalizedPath('/blog', lang));
+  }
+  if (navLinkEditor) {
+    navLinkEditor.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse"></span> ${t.nav.editor}`;
+    navLinkEditor.setAttribute('href', buildLocalizedPath('/editor', lang));
+  }
+  if (navLinkAbout) {
+    navLinkAbout.textContent = t.nav.about;
+    navLinkAbout.setAttribute('href', `${buildLocalizedPath('/', lang)}#about`);
+  }
+  if (navLinkPrivacy) {
+    navLinkPrivacy.textContent = t.nav.privacy;
+  }
+  if (navLinkAdmin) {
+    const span = navLinkAdmin.querySelector('span');
+    if (span) span.textContent = t.nav.admin;
+  }
+
+  // Mobile Links
+  const mobLinkHome = document.getElementById('mob-link-home');
+  const mobLinkConverters = document.getElementById('mob-link-converters');
+  const mobLinkBlog = document.getElementById('mob-link-blog');
+  const mobLinkEditor = document.getElementById('mob-link-editor');
+  const mobLinkAbout = document.getElementById('mob-link-about');
+  const mobLinkPrivacy = document.getElementById('mob-link-privacy');
+
+  if (mobLinkHome) {
+    mobLinkHome.textContent = t.nav.home;
+    mobLinkHome.setAttribute('href', buildLocalizedPath('/', lang));
+  }
+  if (mobLinkConverters) {
+    mobLinkConverters.textContent = t.nav.converters;
+    mobLinkConverters.setAttribute('href', `${buildLocalizedPath('/', lang)}#all-converters-section`);
+  }
+  if (mobLinkBlog) {
+    mobLinkBlog.textContent = t.nav.blog;
+    mobLinkBlog.setAttribute('href', buildLocalizedPath('/blog', lang));
+  }
+  if (mobLinkEditor) {
+    const spanText = mobLinkEditor.querySelector('span:first-child');
+    if (spanText) spanText.textContent = t.nav.editor;
+    mobLinkEditor.setAttribute('href', buildLocalizedPath('/editor', lang));
+  }
+  if (mobLinkAbout) {
+    mobLinkAbout.textContent = t.nav.about;
+    mobLinkAbout.setAttribute('href', `${buildLocalizedPath('/', lang)}#about`);
+  }
+  if (mobLinkPrivacy) {
+    mobLinkPrivacy.textContent = t.nav.privacy;
+  }
+
+  // 2. Trust Bar
+  const trustBarSection = document.getElementById('trust-bar-section');
+  if (trustBarSection) {
+    const items = trustBarSection.querySelectorAll('.flex.items-center.gap-2');
+    if (items.length >= 4) {
+      const span0 = items[0].lastChild;
+      if (span0) span0.textContent = ` ${t.hero.trustOffline}`;
+      const span1 = items[1].lastChild;
+      if (span1) span1.textContent = ` ${t.hero.trustQueue}`;
+      const span2 = items[2].lastChild;
+      if (span2) span2.textContent = ` ${t.hero.trustBitrate}`;
+      const span3 = items[3].lastChild;
+      if (span3) span3.textContent = ` ${t.hero.trustNoUploads}`;
+    }
+  }
+
+  // 3. Converter Form labels & buttons
+  const outputFormatLabel = document.querySelector('label[for="output-format"]');
+  if (outputFormatLabel) outputFormatLabel.textContent = t.converter.outputFormat;
+
+  const audioBitrateLabel = document.querySelector('label[for="audio-bitrate"]');
+  if (audioBitrateLabel) audioBitrateLabel.textContent = t.converter.audioQuality;
+
+  const convertBtn = document.getElementById('convert-btn');
+  if (convertBtn && convertBtn.hasAttribute('disabled')) {
+    convertBtn.textContent = t.converter.extractAudio;
+  }
+
+  const audioBitrateSelect = document.getElementById('audio-bitrate') as HTMLSelectElement | null;
+  if (audioBitrateSelect && audioBitrateSelect.options.length >= 3) {
+    audioBitrateSelect.options[0].text = t.converter.qualityStudio;
+    audioBitrateSelect.options[1].text = t.converter.qualityHigh;
+    audioBitrateSelect.options[2].text = t.converter.qualityStandard;
+  }
+
+  const successTitle = document.getElementById('success-title');
+  if (successTitle) successTitle.textContent = t.converter.successTitle;
+
+  const successSubtitle = document.getElementById('success-subtitle');
+  if (successSubtitle) successSubtitle.textContent = t.converter.successSubtitle.replace('{count}', '1');
+
+  const downloadZipBtnText = document.getElementById('download-zip-btn-text');
+  if (downloadZipBtnText) downloadZipBtnText.textContent = t.converter.downloadAllZip.replace('{count}', '1');
+
+  const convertAnotherBtn = document.getElementById('convert-another-btn');
+  if (convertAnotherBtn) {
+    const span = convertAnotherBtn.querySelector('span');
+    if (span) span.textContent = t.converter.convertAnother;
+  }
+
+  // 4. Update Language Switcher UI Active States
+  document.querySelectorAll('[data-lang-switch]').forEach(btn => {
+    const targetLang = btn.getAttribute('data-lang-switch');
+    if (targetLang === lang) {
+      btn.classList.add('bg-brand-600', 'text-white');
+      btn.classList.remove('text-slate-400', 'hover:text-white');
+    } else {
+      btn.classList.remove('bg-brand-600', 'text-white');
+      btn.classList.add('text-slate-400', 'hover:text-white');
+    }
+  });
+
+  // 5. Matrix Section Headers
+  const allConvertersSection = document.getElementById('all-converters-section');
+  if (allConvertersSection) {
+    const h3 = allConvertersSection.querySelector('h3');
+    if (h3) h3.textContent = t.matrix.allConvertersTitle;
+    const p = allConvertersSection.querySelector('p');
+    if (p) p.textContent = t.matrix.allConvertersSubtitle;
+  }
+
+  // 6. Popular Converters quick links at top
+  const heroPopularLinks = document.getElementById('hero-popular-links');
+  if (heroPopularLinks) {
+    const labelSpan = heroPopularLinks.querySelector('span');
+    if (labelSpan) labelSpan.textContent = t.hero.popularConverters;
+    heroPopularLinks.querySelectorAll('a[data-route-link]').forEach(a => {
+      const href = a.getAttribute('href') || '';
+      const cleanHref = href.replace(/^\/(?:es|fr)/, '');
+      a.setAttribute('href', buildLocalizedPath(cleanHref, lang));
+    });
+  }
+
+  // 7. Footer text
+  const footerCustomText = document.getElementById('footer-custom-text');
+  if (footerCustomText) {
+    footerCustomText.textContent = t.footer.rightsReserved;
   }
 }
 
 // Master Route Applicator with Strict SEO Perfection & Security Guards
 export async function navigateTo(pathname = window.location.pathname) {
   const route = parseRoute(pathname);
+  const lang = route.lang;
+
+  // Set active language and re-apply localized strings across UI
+  applyLanguageToUI(lang);
+
+  // Update Top Navigation Bar active links
+  updateNavbarActiveState(pathname);
+
+  // Inject proper hreflang tags for Google indexation
+  updateHreflangTags(route.cleanPath);
+
+  // Re-render Matrix links for the active locale
+  renderMatrixLinks(lang);
 
   const publicConverterView = document.getElementById('public-converter-view');
   const dynamicRouteView = document.getElementById('dynamic-route-view');
 
-  // Update top navigation bar active links
-  updateNavbarActiveState(pathname);
-
   if (route.type === 'admin') {
-    // -----------------------------------------------------------------
-    // PROTECTED ADMIN ROUTE: Lazy-load admin bundle on demand
-    // -----------------------------------------------------------------
     if (publicConverterView) publicConverterView.classList.add('hidden');
     if (dynamicRouteView) {
       dynamicRouteView.classList.remove('hidden');
@@ -406,15 +739,49 @@ export async function navigateTo(pathname = window.location.pathname) {
         </div>
       `;
 
-      // Code-split and lazy-load admin app module
       const { renderAdminApp } = await import('./admin/adminApp');
       renderAdminApp(dynamicRouteView);
     }
 
-    // SEO Rule for Admin: Strictly noindex to prevent indexing of internal admin tools
     document.title = 'Admin Portal | VidToAudio';
     updateRobots(false);
     updateCanonical('https://vidtoaudio.com/admin');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  if (route.type === 'editor') {
+    if (publicConverterView) publicConverterView.classList.add('hidden');
+    if (dynamicRouteView) {
+      dynamicRouteView.classList.remove('hidden');
+      dynamicRouteView.innerHTML = `
+        <div class="py-24 text-center">
+          <div class="w-10 h-10 border-2 border-teal-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p class="text-slate-400 text-sm font-medium">Initializing VidToAudio Web Video Editor...</p>
+        </div>
+      `;
+
+      const { renderVideoEditor } = await import('./editor/videoEditorApp');
+      renderVideoEditor(dynamicRouteView);
+    }
+
+    const t = getTranslations(lang);
+    const editorTitle = t.editor.metaTitle || 'Free Online Video Editor (CapCut Style, Offline WASM) | VidToAudio';
+    const editorDesc = t.editor.metaDesc || 'Professional multi-track web video editor. Trim, cut, add background music, stylish captions, and cinematic filters with 100% private in-browser WebAssembly processing.';
+    const editorUrl = `https://vidtoaudio.com${route.canonicalPath}`;
+
+    document.title = editorTitle;
+    updateRobots(true);
+    updateMetaTag('description', editorDesc);
+    updateCanonical(editorUrl);
+    updateMetaTag('og:title', editorTitle, true);
+    updateMetaTag('og:description', editorDesc, true);
+    updateMetaTag('og:url', editorUrl, true);
+    updateMetaTag('og:type', 'website', true);
+    updateMetaTag('twitter:card', 'summary_large_image');
+    updateMetaTag('twitter:title', editorTitle);
+    updateMetaTag('twitter:description', editorDesc);
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
   }
@@ -423,9 +790,6 @@ export async function navigateTo(pathname = window.location.pathname) {
   updateRobots(true);
 
   if (route.type === 'blog-list' || route.type === 'blog-post') {
-    // -----------------------------------------------------------------
-    // PUBLIC BLOG ROUTE: Lazy-load blog module
-    // -----------------------------------------------------------------
     if (publicConverterView) publicConverterView.classList.add('hidden');
     if (dynamicRouteView) {
       dynamicRouteView.classList.remove('hidden');
@@ -437,14 +801,15 @@ export async function navigateTo(pathname = window.location.pathname) {
       `;
 
       const { renderBlogView } = await import('./blog/blogApp');
-      await renderBlogView(dynamicRouteView, route.type === 'blog-post' ? route.slug : undefined);
+      await renderBlogView(dynamicRouteView, route.type === 'blog-post' ? route.slug : undefined, lang);
     }
 
+    const t = getTranslations(lang);
+
     if (route.type === 'blog-list') {
-      // Blog Directory Meta Tags
-      const blogTitle = 'Audio Extraction Guides & Technical Tutorials | VidToAudio Blog';
-      const blogDesc = 'In-depth tutorials on video-to-audio extraction, audio codec benchmarks (MP3 vs WAV vs FLAC), and private offline processing.';
-      const blogUrl = 'https://vidtoaudio.com/blog';
+      const blogTitle = `${t.blog.heading} | VidToAudio`;
+      const blogDesc = t.blog.subtitle;
+      const blogUrl = `https://vidtoaudio.com${route.canonicalPath}`;
 
       document.title = blogTitle;
       updateMetaTag('description', blogDesc);
@@ -457,14 +822,13 @@ export async function navigateTo(pathname = window.location.pathname) {
       updateMetaTag('twitter:title', blogTitle);
       updateMetaTag('twitter:description', blogDesc);
     } else {
-      // Single Article Dynamic Meta Tags
-      const slug = route.slug;
+      const slug = route.slug!;
       const article = await fetchBlogBySlug(slug);
       const articleTitle = article?.title 
         ? `${article.title} | VidToAudio` 
         : `${slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} | VidToAudio Blog`;
       const articleDesc = article?.excerpt || 'Discover technical audio extraction insights and lossless audio tips.';
-      const articleUrl = `https://vidtoaudio.com/blog/${slug}`;
+      const articleUrl = `https://vidtoaudio.com${route.canonicalPath}`;
 
       document.title = articleTitle;
       updateMetaTag('description', articleDesc);
@@ -490,12 +854,15 @@ export async function navigateTo(pathname = window.location.pathname) {
 
   const inUpper = route.displayInput || (route.input ? route.input.toUpperCase() : 'MP4');
   const outUpper = route.output ? route.output.toUpperCase() : 'WAV';
+  const t = getTranslations(lang);
 
   if (route.isFallback) {
-    // 1. Root / Homepage Dynamic Meta Tags
-    const homeTitle = cachedSiteSettings.siteMetaTitle || 'Bulk MP4 to MP3 Converter (Offline, Batch & 320kbps) - Free';
-    const homeDesc = 'Batch convert multiple MP4 to MP3 files offline directly in your browser. Fastest bulk conversion, no server uploads required. Get 320kbps studio quality instantly.';
-    const homeUrl = 'https://vidtoaudio.com/';
+    // Root / Homepage Meta Tags
+    const homeTitle = lang === 'en' && cachedSiteSettings.siteMetaTitle 
+      ? cachedSiteSettings.siteMetaTitle 
+      : t.hero.homeTitle + ' - VidToAudio';
+    const homeDesc = t.hero.homeSubtitle;
+    const homeUrl = `https://vidtoaudio.com${route.canonicalPath}`;
 
     document.title = homeTitle;
     updateMetaTag('description', homeDesc);
@@ -508,9 +875,9 @@ export async function navigateTo(pathname = window.location.pathname) {
     updateMetaTag('twitter:title', homeTitle);
     updateMetaTag('twitter:description', homeDesc);
   } else {
-    // 2. Programmatic /{input}-to-{output} Landing Page Meta Tags
-    const pageTitle = `Convert ${inUpper} to ${outUpper} Audio Offline & Free | VidToAudio`;
-    const pageDesc = `Extract high-quality ${outUpper} audio from ${inUpper} video files securely on your device with zero uploads. Lossless and fast.`;
+    // Programmatic Matrix /{input}-to-{output} Landing Page Meta Tags
+    const pageTitle = interpolate(t.matrix.pageMetaTitle, { INPUT: inUpper, OUTPUT: outUpper });
+    const pageDesc = interpolate(t.matrix.pageMetaDesc, { INPUT: inUpper, OUTPUT: outUpper });
     const pageUrl = `https://vidtoaudio.com${route.canonicalPath}`;
 
     document.title = pageTitle;
@@ -558,38 +925,38 @@ export async function navigateTo(pathname = window.location.pathname) {
   const matrixRatingContainer = document.getElementById('matrix-rating-container');
   const matrixRatingSchemaScript = document.getElementById('matrix-rating-schema') as HTMLScriptElement | null;
 
-  // Dynamic main <h1> and converter headings
+  // Dynamic main <h1> and converter headings (Localized)
   const heroTitle = document.getElementById('hero-title');
   if (heroTitle) {
     if (isMatrixPage) {
-      heroTitle.textContent = `Fastest Bulk & Batch ${inUpper} to ${outUpper} Converter (Offline)`;
+      heroTitle.textContent = interpolate(t.matrix.heroTitle, { INPUT: inUpper, OUTPUT: outUpper });
     } else {
-      heroTitle.textContent = 'Fastest Bulk & Batch MP4 to MP3 Converter (Offline)';
+      heroTitle.textContent = t.hero.homeTitle;
     }
   }
 
   if (converterTitle) {
     if (isMatrixPage) {
-      converterTitle.textContent = `Try it here: Bulk & Batch ${inUpper} to ${outUpper} Converter`;
+      converterTitle.textContent = interpolate(t.converter.tryItHereMatrix, { INPUT: inUpper, OUTPUT: outUpper });
     } else {
-      converterTitle.textContent = 'Try it here: Bulk & Batch MP4 to MP3 Converter';
+      converterTitle.textContent = t.converter.tryItHereHome;
     }
   }
 
   if (converterSubtitle) {
     if (isMatrixPage) {
-      converterSubtitle.textContent = `Select single or multiple ${inUpper} video files. Converted to ${outUpper} sequentially in your browser via FFmpeg WebAssembly.`;
+      converterSubtitle.textContent = interpolate(t.converter.subtitleMatrix, { INPUT: inUpper, OUTPUT: outUpper });
     } else {
-      converterSubtitle.textContent = 'Select single or multiple video files. Converted sequentially in your browser via FFmpeg WebAssembly.';
+      converterSubtitle.textContent = t.converter.subtitleHome;
     }
   }
 
-  // 4. Dynamic Upload Box Text
+  // 4. Dynamic Upload Box Text (Localized)
   if (dropzoneText) {
     if (isMatrixPage) {
-      dropzoneText.textContent = `Click or drag & drop ${inUpper} video files for ${outUpper} conversion`;
+      dropzoneText.textContent = interpolate(t.converter.dropzoneTextMatrix, { INPUT: inUpper, OUTPUT: outUpper });
     } else {
-      dropzoneText.textContent = 'Click or drag & drop video files for bulk conversion';
+      dropzoneText.textContent = t.converter.dropzoneTextHome;
     }
   }
 
@@ -602,26 +969,20 @@ export async function navigateTo(pathname = window.location.pathname) {
 
   if (isMatrixPage) {
     // MATRIX / CONVERTER PAGES (/:slug):
-    // Display ONLY: top header, conversion tool, dynamic SEO title, and unique ~200-word format description.
-    // Explicitly hide repetitive blocks (the generic MP4-to-MP3 WebAssembly article, 4-step screenshots grid, Why We Built, features, and long FAQs).
     if (heroBreadcrumbs) {
       heroBreadcrumbs.classList.remove('hidden');
       heroBreadcrumbs.classList.add('flex');
     }
     if (breadcrumbCurrent) breadcrumbCurrent.textContent = `${inUpper} to ${outUpper}`;
     if (heroSubtitle) {
-      heroSubtitle.textContent = `Extract high-quality ${outUpper} audio directly from ${inUpper} video files in your browser with zero server uploads, complete offline security, and hardware-accelerated processing.`;
+      heroSubtitle.textContent = interpolate(t.matrix.heroSubtitle, { INPUT: inUpper, OUTPUT: outUpper });
     }
 
-    // Hide repetitive promotional / heavy elements on subpages
     if (heroPopularLinks) heroPopularLinks.classList.add('hidden');
     if (heroDownload) heroDownload.classList.add('hidden');
     if (trustBarSection) trustBarSection.classList.add('hidden');
 
-    // Hide generic MP4-to-MP3 WebAssembly article on matrix pages
     if (batchConversionSeo) batchConversionSeo.classList.add('hidden');
-
-    // Hide heavy repetitive sections
     if (whyWeBuiltSection) whyWeBuiltSection.classList.add('hidden');
     if (howItWorksSection) howItWorksSection.classList.add('hidden');
     if (featuresSection) featuresSection.classList.add('hidden');
@@ -630,57 +991,54 @@ export async function navigateTo(pathname = window.location.pathname) {
     if (faqSection) faqSection.classList.add('hidden');
     if (aboutSection) aboutSection.classList.add('hidden');
 
-    // Inject unique, technically rich ~200-word format description for Google AdSense uniqueness
+    // Inject unique, technically rich format description localized in target language
     if (seoContainer) {
-      seoContainer.innerHTML = generateFormatArticle(route.input || 'mp4', route.output || 'mp3');
+      seoContainer.innerHTML = generateFormatArticle(route.input || 'mp4', route.output || 'mp3', lang);
     }
 
-    // Show and render interactive 5-star rating system (local state & AggregateRating schema)
+    // Show and render interactive 5-star rating system with active locale
     if (matrixRatingSection) matrixRatingSection.classList.remove('hidden');
     if (matrixRatingContainer) {
-      const matrixSlug = (route.input && route.output) ? `${route.input}-to-${route.output}` : (route.canonicalPath ? route.canonicalPath.replace(/^\//, '') : 'converter');
+      const matrixSlug = (route.input && route.output) ? `${route.input}-to-${route.output}` : (route.cleanPath ? route.cleanPath.replace(/^\//, '') : 'converter');
       renderRatingWidget(
         matrixRatingContainer,
         matrixSlug,
         route.input || 'mp4',
         route.output || 'mp3',
-        matrixRatingSchemaScript
+        matrixRatingSchemaScript,
+        lang
       );
     }
 
-    // Show and inject dynamic format-specific FAQs accordion for matrix pages
+    // Show and inject dynamic format-specific FAQs accordion in active locale
     if (matrixFaqSection) matrixFaqSection.classList.remove('hidden');
     if (matrixFaqTitle) {
-      matrixFaqTitle.textContent = `Frequently Asked Questions: ${inUpper} to ${outUpper}`;
+      matrixFaqTitle.textContent = interpolate(t.matrix.faqSectionTitle, { INPUT: inUpper, OUTPUT: outUpper });
     }
     if (matrixFaqSubtitle) {
-      matrixFaqSubtitle.textContent = `Common questions and verified technical details for extracting high-fidelity ${outUpper} audio from ${inUpper} video files offline.`;
+      matrixFaqSubtitle.textContent = interpolate(t.matrix.faqSectionSubtitle, { INPUT: inUpper, OUTPUT: outUpper });
     }
     if (matrixFaqAccordion) {
-      matrixFaqAccordion.innerHTML = generateFormatFAQAccordionHTML(route.input || 'mp4', route.output || 'mp3');
+      matrixFaqAccordion.innerHTML = generateFormatFAQAccordionHTML(route.input || 'mp4', route.output || 'mp3', lang);
     }
     if (matrixFaqSchemaScript) {
-      matrixFaqSchemaScript.textContent = JSON.stringify(generateFormatFAQSchema(route.input || 'mp4', route.output || 'mp3'));
+      matrixFaqSchemaScript.textContent = JSON.stringify(generateFormatFAQSchema(route.input || 'mp4', route.output || 'mp3', lang));
     }
   } else {
-    // HOMEPAGE (/):
-    // Keep fully loaded with all sections, features, tool, screenshot grid, Why We Built, and FAQs.
+    // HOMEPAGE (/ or /es or /fr):
     if (heroBreadcrumbs) {
       heroBreadcrumbs.classList.add('hidden');
       heroBreadcrumbs.classList.remove('flex');
     }
     if (heroSubtitle) {
-      heroSubtitle.textContent = 'Extract high-bitrate audio from single or multiple video files in bulk with zero uploads. Runs 100% locally in your browser for absolute privacy, zero data usage, and maximum speed.';
+      heroSubtitle.textContent = t.hero.homeSubtitle;
     }
 
     if (heroPopularLinks) heroPopularLinks.classList.remove('hidden');
     if (heroDownload) heroDownload.classList.remove('hidden');
     if (trustBarSection) trustBarSection.classList.remove('hidden');
 
-    // Show the generic MP4-to-MP3 WebAssembly article on homepage
     if (batchConversionSeo) batchConversionSeo.classList.remove('hidden');
-
-    // Show all homepage sections
     if (whyWeBuiltSection) whyWeBuiltSection.classList.remove('hidden');
     if (howItWorksSection) howItWorksSection.classList.remove('hidden');
     if (featuresSection) featuresSection.classList.remove('hidden');
@@ -689,33 +1047,30 @@ export async function navigateTo(pathname = window.location.pathname) {
     if (faqSection) faqSection.classList.remove('hidden');
     if (aboutSection) aboutSection.classList.remove('hidden');
 
-    // Hide matrix-specific rating system on homepage
     if (matrixRatingSection) matrixRatingSection.classList.add('hidden');
     if (matrixRatingContainer) matrixRatingContainer.innerHTML = '';
     if (matrixRatingSchemaScript) matrixRatingSchemaScript.textContent = '{}';
 
-    // Hide matrix-specific FAQ accordion on homepage
     if (matrixFaqSection) matrixFaqSection.classList.add('hidden');
     if (matrixFaqAccordion) matrixFaqAccordion.innerHTML = '';
     if (matrixFaqSchemaScript) matrixFaqSchemaScript.textContent = '{}';
 
-    // On homepage, keep SEO container clear so as not to duplicate the batch conversion SEO article
     if (seoContainer) {
       seoContainer.innerHTML = '';
     }
     if (faqContainer) {
-      faqContainer.innerHTML = generateDynamicFAQs(route.input || 'mp4', route.output || 'wav');
+      faqContainer.innerHTML = generateDynamicFAQs(route.input || 'mp4', route.output || 'wav', lang);
     }
   }
 
   // 8. Update active states for route pills and matrix links
-  const normalizedPath = (pathname || '/').toLowerCase().split('?')[0].split('#')[0].replace(/\/$/, '') || '/';
+  const normalizedPath = (route.cleanPath || '/').toLowerCase().split('?')[0].split('#')[0].replace(/\/$/, '') || '/';
   document.querySelectorAll('[data-route-link]').forEach(link => {
     const href = (link.getAttribute('href') || '').toLowerCase().replace(/\/$/, '') || '/';
     const parsed = parseRoute(href);
     const isMatch = (parsed.type === 'converter' && parsed.input === route.input && parsed.output === route.output) ||
-                    (href === normalizedPath) ||
-                    (normalizedPath === '/' && href === '/mp4-to-wav');
+                    (parsed.cleanPath === normalizedPath) ||
+                    (normalizedPath === '/' && parsed.cleanPath === '/mp4-to-wav');
 
     if (link.classList.contains('px-3')) {
       if (isMatch) {
@@ -755,7 +1110,6 @@ function initNavbarInteractions() {
       }
     });
 
-    // Close mobile menu whenever a menu link is tapped
     menu.querySelectorAll('a').forEach(link => {
       link.addEventListener('click', () => {
         menu.classList.add('hidden');
@@ -766,17 +1120,29 @@ function initNavbarInteractions() {
   }
 
   // Handle smooth scroll for anchors like /#all-converters-section and /#about
-  document.querySelectorAll('a[href^="/#"]').forEach(anchor => {
+  document.querySelectorAll('a[href*="#"]').forEach(anchor => {
     anchor.addEventListener('click', (e) => {
       const href = anchor.getAttribute('href');
-      if (!href) return;
-      const targetId = href.replace('/#', '');
+      if (!href || href.startsWith('http') || href === '#') return;
       
+      const hashIndex = href.indexOf('#');
+      if (hashIndex === -1) return;
+      const targetId = href.substring(hashIndex + 1);
+      const pathPart = href.substring(0, hashIndex);
+
       const currentRoute = parseRoute(window.location.pathname);
+      const currentClean = currentRoute.cleanPath;
+
+      if (pathPart && pathPart !== currentClean && pathPart !== '/') {
+        // Different page, let router navigate
+        return;
+      }
+
       if (currentRoute.type !== 'converter' || !currentRoute.isFallback) {
         e.preventDefault();
-        window.history.pushState({}, '', '/');
-        navigateTo('/').then(() => {
+        const homePath = buildLocalizedPath('/', currentRoute.lang);
+        window.history.pushState({}, '', homePath);
+        navigateTo(homePath).then(() => {
           setTimeout(() => {
             const targetEl = document.getElementById(targetId);
             if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth' });
@@ -791,12 +1157,35 @@ function initNavbarInteractions() {
   });
 }
 
+// Language selector switcher initializer
+function initLanguageSwitchers() {
+  document.addEventListener('click', (e) => {
+    const target = (e.target as HTMLElement)?.closest('[data-lang-switch]') as HTMLElement | null;
+    if (!target) return;
+
+    const chosenLang = target.getAttribute('data-lang-switch') as SupportedLanguage | null;
+    if (!chosenLang || !SUPPORTED_LANGUAGES[chosenLang]) return;
+
+    e.preventDefault();
+    const currentRoute = parseRoute(window.location.pathname);
+    const newPath = buildLocalizedPath(currentRoute.cleanPath, chosenLang);
+
+    if (window.location.pathname !== newPath) {
+      window.history.pushState({}, '', newPath);
+    }
+    navigateTo(newPath);
+  });
+}
+
 // Initialize Application
 async function initApp() {
-  // 1. Synchronous initial setup
+  // 1. Initial setup
   initNavbarInteractions();
+  initLanguageSwitchers();
   applyGlobalSettings(cachedSiteSettings);
-  renderMatrixLinks();
+  
+  const initialRoute = parseRoute(window.location.pathname);
+  renderMatrixLinks(initialRoute.lang);
   await navigateTo(window.location.pathname);
 
   // 2. Intercept all SPA route links
@@ -805,9 +1194,10 @@ async function initApp() {
     if (!target) return;
 
     const href = target.getAttribute('href');
-    if (!href || href.startsWith('http') || href.startsWith('#') || href.startsWith('mailto')) {
+    if (!href || href.startsWith('http') || href.startsWith('mailto')) {
       return;
     }
+    if (href.startsWith('#')) return;
 
     e.preventDefault();
     if (window.location.pathname !== href) {
@@ -837,15 +1227,15 @@ async function fetchRemoteConfigs() {
     cachedSiteSettings = settings;
 
     applyGlobalSettings(settings, toggles);
-    renderMatrixLinks();
+    const currentRoute = parseRoute(window.location.pathname);
+    renderMatrixLinks(currentRoute.lang);
     updateFormatDropdown();
     
     // If currently on a converter page, re-inject SEO content
-    const currentRoute = parseRoute(window.location.pathname);
     if (currentRoute.type === 'converter') {
       const seoContainer = document.getElementById('dynamic-seo-content');
       if (seoContainer) {
-        seoContainer.innerHTML = generateSEOContent(currentRoute.input || 'mp4', currentRoute.output || 'wav');
+        seoContainer.innerHTML = generateSEOContent(currentRoute.input || 'mp4', currentRoute.output || 'wav', currentRoute.lang);
       }
     }
   } catch (e) {
@@ -858,4 +1248,3 @@ if (document.readyState === 'loading') {
 } else {
   initApp();
 }
-

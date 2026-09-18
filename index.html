@@ -149,6 +149,10 @@
                 <a href="/blog" data-route-link id="nav-link-blog" class="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-900 transition-colors">
                     Blog
                 </a>
+                <a href="/editor" data-route-link id="nav-link-editor" class="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:text-teal-400 hover:bg-dark-900 transition-colors flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse"></span>
+                    Video Editor
+                </a>
                 <a href="/#about" id="nav-link-about" class="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-900 transition-colors">
                     About
                 </a>
@@ -157,8 +161,21 @@
                 </a>
             </nav>
 
-            <!-- Actions: Admin Lock, CTA & Mobile Toggle -->
-            <div class="flex items-center gap-2.5">
+            <!-- Actions: Language Switcher, Admin Lock, CTA & Mobile Toggle -->
+            <div class="flex items-center gap-2">
+                <!-- Language Switcher Pills -->
+                <div class="flex items-center bg-dark-900/90 border border-slate-700/80 rounded-lg p-0.5 text-xs font-semibold">
+                    <button type="button" data-lang-switch="en" class="px-2 py-1 rounded-md transition-colors bg-brand-600 text-white" title="English">
+                        EN
+                    </button>
+                    <button type="button" data-lang-switch="es" class="px-2 py-1 rounded-md transition-colors text-slate-400 hover:text-white" title="Español">
+                        ES
+                    </button>
+                    <button type="button" data-lang-switch="fr" class="px-2 py-1 rounded-md transition-colors text-slate-400 hover:text-white" title="Français">
+                        FR
+                    </button>
+                </div>
+
                 <a href="/admin" data-route-link id="nav-link-admin" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-dark-900 border border-slate-700/80 text-slate-400 hover:text-brand-400 hover:border-brand-500 transition-colors flex items-center gap-1.5" title="Admin Control Center">
                     <svg class="w-3.5 h-3.5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                     <span class="hidden sm:inline">Admin</span>
@@ -187,6 +204,10 @@
             <a href="/blog" data-route-link id="mob-link-blog" class="block px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-900 transition-colors">
                 Blog
             </a>
+            <a href="/editor" data-route-link id="mob-link-editor" class="block px-3 py-2.5 rounded-xl text-sm font-medium text-teal-300 hover:text-white hover:bg-dark-900 transition-colors flex items-center justify-between">
+                <span>Video Editor (WASM)</span>
+                <span class="text-[10px] bg-teal-950 border border-teal-500/40 text-teal-400 px-2 py-0.5 rounded-full font-mono">NEW</span>
+            </a>
             <a href="/#about" id="mob-link-about" class="block px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-900 transition-colors">
                 About VidToAudio
             </a>
@@ -194,6 +215,12 @@
                 Privacy Policy
             </a>
             <div class="pt-2 border-t border-slate-800 flex items-center justify-between gap-3">
+                <!-- Mobile Language Selector -->
+                <div class="flex items-center bg-dark-900 border border-slate-700/80 rounded-lg p-0.5 text-xs font-semibold">
+                    <button type="button" data-lang-switch="en" class="px-2.5 py-1.5 rounded-md transition-colors bg-brand-600 text-white">EN</button>
+                    <button type="button" data-lang-switch="es" class="px-2.5 py-1.5 rounded-md transition-colors text-slate-400 hover:text-white">ES</button>
+                    <button type="button" data-lang-switch="fr" class="px-2.5 py-1.5 rounded-md transition-colors text-slate-400 hover:text-white">FR</button>
+                </div>
                 <a href="/admin" data-route-link class="flex-1 text-center py-2 bg-dark-900 border border-slate-700 text-slate-300 rounded-lg text-xs font-semibold">
                     Admin Portal
                 </a>
