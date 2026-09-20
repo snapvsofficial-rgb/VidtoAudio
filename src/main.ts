@@ -7,6 +7,7 @@ import {
   DEFAULT_FORMAT_TOGGLES,
   DEFAULT_SITE_SETTINGS
 } from './services/configService';
+import { getLocalizedBlogPost } from './services/translationService';
 import { FormatTogglesConfig, SiteSettingsConfig } from './types';
 import { 
   generateFormatArticle, 
@@ -832,11 +833,17 @@ export async function navigateTo(pathname = window.location.pathname) {
       updateMetaTag('twitter:description', blogDesc);
     } else {
       const slug = route.slug!;
-      const article = await fetchBlogBySlug(slug);
+      const rawArticle = await fetchBlogBySlug(slug);
+      const article = rawArticle ? getLocalizedBlogPost(rawArticle, lang) : null;
       const articleTitle = article?.title 
         ? `${article.title} | VidToAudio` 
         : `${slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} | VidToAudio Blog`;
-      const articleDesc = article?.excerpt || 'Discover technical audio extraction insights and lossless audio tips.';
+      const fallbackDesc = lang === 'es'
+        ? 'Descubre consejos técnicos de extracción de audio y optimización sin pérdida.'
+        : (lang === 'fr'
+          ? 'Découvrez nos conseils techniques d\'extraction audio et d\'optimisation sans perte.'
+          : 'Discover technical audio extraction insights and lossless audio tips.');
+      const articleDesc = article?.excerpt || fallbackDesc;
       const articleUrl = `https://vidtoaudio.com${route.canonicalPath}`;
 
       document.title = articleTitle;

@@ -20,6 +20,7 @@ import {
   DEFAULT_SITE_SETTINGS
 } from '../services/configService';
 import { BlogPost, FormatTogglesConfig, SiteSettingsConfig } from '../types';
+import { generateTranslationsForBlogPost } from '../services/translationService';
 
 export type AdminTab = 'dashboard' | 'seo' | 'blogs' | 'settings';
 
@@ -738,6 +739,15 @@ function renderBlogsTab(
 
   // Render Blog Editor Form if editing or creating
   if (editingBlog || isCreatingNew) {
+    const existingTranslations = editingBlog?.translations || {};
+    const titleEs = existingTranslations.es?.title || editingBlog?.title_es || '';
+    const excerptEs = existingTranslations.es?.excerpt || editingBlog?.excerpt_es || '';
+    const contentEs = existingTranslations.es?.content || editingBlog?.content_es || '';
+
+    const titleFr = existingTranslations.fr?.title || editingBlog?.title_fr || '';
+    const excerptFr = existingTranslations.fr?.excerpt || editingBlog?.excerpt_fr || '';
+    const contentFr = existingTranslations.fr?.content || editingBlog?.content_fr || '';
+
     container.innerHTML = `
       <div class="bg-dark-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
         <div class="flex items-center justify-between pb-4 mb-6 border-b border-slate-800">
@@ -749,21 +759,33 @@ function renderBlogsTab(
               ${isCreatingNew ? 'Create New Article' : 'Edit Article: ' + (editingBlog?.title || '')}
             </h2>
           </div>
-          <button type="button" id="btn-cancel-blog-top" class="text-xs text-slate-400 hover:text-slate-200">
-            Cancel
+          <div class="flex items-center gap-2">
+            <button type="button" id="btn-auto-translate-all" class="px-3 py-1.5 bg-brand-950 hover:bg-brand-900 text-brand-300 border border-brand-800 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              <span>Auto-Translate to ES & FR</span>
+            </button>
+            <button type="button" id="btn-cancel-blog-top" class="text-xs text-slate-400 hover:text-slate-200 ml-2">
+              Cancel
+            </button>
+          </div>
+        </div>
+
+        <!-- Language Tabs Bar -->
+        <div class="flex items-center gap-2 mb-6 border-b border-slate-800 pb-3">
+          <button type="button" data-blog-lang-tab="en" class="blog-lang-tab-btn active px-4 py-2 rounded-xl text-xs font-semibold bg-brand-600 text-white shadow transition-all">
+            🇺🇸 English (EN)
+          </button>
+          <button type="button" data-blog-lang-tab="es" class="blog-lang-tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-dark-950 text-slate-400 hover:text-white border border-slate-800 transition-all">
+            🇪🇸 Spanish (ES)
+          </button>
+          <button type="button" data-blog-lang-tab="fr" class="blog-lang-tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-dark-950 text-slate-400 hover:text-white border border-slate-800 transition-all">
+            🇫🇷 French (FR)
           </button>
         </div>
 
         <form id="blog-editor-form" class="space-y-6">
           <div>
-            <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Article Title</label>
-            <input type="text" id="blog-title" required value="${editingBlog?.title || ''}" 
-              placeholder="e.g. How to Extract WAV Audio from 4K Video Offline"
-              class="w-full px-4 py-3 bg-dark-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 text-sm">
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">URL Slug</label>
+            <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">URL Slug (Shared)</label>
             <div class="flex items-center">
               <span class="px-3 py-3 bg-dark-950 border border-r-0 border-slate-700 rounded-l-xl text-xs text-slate-500 font-mono">/blog/</span>
               <input type="text" id="blog-slug" required value="${editingBlog?.slug || ''}" 
@@ -773,18 +795,82 @@ function renderBlogsTab(
             <p class="text-[11px] text-slate-500 mt-1">Leave empty or type title to auto-generate clean SEO URL slug.</p>
           </div>
 
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Meta Description / Excerpt</label>
-            <input type="text" id="blog-excerpt" value="${editingBlog?.excerpt || ''}" 
-              placeholder="Short 1-2 sentence overview for Google search snippets..."
-              class="w-full px-4 py-3 bg-dark-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 text-sm">
+          <!-- ENGLISH FIELDS (Active by default) -->
+          <div id="blog-fields-en" class="blog-lang-section space-y-6">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">English Title (Default)</label>
+              <input type="text" id="blog-title" required value="${editingBlog?.title || ''}" 
+                placeholder="e.g. How to Extract WAV Audio from 4K Video Offline"
+                class="w-full px-4 py-3 bg-dark-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 text-sm">
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">English Meta Description / Excerpt</label>
+              <input type="text" id="blog-excerpt" value="${editingBlog?.excerpt || ''}" 
+                placeholder="Short 1-2 sentence overview for Google search snippets..."
+                class="w-full px-4 py-3 bg-dark-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 text-sm">
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">English Content (Markdown Supported)</label>
+              <textarea id="blog-content" rows="12" required
+                placeholder="# Article Heading&#10;&#10;Write your guide content here using Markdown..."
+                class="w-full px-4 py-3 bg-dark-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 text-sm font-mono leading-relaxed">${editingBlog?.content || ''}</textarea>
+            </div>
           </div>
 
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Content (Markdown Supported)</label>
-            <textarea id="blog-content" rows="12" required
-              placeholder="# Article Heading&#10;&#10;Write your guide content here using Markdown..."
-              class="w-full px-4 py-3 bg-dark-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 text-sm font-mono leading-relaxed">${editingBlog?.content || ''}</textarea>
+          <!-- SPANISH FIELDS -->
+          <div id="blog-fields-es" class="blog-lang-section hidden space-y-6">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">Título en Español (ES)</label>
+                <span class="text-[11px] text-brand-400">Usado en rutas /es/blog/...</span>
+              </div>
+              <input type="text" id="blog-title-es" value="${titleEs}" 
+                placeholder="p. ej. Cómo extraer audio WAV de vídeo 4K sin conexión"
+                class="w-full px-4 py-3 bg-dark-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 text-sm">
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Descripción / Resumen en Español</label>
+              <input type="text" id="blog-excerpt-es" value="${excerptEs}" 
+                placeholder="Resumen corto de 1-2 frases para fragmentos de búsqueda..."
+                class="w-full px-4 py-3 bg-dark-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 text-sm">
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Contenido en Español (Markdown Compatible)</label>
+              <textarea id="blog-content-es" rows="12"
+                placeholder="# Encabezado del Artículo&#10;&#10;Escribe tu guía en español aquí..."
+                class="w-full px-4 py-3 bg-dark-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 text-sm font-mono leading-relaxed">${contentEs}</textarea>
+            </div>
+          </div>
+
+          <!-- FRENCH FIELDS -->
+          <div id="blog-fields-fr" class="blog-lang-section hidden space-y-6">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">Titre en Français (FR)</label>
+                <span class="text-[11px] text-brand-400">Utilisé sur les chemins /fr/blog/...</span>
+              </div>
+              <input type="text" id="blog-title-fr" value="${titleFr}" 
+                placeholder="ex. Comment extraire l'audio WAV d'une vidéo 4K hors-ligne"
+                class="w-full px-4 py-3 bg-dark-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 text-sm">
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Description / Extrait en Français</label>
+              <input type="text" id="blog-excerpt-fr" value="${excerptFr}" 
+                placeholder="Court aperçu de 1-2 phrases pour les snippets de recherche..."
+                class="w-full px-4 py-3 bg-dark-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 text-sm">
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Contenu en Français (Support Markdown)</label>
+              <textarea id="blog-content-fr" rows="12"
+                placeholder="# Titre de l'article&#10;&#10;Rédigez votre tutoriel en français ici..."
+                class="w-full px-4 py-3 bg-dark-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 text-sm font-mono leading-relaxed">${contentFr}</textarea>
+            </div>
           </div>
 
           <div class="flex items-center justify-between pt-4 border-t border-slate-800">
@@ -793,7 +879,7 @@ function renderBlogsTab(
             </button>
             <button type="submit" id="btn-save-blog" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-sm font-semibold shadow-lg transition-all flex items-center gap-2">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-              <span>Publish Article to Firestore</span>
+              <span>Publish Multilingual Article to Firestore</span>
             </button>
           </div>
         </form>
@@ -802,6 +888,59 @@ function renderBlogsTab(
 
     const titleInput = document.getElementById('blog-title') as HTMLInputElement;
     const slugInput = document.getElementById('blog-slug') as HTMLInputElement;
+
+    // Handle Language Tab Switching
+    const tabBtns = document.querySelectorAll('.blog-lang-tab-btn');
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const lang = btn.getAttribute('data-blog-lang-tab');
+        tabBtns.forEach(b => {
+          b.classList.remove('bg-brand-600', 'text-white', 'shadow');
+          b.classList.add('bg-dark-950', 'text-slate-400', 'border', 'border-slate-800');
+        });
+        btn.classList.remove('bg-dark-950', 'text-slate-400', 'border', 'border-slate-800');
+        btn.classList.add('bg-brand-600', 'text-white', 'shadow');
+
+        document.querySelectorAll('.blog-lang-section').forEach(s => s.classList.add('hidden'));
+        document.getElementById(`blog-fields-${lang}`)?.classList.remove('hidden');
+      });
+    });
+
+    // Auto-translate button handler
+    document.getElementById('btn-auto-translate-all')?.addEventListener('click', () => {
+      const enTitle = titleInput.value.trim();
+      const enExcerpt = (document.getElementById('blog-excerpt') as HTMLInputElement).value.trim();
+      const enContent = (document.getElementById('blog-content') as HTMLTextAreaElement).value.trim();
+
+      if (!enTitle && !enContent) {
+        alert('Please fill out the English title and content first before auto-translating.');
+        return;
+      }
+
+      const generated = generateTranslationsForBlogPost({
+        title: enTitle,
+        excerpt: enExcerpt,
+        content: enContent
+      });
+
+      const titleEsInput = document.getElementById('blog-title-es') as HTMLInputElement;
+      const excerptEsInput = document.getElementById('blog-excerpt-es') as HTMLInputElement;
+      const contentEsInput = document.getElementById('blog-content-es') as HTMLTextAreaElement;
+
+      const titleFrInput = document.getElementById('blog-title-fr') as HTMLInputElement;
+      const excerptFrInput = document.getElementById('blog-excerpt-fr') as HTMLInputElement;
+      const contentFrInput = document.getElementById('blog-content-fr') as HTMLTextAreaElement;
+
+      if (titleEsInput) titleEsInput.value = generated.es.title || '';
+      if (excerptEsInput) excerptEsInput.value = generated.es.excerpt || '';
+      if (contentEsInput) contentEsInput.value = generated.es.content || '';
+
+      if (titleFrInput) titleFrInput.value = generated.fr.title || '';
+      if (excerptFrInput) excerptFrInput.value = generated.fr.excerpt || '';
+      if (contentFrInput) contentFrInput.value = generated.fr.content || '';
+
+      alert('Spanish and French translations generated successfully! You can switch tabs to review or customize them.');
+    });
 
     if (isCreatingNew) {
       titleInput?.addEventListener('input', () => {
@@ -828,10 +967,44 @@ function renderBlogsTab(
       saveBtn.innerHTML = `<span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> Publishing...`;
 
       try {
-        const title = titleInput.value;
+        const title = titleInput.value.trim();
         const slug = slugInput.value.trim();
-        const excerpt = (document.getElementById('blog-excerpt') as HTMLInputElement).value;
-        const content = (document.getElementById('blog-content') as HTMLTextAreaElement).value;
+        const excerpt = (document.getElementById('blog-excerpt') as HTMLInputElement).value.trim();
+        const content = (document.getElementById('blog-content') as HTMLTextAreaElement).value.trim();
+
+        // Localized fields
+        let titleEsVal = (document.getElementById('blog-title-es') as HTMLInputElement)?.value.trim();
+        let excerptEsVal = (document.getElementById('blog-excerpt-es') as HTMLInputElement)?.value.trim();
+        let contentEsVal = (document.getElementById('blog-content-es') as HTMLTextAreaElement)?.value.trim();
+
+        let titleFrVal = (document.getElementById('blog-title-fr') as HTMLInputElement)?.value.trim();
+        let excerptFrVal = (document.getElementById('blog-excerpt-fr') as HTMLInputElement)?.value.trim();
+        let contentFrVal = (document.getElementById('blog-content-fr') as HTMLTextAreaElement)?.value.trim();
+
+        // If either language is missing, auto-fill it so articles are never empty in /es/ and /fr/
+        if (!titleEsVal || !contentEsVal || !titleFrVal || !contentFrVal) {
+          const auto = generateTranslationsForBlogPost({ title, excerpt, content });
+          if (!titleEsVal) titleEsVal = auto.es.title;
+          if (!excerptEsVal) excerptEsVal = auto.es.excerpt;
+          if (!contentEsVal) contentEsVal = auto.es.content;
+
+          if (!titleFrVal) titleFrVal = auto.fr.title;
+          if (!excerptFrVal) excerptFrVal = auto.fr.excerpt;
+          if (!contentFrVal) contentFrVal = auto.fr.content;
+        }
+
+        const translations = {
+          es: {
+            title: titleEsVal,
+            excerpt: excerptEsVal,
+            content: contentEsVal
+          },
+          fr: {
+            title: titleFrVal,
+            excerpt: excerptFrVal,
+            content: contentFrVal
+          }
+        };
 
         await saveBlogPost({
           id: editingBlog?.id,
@@ -839,6 +1012,13 @@ function renderBlogsTab(
           slug,
           excerpt,
           content,
+          translations,
+          title_es: titleEsVal,
+          excerpt_es: excerptEsVal,
+          content_es: contentEsVal,
+          title_fr: titleFrVal,
+          excerpt_fr: excerptFrVal,
+          content_fr: contentFrVal,
           authorEmail: user.email || 'Admin',
           published: true
         });
