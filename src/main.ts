@@ -139,7 +139,7 @@ export function updateRobots(allowIndex = true) {
 }
 
 export interface ParsedRoute {
-  type: 'converter' | 'admin' | 'editor' | 'blog-list' | 'blog-post';
+  type: 'converter' | 'admin' | 'editor' | 'blog-list' | 'blog-post' | 'about';
   lang: SupportedLanguage;
   rawPath: string;
   cleanPath: string;
@@ -206,6 +206,9 @@ export function updateNavbarActiveState(pathname: string) {
   } else if (cleanPath.includes('privacy')) {
     activeEl(navItems.privacy);
     activeEl(mobItems.privacy);
+  } else if (route.type === 'about' || cleanPath.includes('about')) {
+    activeEl(navItems.about);
+    activeEl(mobItems.about);
   } else if (route.type === 'converter' && !route.isFallback) {
     activeEl(navItems.converters);
     activeEl(mobItems.converters);
@@ -269,6 +272,17 @@ export function parseRoute(pathname: string): ParsedRoute {
       cleanPath: '/editor', 
       canonicalPath: buildLocalizedPath('/editor', lang), 
       path: '/editor' 
+    };
+  }
+
+  if (clean === 'about') {
+    return { 
+      type: 'about', 
+      lang, 
+      rawPath: raw, 
+      cleanPath: '/about', 
+      canonicalPath: buildLocalizedPath('/about', lang), 
+      path: '/about' 
     };
   }
 
@@ -711,12 +725,59 @@ export function applyLanguageToUI(lang: SupportedLanguage) {
 
   // 8. Update Video Editor UI in-place if active
   updateEditorLanguage(lang);
+
+  // 9. About Section Localization (4 Pillars & Contact Disclosures)
+  const aboutBadge = document.getElementById('about-badge');
+  if (aboutBadge) aboutBadge.textContent = t.about.missionBadge;
+
+  const aboutTitle = document.getElementById('about-title');
+  if (aboutTitle) aboutTitle.textContent = t.about.title;
+
+  const aboutSubtitle = document.getElementById('about-subtitle');
+  if (aboutSubtitle) aboutSubtitle.textContent = t.about.subtitle;
+
+  const aboutP1Title = document.getElementById('about-p1-title');
+  if (aboutP1Title) aboutP1Title.textContent = t.about.p1Title;
+
+  const aboutP1Desc = document.getElementById('about-p1-desc');
+  if (aboutP1Desc) aboutP1Desc.textContent = t.about.p1Desc;
+
+  const aboutP2Title = document.getElementById('about-p2-title');
+  if (aboutP2Title) aboutP2Title.textContent = t.about.p2Title;
+
+  const aboutP2Desc = document.getElementById('about-p2-desc');
+  if (aboutP2Desc) aboutP2Desc.textContent = t.about.p2Desc;
+
+  const aboutP3Title = document.getElementById('about-p3-title');
+  if (aboutP3Title) aboutP3Title.textContent = t.about.p3Title;
+
+  const aboutP3Desc = document.getElementById('about-p3-desc');
+  if (aboutP3Desc) aboutP3Desc.textContent = t.about.p3Desc;
+
+  const aboutP4Title = document.getElementById('about-p4-title');
+  if (aboutP4Title) aboutP4Title.textContent = t.about.p4Title;
+
+  const aboutP4Desc = document.getElementById('about-p4-desc');
+  if (aboutP4Desc) aboutP4Desc.textContent = t.about.p4Desc;
+
+  const aboutContactHeading = document.getElementById('about-contact-heading');
+  if (aboutContactHeading) aboutContactHeading.textContent = t.about.contactHeading;
+
+  const aboutContactEmailText = document.getElementById('about-contact-email-text');
+  if (aboutContactEmailText) aboutContactEmailText.textContent = t.about.contactEmailText;
+
+  const aboutPrivacyLink = document.getElementById('about-privacy-link');
+  if (aboutPrivacyLink) aboutPrivacyLink.textContent = t.about.privacyPolicy;
+
+  const aboutTermsLink = document.getElementById('about-terms-link');
+  if (aboutTermsLink) aboutTermsLink.textContent = t.about.termsOfService;
 }
 
 // Master Route Applicator with Strict SEO Perfection & Security Guards
 export async function navigateTo(pathname = window.location.pathname) {
   const route = parseRoute(pathname);
   const lang = route.lang;
+  const t = getTranslations(lang);
 
   // Set active language and re-apply localized strings across UI
   applyLanguageToUI(lang);
@@ -863,6 +924,43 @@ export async function navigateTo(pathname = window.location.pathname) {
   }
 
   // -----------------------------------------------------------------
+  // ABOUT ROUTE: Direct URL access (/about, /es/about, /fr/about)
+  // -----------------------------------------------------------------
+  if (route.type === 'about') {
+    if (dynamicRouteView) dynamicRouteView.classList.add('hidden');
+    if (publicConverterView) publicConverterView.classList.remove('hidden');
+
+    const aboutSection = document.getElementById('about');
+    if (aboutSection) aboutSection.classList.remove('hidden');
+
+    const aboutPageTitle = lang === 'es'
+      ? `${t.about.title} | Convertidor de Audio Gratuito y Editor Web`
+      : (lang === 'fr'
+        ? `${t.about.title} | Convertisseur Audio Gratuit et Éditeur Web`
+        : `${t.about.title} | 100% Free Client-Side Audio Converter & Editor`);
+    const aboutDesc = t.about.subtitle;
+    const aboutUrl = `https://vidtoaudio.com${route.canonicalPath}`;
+
+    document.title = aboutPageTitle;
+    updateRobots(true);
+    updateCanonical(aboutUrl);
+    updateMetaTag('description', aboutDesc);
+    updateMetaTag('og:title', aboutPageTitle, true);
+    updateMetaTag('og:description', aboutDesc, true);
+    updateMetaTag('og:url', aboutUrl, true);
+    updateMetaTag('og:type', 'website', true);
+    updateMetaTag('twitter:card', 'summary_large_image');
+    updateMetaTag('twitter:title', aboutPageTitle);
+    updateMetaTag('twitter:description', aboutDesc);
+
+    setTimeout(() => {
+      const el = document.getElementById('about');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }, 120);
+    return;
+  }
+
+  // -----------------------------------------------------------------
   // CONVERTER & HOMEPAGE ROUTE: Show main tool & update SEO tags & matrix
   // -----------------------------------------------------------------
   if (dynamicRouteView) dynamicRouteView.classList.add('hidden');
@@ -870,7 +968,6 @@ export async function navigateTo(pathname = window.location.pathname) {
 
   const inUpper = route.displayInput || (route.input ? route.input.toUpperCase() : 'MP4');
   const outUpper = route.output ? route.output.toUpperCase() : 'WAV';
-  const t = getTranslations(lang);
 
   if (route.isFallback) {
     // Root / Homepage Meta Tags

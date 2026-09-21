@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terms & Conditions | VidToAudio</title>
+    <title>Terms of Service | VidToAudio.com</title>
+    <meta name="description" content="Terms of Service for VidToAudio.com. Learn about our 100% free in-browser media conversion utility, zero-server-upload architecture, user intellectual property rights, and terms of use.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://vidtoaudio.com/terms.html">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -12,94 +15,282 @@
                     colors: {
                         brand: {
                             50: '#f0fdfa',
+                            100: '#ccfbf1',
                             300: '#5eead4',
                             400: '#2dd4bf',
                             500: '#14b8a6', // Teal
                             600: '#0d9488',
+                            800: '#115e59',
                             900: '#134e4a',
+                            950: '#042f2e',
                         },
                         dark: {
-                            800: '#1e293b', // Slate 800
-                            900: '#0f172a', // Slate 900
-                            950: '#020617', // Slate 950
+                            800: '#1e293b',
+                            850: '#172033',
+                            900: '#0f172a',
+                            950: '#020617',
                         }
                     }
                 }
             }
         }
     </script>
-    <style>
-        .legal-content { color: #94a3b8; line-height: 1.7; font-size: 1rem; }
-        .legal-content p { margin-bottom: 1.25rem; }
-        .legal-content strong { 
-            display: block; 
-            font-size: 1.25rem; 
-            font-weight: 600; 
-            color: #f8fafc; 
-            margin-top: 2.5rem; 
-            margin-bottom: 1rem; 
-        }
-        /* The first strong tag is the main title */
-        .legal-content > strong:first-of-type { 
-            font-size: 2.5rem; 
-            font-weight: 800; 
-            color: #fff; 
-            margin-top: 0; 
-            margin-bottom: 2rem; 
-            line-height: 1.2;
-        }
-        /* Nested strong tags in divs */
-        .legal-content div > strong:first-of-type {
-            display: block; 
-            font-size: 1.25rem; 
-            font-weight: 600; 
-            color: #f8fafc; 
-            margin-top: 2.5rem; 
-            margin-bottom: 1rem; 
-        }
-        .legal-content ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 1.5rem; color: #cbd5e1; }
-        .legal-content li { margin-bottom: 0.5rem; padding-left: 0.25rem; }
-        .legal-content a { color: #2dd4bf; text-decoration: none; font-weight: 500; transition: all 0.2s; }
-        .legal-content a:hover { color: #5eead4; text-decoration: underline; text-underline-offset: 4px; }
-        .legal-content br { display: none; } /* Remove excessive br tags from the raw content */
-    </style>
 </head>
 <body class="bg-dark-950 text-slate-300 min-h-screen flex flex-col font-sans selection:bg-brand-500/30">
 
-    <header class="border-b border-slate-800 bg-dark-950/80 backdrop-blur-md sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <a href="index.html" class="flex items-center gap-2 text-xl font-bold text-white tracking-tight hover:opacity-80 transition-opacity">
-                    <svg class="w-6 h-6 text-brand-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
-                    VidToAudio
+    <!-- Header Navigation -->
+    <header class="border-b border-slate-800 bg-dark-950/90 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2.5 text-xl font-bold text-white tracking-tight hover:opacity-90 transition-opacity">
+                <span class="w-8 h-8 rounded-lg bg-brand-500/20 border border-brand-500/40 flex items-center justify-center text-brand-400">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+                </span>
+                <span>VidTo<span class="text-brand-400">Audio</span><span class="text-xs text-slate-500 font-normal ml-1">.com</span></span>
+            </a>
+            <div class="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm">
+                <a href="/privacy-policy.html" class="font-medium text-slate-400 hover:text-brand-400 transition-colors">
+                    Privacy
+                </a>
+                <a href="/disclaimer.html" class="font-medium text-slate-400 hover:text-brand-400 transition-colors">
+                    Disclaimer
+                </a>
+                <a href="/contact.html" class="font-medium text-slate-400 hover:text-brand-400 transition-colors">
+                    Contact
+                </a>
+                <a href="/" class="font-medium px-3 py-1.5 rounded-lg bg-dark-900 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-700 transition-all flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    <span class="hidden sm:inline">Back to</span> Converter
                 </a>
             </div>
-            <a href="index.html" class="text-sm font-medium text-slate-400 hover:text-white transition-colors flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                Back to Home
-            </a>
         </div>
     </header>
 
-    <main class="flex-grow max-w-3xl mx-auto px-4 py-12 w-full">
-        <div class="legal-content bg-dark-900 border border-slate-800 rounded-2xl p-6 sm:p-10 shadow-xl">
-            <strong>Terms &amp; Conditions</strong><br><p>These terms and conditions apply to the VidtoAudio app for mobile devices, together with any related services operated by Muhammad Hassan Khan (collectively, the "Application"). Muhammad Hassan Khan is hereby referred to as the "Service Provider".</p><br><p>By downloading or using the Application, you agree to these Terms and Conditions. You should read them carefully before using the Application.</p><br><div><strong>License to use the Application</strong><p>Subject to your compliance with these Terms, the Service Provider grants you a limited, non-exclusive, non-transferable, revocable license to install and use the Application on a mobile device for personal or internal business purposes. You may not reproduce, distribute, modify, create derivative works from, reverse engineer, decompile, or disassemble the Application, except as and only to the extent that such activity is expressly permitted by applicable law.</p></div><br><strong>Intellectual Property</strong><p>The Service Provider retains all intellectual property rights in the Application, including its code, design, trademarks, service marks, trade names, logos, and branding (the "IP"). Nothing in these Terms grants you any license or right to use the Service Provider's trademarks, logos, or branding for any purpose. You agree not to remove, alter, or obscure any copyright, trademark, or other proprietary notices displayed in or on the Application.</p><br><strong>Termination</strong><p>The Service Provider may suspend your access to the Application or services if you materially breach these Terms. The Service Provider will provide you with written notice of the breach and, where the breach is capable of cure, you will have 14 days from receipt of notice to remedy the breach. If you fail to cure the breach within that period, the Service Provider may terminate your access.</p><br><p>The Service Provider may suspend or terminate your access immediately without notice if you violate applicable law, infringe intellectual property rights, or engage in activity that could cause harm to other users or the Service Provider.</p><br><p>Upon termination, your right to use the Application will end and you must delete all copies from your devices.</p><br><p>By accessing and using this Application, you represent that you are legally permitted to use it in your jurisdiction. You must be at least 16 years of age (the age of digital consent in your jurisdiction) to use the Application. If you are below 16, a parent or legal guardian must review and accept these Terms on your behalf.</p><div><br><p>Unauthorized copying, modification of the Application, any part of the Application, or the Service Provider's trademarks is strictly prohibited. Any attempts to extract the source code of the Application, translate the Application into other languages, or create derivative versions are not permitted. All trademarks, copyrights, database rights, and other intellectual property rights related to the Application remain the property of the Service Provider.</p></div><br><strong>User-Generated Content and Acceptable Use</strong><p>If this Application allows users to post, share, or upload content, you agree not to post content that:</p><ul><li>Is illegal or violates third-party intellectual property rights (copyright, trademark, patents)</li><li>Is abusive, threatening, harassing, defamatory, or hate speech</li><li>Contains discrimination or incitement to violence or illegal activity</li><li>Is spam, phishing, or contains malware</li><li>Violates the privacy or personal data rights of others</li><li>Is misleading, false, or deceptive</li><li>Contains explicit violence or sexual content (unless age-gated appropriately)</li></ul><br><p>The Service Provider reserves the right to:</p><ul><li>Remove or disable access to content that violates these guidelines</li><li>Suspend or terminate accounts of users who repeatedly violate these guidelines</li><li>Cooperate with law enforcement if illegal content is reported</li><li>Moderate, filter, or hide content that violates these Terms, applicable law, or the guidelines set out above</li></ul><br><p>Content submitted through the Application may be visible to other users or to the public, depending on how the Application functions.</p><br><p>If you believe content violates these Terms, infringes your rights, or is unlawful, you may report it to the Service Provider at hubfactsofficial@gmail.com. The report should include enough information for the Service Provider to identify the content, evaluate the complaint, and contact you if follow-up is required.</p><br><p>Where the Application provides such features, you may also report content, block other users, or mute notifications directly through the Application's interface. The Service Provider will review in-app reports with the same standards described in these Terms.</p><br><p>The Service Provider may review reported content, request additional information where necessary, remove or restrict access to content, and take action against the responsible account where appropriate. Users affected by moderation decisions may contact the Service Provider at hubfactsofficial@gmail.com to request further review. The Service Provider will respond to appeals within a reasonable period and provide the reasons for any upheld moderation decision, subject to applicable law.</p><br><p>By submitting User-Generated Content you grant the Service Provider a non-exclusive, worldwide, royalty-free license to use, reproduce, distribute, prepare derivative works of, display and perform the content in connection with the Application and the Service Provider's business. This license does not grant the Service Provider the right to sell or sublicense your content to third parties independently of the Application. You represent and warrant that you own or control all rights in the content you post and that use of the content does not violate these Terms or applicable law.</p><br><p>Your content may include personal data. Processing of personal data related to User-Generated Content is governed by the Privacy Policy. Do not post personal data of others without their consent.</p><br><p>The Service Provider is dedicated to ensuring that the Application is as beneficial and efficient as possible. As such, they reserve the right to modify the Application or charge for their services at any time and for any reason. The Service Provider assures you that any charges for the Application or its services will be clearly communicated to you.</p><br><p>The Application stores and processes personal data that you have provided to the Service Provider in order to provide the Service. It is your responsibility to maintain the security of your phone and access to the Application. The Service Provider strongly advises against jailbreaking or rooting your phone, which involves removing software restrictions and limitations imposed by the official operating system of your device. Such actions could expose your phone to malware, viruses, malicious programs, compromise your phone's security features, and may result in the Application not functioning correctly or at all.</p><div><p>Please note that the Application utilizes third-party services that have their own Terms and Conditions. Below are the links to the Terms and Conditions of the third-party service providers used by the Application:</p><ul><li><a href="https://www.google.com/analytics/terms/" target="_blank" rel="noopener noreferrer">Google Analytics for Firebase</a></li><li><a href="https://www.startapp.com/policy/publisher-terms/" target="_blank" rel="noopener noreferrer">StartApp</a></li></ul></div><br><div><p>Please be aware that the Service Provider does not assume responsibility for certain aspects. Some functions of the Application require an active internet connection, which can be Wi-Fi or provided by your mobile network provider. The Service Provider cannot be held responsible if the Application does not function at full capacity due to lack of access to Wi-Fi or if you have exhausted your data allowance.</p><br><p>If you are using the application outside of a Wi-Fi area, please be aware that your mobile network provider's agreement terms still apply. Consequently, you may incur charges from your mobile provider for data usage during the connection to the application, or other third-party charges. By using the application, you accept responsibility for any such charges, including roaming data charges if you use the application outside of your home territory (i.e., region or country) without disabling data roaming. If you are not the bill payer for the device on which you are using the application, they assume that you have obtained permission from the bill payer.</p></div><!----><br><p>Similarly, the Service Provider cannot always assume responsibility for your usage of the application. For instance, it is your responsibility to ensure that your device remains charged. If your device runs out of battery and you are unable to access the Service, the Service Provider cannot be held responsible.</p><br><p>Nothing in these Terms shall limit any rights you have under applicable consumer protection laws that cannot be lawfully excluded.</p><strong>Limitation of Liability</strong><p>To the fullest extent permitted by law, the Service Provider shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to lost profits, data loss, or business interruption, even if advised of the possibility of such damages.</p><br><p>However, the Service Provider retains full liability for:</p><ul><li>Death or personal injury caused by negligence</li><li>Fraud or fraudulent misrepresentation</li><li>Any point of liability that cannot be excluded or limited under applicable law</li></ul><br><p>To the fullest extent permitted by law, the total liability of the Service Provider for any claim shall not exceed the amount paid by you to the Service Provider for the Application in the 12 months preceding the claim, or the minimum amount that must be paid under applicable law, whichever is greater. If the Application is provided free of charge, this means the Service Provider's liability is limited to the minimum amount permitted by applicable law.</p><br><p>The Service Provider accepts no liability for any loss, direct or indirect, that you experience as a result of relying entirely on third-party information provided through this Application, or for inaccuracies in content provided by third parties.</p><br><strong>Indemnification</strong><p>To the fullest extent permitted by law, you agree to indemnify and hold harmless the Service Provider, its affiliates, officers, directors, employees and agents from and against any claims, liabilities, damages, losses and expenses, including reasonable legal fees, arising out of or directly related to your breach of these Terms or your intentional misuse of the Application, including User-Generated Content you submit in violation of these Terms.</p><br><p>This indemnification does not apply to claims arising from the Service Provider's own negligence, breach of these Terms, or violation of applicable law. In jurisdictions where consumer indemnification is restricted by law, this clause shall be limited to the maximum extent permitted.</p><br><!----><p>The Service Provider may wish to update the application at some point. The application is currently available as per the requirements for the operating system (and for any additional systems they decide to extend the availability of the application to) may change, and you will need to download the updates if you want to continue using the application. The Service Provider does not guarantee that it will always update the application so that it is relevant to you and/or compatible with the particular operating system version installed on your device. You should accept updates when offered; if you choose not to, the Service Provider may cease to support earlier versions and the Application may not function properly. The Service Provider may also wish to cease providing the application and may terminate its use at any time without providing termination notice to you. Unless they inform you otherwise, upon any termination, (a) the rights and licenses granted to you in these terms will end; (b) you must cease using the application, and (if necessary) delete it from your device.</p><br><strong>Governing Law and Jurisdiction</strong><br><p>These Terms and Conditions are governed by the laws of the jurisdiction in which the Service Provider is established, excluding conflict of law rules, except to the extent mandatory consumer protection laws provide otherwise.</p><br><p>Any dispute arising out of or relating to these Terms will be brought before the courts that have jurisdiction under applicable law. Nothing in this clause limits any rights you may have to bring a claim in a court that is competent under mandatory law.</p><br><strong>DSA Compliance (Digital Services Act)</strong><br><p>If the Application is an intermediary service as defined under the Digital Services Act (Regulation (EU) 2022/2065, "DSA"), the following provisions apply in addition to the terms above.</p><br><p><strong>Point of Contact: </strong>The Service Provider maintains a single point of contact for direct communication with EU authorities and recipients of the service, reachable at hubfactsofficial@gmail.com. Where the Service Provider is established outside the European Union, a legal representative in the EU has been designated in accordance with Article 13 of the DSA.</p><br><!----><br><p><strong>Content Moderation and Statement of Reasons: </strong>When the Service Provider restricts access to content, suspends or terminates an account, or otherwise limits the availability of the Application's features, a clear and specific statement of reasons will be provided to the affected user. The statement will include the nature of the restriction, the legal or contractual basis for the decision, and information on available redress mechanisms, in accordance with Article 17 of the DSA.</p><br><p><strong>Notice and Action: </strong>Users and third parties may submit notices of allegedly illegal content through the contact details provided in these Terms. The Service Provider will process notices promptly, diligently, and without automated decision-making where the circumstances require human review. Notices will be acknowledged electronically and a decision communicated without undue delay, in accordance with Article 16 of the DSA.</p><br><p><strong>Out-of-Court Dispute Settlement: </strong>Disputes regarding content moderation decisions, including decisions to restrict content or suspend accounts, may be submitted to an out-of-court dispute settlement body certified in accordance with Article 21 of the DSA. The Service Provider will engage with such bodies in good faith. Use of out-of-court dispute settlement does not affect your right to seek judicial remedy under applicable law.</p><br><p><strong>Transparency Reporting: </strong>The Service Provider publishes periodic transparency reports covering content moderation activities, including the volume of notices received, actions taken, and automated means used, in accordance with Article 24 of the DSA. Reports are made available upon request at hubfactsofficial@gmail.com.</p><br><p>These DSA provisions apply to the extent that the Application qualifies as an intermediary service under the DSA and does not replace or limit any rights or obligations under applicable consumer protection or data protection law.</p><br><strong>Severability</strong><p>If any provision of these Terms and Conditions is held to be invalid, illegal, or unenforceable by a court of competent jurisdiction, such provision shall be modified to the minimum extent necessary to make it valid and enforceable, and the remaining provisions of these Terms shall remain in full force and effect.</p><br><strong>Entire Agreement</strong><p>These Terms and Conditions, together with the Privacy Policy, constitute the entire agreement between you and the Service Provider concerning your use of the Application, superseding any prior agreements or understandings.</p><br><strong>Changes to These Terms and Conditions</strong><p>The Service Provider may periodically update their Terms and Conditions. Therefore, you are advised to review this page regularly for any changes. The Service Provider will notify you of any changes by posting the new Terms and Conditions on this page.</p><br><p>Previous versions of these Terms and Conditions will be maintained and made available upon request by contacting the Service Provider at hubfactsofficial@gmail.com.</p><br><p>These terms and conditions are effective as of 2026-07-01</p><br><strong>Contact Us</strong><p>If you have any questions or suggestions about the Terms and Conditions, please do not hesitate to contact the Service Provider at hubfactsofficial@gmail.com.</p>
+    <!-- Main Content Container -->
+    <main class="flex-grow max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-16 w-full">
+        
+        <!-- Document Title & Header Card -->
+        <div class="mb-10 text-center sm:text-left border-b border-slate-800/80 pb-8">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-950 text-brand-300 border border-brand-800/80 text-xs font-semibold uppercase tracking-wider mb-4">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                Legal Terms &amp; Conditions of Use
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Terms of Service</h1>
+            <p class="mt-3 text-slate-400 text-sm sm:text-base leading-relaxed">
+                Last Updated: <span class="text-slate-200 font-medium">September 21, 2026</span> &bull; Effective Date: <span class="text-slate-200 font-medium">January 1, 2026</span>
+            </p>
+            <p class="mt-2 text-xs sm:text-sm text-slate-400">
+                Operated by: <span class="text-white font-semibold">Muhammad Hassan Khan</span> &bull; Web Platform: <a href="https://vidtoaudio.com" class="text-brand-400 hover:underline">VidToAudio.com</a> &bull; Official Publisher Contact: <a href="mailto:hubfactsofficial@gmail.com" class="text-brand-400 hover:underline font-mono">hubfactsofficial@gmail.com</a>
+            </p>
         </div>
+
+        <!-- Terms Summary Callout Box -->
+        <div class="bg-gradient-to-br from-brand-950/70 via-dark-900 to-dark-900 border border-brand-800/60 rounded-2xl p-6 sm:p-7 mb-10 shadow-xl space-y-3">
+            <div class="flex items-center gap-2.5 text-brand-400 font-bold text-base sm:text-lg">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                <span>Free In-Browser Web Utility &bull; Zero Server Media Storage</span>
+            </div>
+            <p class="text-sm text-slate-300 leading-relaxed">
+                VidToAudio.com is a 100% free web service accessible through standard web browsers. All media conversion, transcoding, and video timeline editing take place directly on the <strong class="text-white">client side within your browser's local sandbox</strong> via compiled WebAssembly (WASM) and FFmpeg. We do not store, copy, or host any of your media files on remote servers. You maintain 100% complete and unencumbered ownership of your original and converted content.
+            </p>
+        </div>
+
+        <!-- Structured Legal Body -->
+        <article class="bg-dark-900 border border-slate-800 rounded-2xl p-6 sm:p-10 shadow-2xl space-y-10 text-slate-300 text-sm sm:text-base leading-relaxed">
+
+            <!-- Section 1 -->
+            <section class="space-y-4">
+                <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+                    <span class="text-brand-400 text-base">01.</span> Agreement to Terms &amp; Scope
+                </h2>
+                <p>
+                    These Terms of Service ("Terms", "Agreement") constitute a legally binding agreement between you ("User", "you", or "your") and <strong class="text-white">Muhammad Hassan Khan</strong> ("Publisher", "we", "us", or "our"), governing your access to and use of the website located at <strong class="text-white">https://vidtoaudio.com</strong> (the "Website" or "Service").
+                </p>
+                <p>
+                    By accessing, browsing, interacting with, or using VidToAudio.com, you certify that you have read, understood, and agreed to be bound by these Terms and our companion <a href="/privacy-policy.html" class="text-brand-400 hover:underline">Privacy Policy</a>. If you do not agree with all of these terms and conditions, you are expressly prohibited from using the Website and must discontinue use immediately.
+                </p>
+            </section>
+
+            <!-- Section 2 -->
+            <section class="space-y-4 border-t border-slate-800/80 pt-8">
+                <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+                    <span class="text-brand-400 text-base">02.</span> Description of Web Service &amp; Client-Side Operation
+                </h2>
+                <p>
+                    VidToAudio.com operates as an advanced, lightweight online web platform providing client-side media utilities:
+                </p>
+                <ul class="list-disc list-inside space-y-2 text-slate-300 pl-2">
+                    <li><strong class="text-white">Audio Track Extraction:</strong> Extracting lossless or compressed audio streams from popular video container formats (including MP4, MKV, MOV, WebM, AVI, FLV, WMV, M4V, 3GP, and MTS) into output audio codecs (including MP3, WAV, AAC, FLAC, OGG, M4A, OPUS, AIFF, and WMA).</li>
+                    <li><strong class="text-white">Audio Transcoding:</strong> Changing audio bitrates, channels (stereo/mono), and sample rates across formats.</li>
+                    <li><strong class="text-white">In-Browser Video Editing:</strong> Video timeline segment trimming, cutting, and volume adjustments executed without server uploads.</li>
+                </ul>
+                <p>
+                    <strong class="text-white">Pure Browser Execution:</strong> The Website does not require you to install native software, purchase licenses, or register an account. Our service executes by running standard HTML5 and WebAssembly (WASM) routines in your browser's local sandbox memory.
+                </p>
+            </section>
+
+            <!-- Section 3 -->
+            <section class="space-y-4 border-t border-slate-800/80 pt-8">
+                <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+                    <span class="text-brand-400 text-base">03.</span> User Media Ownership &amp; Zero Server Retention
+                </h2>
+                <p>
+                    <strong class="text-white">Full User Ownership:</strong> We claim zero ownership, copyright, licensing, or intellectual property rights over any media files, video clips, sound recordings, or creative projects that you choose to open or convert using VidToAudio.com. Your files remain exclusively your property.
+                </p>
+                <p>
+                    <strong class="text-white">Zero File Storage or Hosting:</strong> Because processing is executed client-side via in-browser WebAssembly, your media files are never transmitted across the network to our web servers, and we never retain, store, inspect, or archive copies of your files. Consequently, VidToAudio.com cannot restore, re-download, or recover files once you close your browser tab or session.
+                </p>
+            </section>
+
+            <!-- Section 4 -->
+            <section class="space-y-4 border-t border-slate-800/80 pt-8">
+                <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+                    <span class="text-brand-400 text-base">04.</span> Acceptable Use &amp; Intellectual Property Compliance
+                </h2>
+                <p>
+                    VidToAudio.com is provided as a neutral digital formatting tool for creators, editors, educators, journalists, audio engineers, and everyday web users. As a condition of using this Website, you agree to the following standards:
+                </p>
+                <ul class="list-disc list-inside space-y-2.5 text-slate-300 pl-2">
+                    <li>
+                        <strong class="text-white">Copyright Integrity:</strong> You represent and warrant that you possess all necessary legal rights, permissions, or statutory exceptions (such as fair use) for any audio, video, or media file you process on the Website. You agree not to use VidToAudio.com to infringe upon the copyright, trademark, or intellectual property rights of any third party.
+                    </li>
+                    <li>
+                        <strong class="text-white">Lawful Content:</strong> You will not use the Website to process or distribute material that is illegal, defamatory, fraudulent, or promotes hate speech or violence.
+                    </li>
+                    <li>
+                        <strong class="text-white">Network &amp; Server Security:</strong> You agree not to attack, probe, scan, flood, reverse-engineer, or execute automated denial-of-service (DDoS) requests against our web hosting servers, Content Delivery Networks (CDNs), or network infrastructure.
+                    </li>
+                </ul>
+            </section>
+
+            <!-- Section 5: Advertising -->
+            <section class="space-y-4 border-t border-slate-800/80 pt-8">
+                <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+                    <span class="text-brand-400 text-base">05.</span> Advertising, Google AdSense &amp; External Links
+                </h2>
+                <p>
+                    To keep VidToAudio.com completely free and openly accessible without subscriptions, memberships, or paywalls, our website displays online advertisements served by third-party advertising partners, including <strong class="text-white">Google AdSense</strong>.
+                </p>
+                <p>
+                    These advertisements and sponsor links may direct you to third-party websites or services that are not owned, operated, or endorsed by VidToAudio.com. We have no control over, and assume no responsibility for, the content, privacy policies, products, or business practices of any third-party websites or advertisers. Any dealings you have with advertisers found on the Website are solely between you and the advertiser.
+                </p>
+            </section>
+
+            <!-- Section 6: VidToAudio IP -->
+            <section class="space-y-4 border-t border-slate-800/80 pt-8">
+                <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+                    <span class="text-brand-400 text-base">06.</span> Intellectual Property Rights of the Website
+                </h2>
+                <p>
+                    The Website itself—including but not limited to its layout, design templates, code, graphics, branding, domain name, logos, conversion workflow interfaces, and educational documentation—is the exclusive intellectual property of <strong class="text-white">Muhammad Hassan Khan</strong> and is protected under domestic and international copyright, trademark, and unfair competition laws.
+                </p>
+                <p>
+                    The open-source components used for client-side processing (including WebAssembly-compiled FFmpeg libraries) are utilized in full compliance with their respective open-source licenses (such as LGPL or GPL). All trademarks and brand names referenced on the Website (e.g., MP4, Apple, Android, Windows) are the property of their respective owners and are used purely for descriptive format identification.
+                </p>
+            </section>
+
+            <!-- Section 7: Disclaimers -->
+            <section class="space-y-4 border-t border-slate-800/80 pt-8">
+                <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+                    <span class="text-brand-400 text-base">07.</span> Disclaimer of Warranties
+                </h2>
+                <p class="text-slate-300">
+                    VIDTOAUDIO.COM AND ALL CONVERSION TOOLS, EDITORS, MATRIX DIRECTORIES, AND CODECS ARE PROVIDED STRICTLY ON AN <strong class="text-white">"AS IS"</strong> AND <strong class="text-white">"AS AVAILABLE"</strong> BASIS WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE.
+                </p>
+                <p class="text-slate-400 text-sm">
+                    Because processing speed and memory capabilities are determined by the user's local device hardware (processor speed, available RAM, and browser WebAssembly optimization), we make no warranty that all high-resolution video files (e.g., 4K/8K uncompressed streams) will convert without memory restrictions on devices with limited hardware resources.
+                </p>
+            </section>
+
+            <!-- Section 8: Limitation of Liability -->
+            <section class="space-y-4 border-t border-slate-800/80 pt-8">
+                <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+                    <span class="text-brand-400 text-base">08.</span> Limitation of Liability
+                </h2>
+                <p class="text-slate-300">
+                    TO THE MAXIMUM EXTENT PERMITTED UNDER APPLICABLE LAW, IN NO EVENT SHALL PUBLISHER MUHAMMAD HASSAN KHAN, VIDTOAUDIO.COM, OR ITS AFFILIATES BE LIABLE FOR ANY INDIRECT, SPECIAL, INCIDENTAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES (INCLUDING BUT NOT LIMITED TO LOSS OF DATA, DEVICE MALFUNCTION, CORRUPTED AUDIO EXPORTS, OR BUSINESS INTERRUPTION) ARISING OUT OF OR IN CONNECTION WITH YOUR USE OR INABILITY TO USE THE SERVICE.
+                </p>
+                <p class="text-slate-400 text-sm">
+                    Because VidToAudio.com is provided free of charge, our total aggregate liability for any claims arising under these Terms shall not exceed $10.00 USD (or the minimum amount permitted under applicable law).
+                </p>
+            </section>
+
+            <!-- Section 9: Service Modifications -->
+            <section class="space-y-4 border-t border-slate-800/80 pt-8">
+                <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+                    <span class="text-brand-400 text-base">09.</span> Modifications to the Website &amp; Terms
+                </h2>
+                <p>
+                    We reserve the right to modify, enhance, temporarily suspend, or discontinue any feature, format pairing, or tool on VidToAudio.com at any time without prior notice. We may likewise update these Terms to reflect operational or regulatory changes. The "Last Updated" date at the top of this document indicates when changes were made. Continued use of VidToAudio.com following modifications indicates your consent to the updated Terms.
+                </p>
+            </section>
+
+            <!-- Section 10: Governing Law -->
+            <section class="space-y-4 border-t border-slate-800/80 pt-8">
+                <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+                    <span class="text-brand-400 text-base">10.</span> Governing Law &amp; Dispute Resolution
+                </h2>
+                <p>
+                    These Terms of Service shall be governed by and construed in accordance with generally recognized international principles of commercial contract law, without regard to conflicts of law provisions. If any provision of these Terms is deemed unlawful or unenforceable, that provision will be severed without affecting the validity and enforceability of the remaining provisions.
+                </p>
+            </section>
+
+            <!-- Section 11: Official Publisher Contact -->
+            <section class="space-y-4 border-t border-slate-800/80 pt-8">
+                <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+                    <span class="text-brand-400 text-base">11.</span> Publisher Credentials &amp; Contact Information
+                </h2>
+                <p>
+                    For inquiries concerning these Terms of Service, copyright matters, publisher disclosures, or Google AdSense compliance verification, please contact the publisher directly:
+                </p>
+                <div class="bg-dark-950 border border-slate-800 rounded-xl p-5 sm:p-6 space-y-2.5 text-sm">
+                    <div class="flex items-center gap-2 text-white font-semibold text-base">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                        Official Publisher Credentials
+                    </div>
+                    <div class="text-slate-300"><span class="text-slate-500 font-medium">Publisher &amp; Operator:</span> Muhammad Hassan Khan</div>
+                    <div class="text-slate-300"><span class="text-slate-500 font-medium">Website:</span> <a href="https://vidtoaudio.com" class="text-brand-400 hover:underline">VidToAudio.com</a></div>
+                    <div class="text-slate-300">
+                        <span class="text-slate-500 font-medium">Official Contact Email:</span> 
+                        <a href="mailto:hubfactsofficial@gmail.com" class="text-brand-400 hover:underline font-mono font-medium">hubfactsofficial@gmail.com</a>
+                    </div>
+                    <div class="text-slate-400 text-xs pt-1.5 border-t border-slate-800/80 mt-2">
+                        Guaranteed response time: Direct responses to all publisher and AdSense compliance inquiries are delivered within 24 to 48 business hours.
+                    </div>
+                </div>
+            </section>
+
+        </article>
+
+        <!-- Bottom Quick Navigation -->
+        <div class="mt-8 flex flex-wrap items-center justify-between gap-4 text-xs sm:text-sm text-slate-400">
+            <div class="flex items-center gap-4">
+                <a href="/privacy-policy.html" class="hover:text-brand-400 transition-colors">Privacy Policy</a>
+                <span>&bull;</span>
+                <a href="/disclaimer.html" class="hover:text-brand-400 transition-colors">Disclaimer</a>
+                <span>&bull;</span>
+                <a href="/contact.html" class="hover:text-brand-400 transition-colors">Contact Us</a>
+            </div>
+            <a href="/" class="hover:text-brand-400 transition-colors font-medium">Return to Home &amp; Converters &rarr;</a>
+        </div>
+
     </main>
 
-    <footer class="bg-dark-950 border-t border-slate-800 pt-8 pb-8 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                <div class="text-slate-500 text-sm mb-4 md:mb-0">
-                    &copy; <span id="year"></span> VidToAudio. All rights reserved.
-                </div>
-                <div class="flex gap-6 text-sm">
-                    <a href="privacy-policy.html" class="text-slate-500 hover:text-slate-300 transition-colors">Privacy Policy</a>
-                    <a href="terms.html" class="text-slate-500 hover:text-slate-300 transition-colors">Terms of Service</a>
-                </div>
+    <!-- Footer -->
+    <footer class="bg-dark-950 border-t border-slate-800 py-8 mt-auto">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs sm:text-sm text-slate-500">
+            <div>
+                &copy; <span id="year">2026</span> <span class="text-slate-300 font-medium">VidToAudio.com</span>. Operated by Muhammad Hassan Khan. All rights reserved.
+            </div>
+            <div class="flex flex-wrap items-center gap-4 sm:gap-6">
+                <a href="/privacy-policy.html" class="text-slate-400 hover:text-slate-200 transition-colors">Privacy Policy</a>
+                <a href="/terms.html" class="text-brand-400 font-medium hover:underline">Terms of Service</a>
+                <a href="/disclaimer.html" class="text-slate-400 hover:text-slate-200 transition-colors">Disclaimer</a>
+                <a href="/contact.html" class="text-slate-400 hover:text-slate-200 transition-colors">Contact Us</a>
+                <a href="/#about" class="text-slate-400 hover:text-slate-200 transition-colors">About</a>
             </div>
         </div>
     </footer>
+
     <script>
         document.getElementById('year').textContent = new Date().getFullYear();
     </script>

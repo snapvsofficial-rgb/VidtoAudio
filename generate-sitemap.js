@@ -119,6 +119,9 @@ ${xhtmlLinks}
   // 3. Blog Index (Priority 0.8 EN, 0.7 ES/FR)
   addLocalizedUrls('/blog', 'daily', { en: 0.8, es: 0.7, fr: 0.7 });
 
+  // 3b. About Us & Publisher Transparency (Priority 0.8 EN, 0.7 ES/FR)
+  addLocalizedUrls('/about', 'monthly', { en: 0.8, es: 0.7, fr: 0.7 });
+
   // 4. Dynamic Blog Articles from Firestore
   const blogEntries = await fetchDynamicBlogSlugs();
   blogEntries.forEach(({ slug, lastmod: postMod }) => {
@@ -142,6 +145,20 @@ ${xhtmlLinks}
 
   urlBlocks.push(`  <url>
     <loc>${BASE_URL}/terms.html</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>`);
+
+  urlBlocks.push(`  <url>
+    <loc>${BASE_URL}/disclaimer.html</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>`);
+
+  urlBlocks.push(`  <url>
+    <loc>${BASE_URL}/contact.html</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
