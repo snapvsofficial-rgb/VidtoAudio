@@ -15,7 +15,7 @@ import { db, hasFirebaseConfig } from '../firebase';
 import { BlogPost, SEOTemplateConfig, FormatTogglesConfig, SiteSettingsConfig } from '../types';
 
 export const DEFAULT_SEO_TEMPLATE = 
-  "Converting your {INPUT} video files to {OUTPUT} audio is perfect for saving space and extracting high-fidelity sound. Unlike cloud services, our on-device engine processes the {INPUT} completely offline, ensuring your data never leaves your browser.";
+  "Converting your {INPUT} video files to {OUTPUT} audio online is perfect for saving space and extracting high-fidelity sound. Unlike slow cloud services, our browser-based engine processes {INPUT} directly on your device, ensuring fast, instant conversions without server uploads.";
 
 export const DEFAULT_FORMAT_TOGGLES: FormatTogglesConfig = {
   wav: true,
