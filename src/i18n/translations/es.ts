@@ -58,18 +58,47 @@ export const esTranslations: TranslationDictionary = {
     cropAudioSelection: 'Recortando selección de audio...',
     errorTitle: 'Error de Conversión',
     errorMessage: 'Ocurrió un error inesperado durante el procesamiento del audio.',
-    tryAgain: 'Intentar de Nuevo'
+    tryAgain: 'Intentar de Nuevo',
+    audioPreview: 'Vista Previa de Audio',
+    trimAudio: 'Recortar Audio',
+    cropSelection: 'Recortar Selección',
+    waveformHint: 'Arrastra los bordes en la forma de onda para seleccionar el tramo',
+    durationLabel: 'Duración:',
+    sampleRateLabel: 'Frecuencia de Muestreo:',
+    sizeLabel: 'Tamaño:',
+    convertedTracks: 'Pistas Convertidas',
+    actions: 'Acciones',
+    sequentialOffline: 'Procesamiento secuencial sin conexión • Cero subidas a servidores'
+  },
+  batchSeo: {
+    badge: 'Procesamiento por Lotes Sin Conexión',
+    subBadge: '100% WebAssembly en el Navegador',
+    title: 'Cómo la Conversión por Lotes de MP4 a MP3 Ahorra Datos y Tiempo',
+    desc: 'Los convertidores tradicionales en la nube requieren subir pesados archivos de vídeo a servidores remotos antes de poder extraer el audio. Al procesar múltiples vídeos de alta definición, esto consume cientos de megabytes de tu tarifa y genera largas esperas. Nuestro convertidor por lotes elimina por completo las subidas ejecutando FFmpeg WebAssembly directamente en tu dispositivo. Cada vídeo se procesa en la memoria local, protegiendo tu privacidad y permitiendo descargas en ZIP al instante.',
+    b1: 'Cero Consumo de Datos: Sin subidas a la nube',
+    b2: 'Seguridad de Memoria Secuencial: Sin bloqueos',
+    b3: 'Exportación ZIP con un Clic: Empaquetado local'
+  },
+  whyWeBuilt: {
+    title: 'Por Qué Creamos VidToAudio',
+    p1: 'Hola, soy el desarrollador detrás de VidToAudio. Cuando necesité extraer audio de un vídeo para un proyecto, descubrí que la mayoría de herramientas gratuitas exigían subir vídeos privados a servidores remotos. Esto era lento, invasivo e innecesario con la potencia de los dispositivos modernos.',
+    p2: 'Diseñé este convertidor de audio sin conexión para aprovechar el procesamiento local. Funciona al 100% en la CPU de tu dispositivo. Sin subidas, sin colas de espera y con total privacidad. Incluso incluimos un Registro de Privacidad en los ajustes para verificar que jamás se transmiten datos.',
+    lastUpdated: 'Última actualización: 10 de julio de 2026'
   },
   howItWorks: {
     title: 'Cómo Funciona (Flujo Real de la Aplicación)',
     step1Title: '1. Selecciona el Vídeo',
     step1Desc: 'Elige cualquier archivo MP4 o vídeo directamente desde tu galería o explorador de archivos.',
+    step1Badge: 'Pantalla Seleccionar Vídeo',
     step2Title: '2. Elige el Formato',
     step2Desc: 'Selecciona WAV, MP3, AAC, FLAC, M4A u OGG. Ajusta la calidad de bitrate deseada (128, 192, 320 kbps).',
+    step2Badge: 'Pantalla Extraer',
     step3Title: '3. Activa Reducción de Ruido IA',
     step3Desc: 'Opcional: Activa la función Beta de IA para limpiar estática y ruidos de fondo antes de extraer.',
+    step3Badge: 'Reducción de Ruido',
     step4Title: '4. Extrae y Recorta',
-    step4Desc: 'Extrae al instante. Usa el recorte rápido para ajustar la pista y encuéntrala en el historial de tu biblioteca.'
+    step4Desc: 'Extrae al instante. Usa el recorte rápido para ajustar la pista y encuéntrala en el historial de tu biblioteca.',
+    step4Badge: 'Biblioteca y Recorte'
   },
   features: {
     title: 'Diseñado para la Máxima Fidelidad de Audio',
@@ -275,6 +304,14 @@ export const esTranslations: TranslationDictionary = {
     privacyNotice: 'Todas las conversiones se procesan estrictamente con la CPU de tu dispositivo. Ningún dato de audio o vídeo sale de tu ordenador o teléfono.',
     rightsReserved: 'Todos los derechos reservados.',
     privacyPolicy: 'Política de Privacidad',
-    termsOfService: 'Términos de Servicio'
+    termsOfService: 'Términos de Servicio',
+    readyTitle: '¿Listo para Extraer Audio de Forma Segura?',
+    downloadBtn: 'Descargar VidToAudio',
+    popularLabel: 'Convertidores populares:',
+    matrixTitle: 'Todos los Convertidores de Vídeo a Audio',
+    matrixSubtitle: 'Explora los 81 formatos de extracción de audio local sin conexión.',
+    matrixBadge: '81 Combinaciones de la Matriz',
+    disclaimer: 'Aviso Legal',
+    contact: 'Contacto'
   }
 };

@@ -5,17 +5,20 @@
     <meta name="yandex-verification" content="92756ee96777aafa" />
     <meta name="google-site-verification" content="vw7BV7qJIFYzXZMhMYLjT9c4aCsdfgTfuzNhAv0-Q0o" />
     <link rel="canonical" href="https://vidtoaudio.com/" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="apple-touch-icon" href="/favicon.svg">
+    <meta name="theme-color" content="#14b8a6">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bulk MP4 to MP3 Converter (Offline, Batch & 320kbps) - Free</title>
-    <meta name="description" content="Batch convert multiple MP4 to MP3 files offline directly in your browser. Fastest bulk conversion, no server uploads required. Get 320kbps studio quality instantly.">
+    <title>Fastest Bulk MP4 to MP3 Converter Online</title>
+    <meta name="description" content="Fastest bulk MP4 to MP3 converter online. Batch convert multiple video files to 320kbps MP3 instantly and securely in your browser with zero uploads.">
     
-    <meta property="og:title" content="Bulk MP4 to MP3 Converter (Offline, Batch & 320kbps) - Free">
-    <meta property="og:description" content="Batch convert multiple MP4 to MP3 files offline directly in your browser. Fastest bulk conversion, no server uploads required. Get 320kbps studio quality instantly.">
+    <meta property="og:title" content="Fastest Bulk MP4 to MP3 Converter Online">
+    <meta property="og:description" content="Fastest bulk MP4 to MP3 converter online. Batch convert multiple video files to 320kbps MP3 instantly and securely in your browser with zero uploads.">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Bulk MP4 to MP3 Converter (Offline, Batch & 320kbps) - Free">
-    <meta name="twitter:description" content="Batch convert multiple MP4 to MP3 files offline directly in your browser. Fastest bulk conversion, no server uploads required. Get 320kbps studio quality instantly.">
+    <meta name="twitter:title" content="Fastest Bulk MP4 to MP3 Converter Online">
+    <meta name="twitter:description" content="Fastest bulk MP4 to MP3 converter online. Batch convert multiple video files to 320kbps MP3 instantly and securely in your browser with zero uploads.">
 
     <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-P8ECCPTQTM"></script>
@@ -25,59 +28,52 @@
   gtag('js', new Date());
 
   gtag('config', 'G-P8ECCPTQTM');
+
+  // Suppress Firebase Auth popup assertion errors in sandboxed iframes
+  window.addEventListener('unhandledrejection', function(event) {
+    var reason = event && event.reason;
+    var msg = (reason && reason.message) || String(reason || '');
+    if (msg.indexOf('Pending promise was never set') !== -1 || msg.indexOf('INTERNAL ASSERTION FAILED') !== -1) {
+      if (event.preventDefault) event.preventDefault();
+      if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+      console.warn('Safely intercepted Firebase Auth popup assertion in iframe:', msg);
+    }
+  });
+  window.addEventListener('error', function(event) {
+    var msg = (event && event.message) || '';
+    if (msg.indexOf('Pending promise was never set') !== -1 || msg.indexOf('INTERNAL ASSERTION FAILED') !== -1) {
+      if (event.preventDefault) event.preventDefault();
+      if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+      console.warn('Safely intercepted Firebase Auth error in iframe:', msg);
+    }
+  });
 </script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#f0fdfa',
-                            300: '#5eead4',
-                            400: '#2dd4bf',
-                            500: '#14b8a6', // Teal
-                            600: '#0d9488',
-                            900: '#134e4a',
-                        },
-                        dark: {
-                            800: '#1e293b', // Slate 800
-                            900: '#0f172a', // Slate 900
-                            950: '#020617', // Slate 950
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <link rel="stylesheet" href="/src/index.css">
     
-    <!-- WaveSurfer.js CDN -->
-    <script src="https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js"></script>
-    <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
-
-    <!-- JSZip for Client-Side Bulk ZIP Download -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-
-    <!-- FFmpeg WASM and Utilities (Local with CDN fallback) -->
-    <script src="/ffmpeg/ffmpeg.js"></script>
-    <script src="/ffmpeg/util.js"></script>
+    <!-- Deferred Multimedia & Audio Engine Libraries (Zero Render Blocking) -->
+    <script defer src="https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js"></script>
+    <script defer src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script defer src="/ffmpeg/ffmpeg.js"></script>
+    <script defer src="/ffmpeg/util.js"></script>
     <script>
-        if (!window.FFmpegWASM) {
-            document.write('<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"><\/script>');
-        }
-        if (!window.FFmpegUtil) {
-            document.write('<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/umd/index.js"><\/script>');
-        }
+      function ensureScriptLoaded(globalName, localSrc, fallbackSrc) {
+        if (window[globalName]) return Promise.resolve();
+        return new Promise(function(resolve, reject) {
+          var s = document.createElement('script');
+          s.src = localSrc;
+          s.onload = function() { resolve(); };
+          s.onerror = function() {
+            var fb = document.createElement('script');
+            fb.src = fallbackSrc;
+            fb.onload = resolve;
+            fb.onerror = reject;
+            document.head.appendChild(fb);
+          };
+          document.head.appendChild(s);
+        });
+      }
     </script>
-    
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        .progress-ring__circle {
-            transition: stroke-dashoffset 0.35s;
-            transform: rotate(-90deg);
-            transform-origin: 50% 50%;
-        }
-    </style>
     
     <script type="application/ld+json">
     {
@@ -162,19 +158,30 @@
                 </a>
             </nav>
 
-            <!-- Actions: Language Switcher, Admin Lock, CTA & Mobile Toggle -->
+            <!-- Actions: Language Switcher Dropdown, Admin Lock, CTA & Mobile Toggle -->
             <div class="flex items-center gap-2">
-                <!-- Language Switcher Pills -->
-                <div class="flex items-center bg-dark-900/90 border border-slate-700/80 rounded-lg p-0.5 text-xs font-semibold">
-                    <button type="button" data-lang-switch="en" class="px-2 py-1 rounded-md transition-colors bg-brand-600 text-white" title="English">
-                        EN
+                <!-- Clean Multilingual Dropdown Selector (21 Global Languages with Flags) -->
+                <div class="relative" id="lang-dropdown-wrapper">
+                    <button type="button" id="lang-dropdown-btn" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-dark-900/90 border border-slate-700/80 hover:border-brand-500/80 text-xs font-medium text-slate-200 transition-colors shadow-sm focus:outline-none focus:ring-1 focus:ring-brand-500" aria-label="Select language" aria-expanded="false" aria-haspopup="listbox">
+                        <span id="current-lang-flag" class="text-sm leading-none">🇺🇸</span>
+                        <span id="current-lang-code" class="font-semibold uppercase tracking-wider text-slate-100">EN</span>
+                        <svg class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200" id="lang-dropdown-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
-                    <button type="button" data-lang-switch="es" class="px-2 py-1 rounded-md transition-colors text-slate-400 hover:text-white" title="Español">
-                        ES
-                    </button>
-                    <button type="button" data-lang-switch="fr" class="px-2 py-1 rounded-md transition-colors text-slate-400 hover:text-white" title="Français">
-                        FR
-                    </button>
+
+                    <!-- Language Dropdown Menu -->
+                    <div id="lang-dropdown-menu" class="hidden absolute right-0 mt-1.5 w-56 max-h-80 overflow-y-auto bg-dark-950/95 backdrop-blur-xl border border-slate-700/80 rounded-xl shadow-2xl py-1.5 z-50 divide-y divide-slate-800/60 scrollbar-thin scrollbar-thumb-slate-700" role="listbox">
+                        <div class="px-3 py-1.5 text-[10px] uppercase font-bold tracking-wider text-slate-400">
+                            Select Language
+                        </div>
+                        <div class="py-1" id="lang-dropdown-items">
+                            <!-- Injected dynamically via setupLanguageDropdown -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Authentication & Profile Container -->
+                <div id="nav-auth-container" class="flex items-center gap-1.5">
+                    <!-- Populated dynamically: Sign In button or User menu -->
                 </div>
 
                 <a href="/admin" data-route-link id="nav-link-admin" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-dark-900 border border-slate-700/80 text-slate-400 hover:text-brand-400 hover:border-brand-500 transition-colors flex items-center gap-1.5" title="Admin Control Center">
@@ -224,19 +231,27 @@
             <a href="/contact.html" id="mob-link-contact" class="block px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-dark-900 transition-colors">
                 Contact Us
             </a>
-            <div class="pt-2 border-t border-slate-800 flex items-center justify-between gap-3">
-                <!-- Mobile Language Selector -->
-                <div class="flex items-center bg-dark-900 border border-slate-700/80 rounded-lg p-0.5 text-xs font-semibold">
-                    <button type="button" data-lang-switch="en" class="px-2.5 py-1.5 rounded-md transition-colors bg-brand-600 text-white">EN</button>
-                    <button type="button" data-lang-switch="es" class="px-2.5 py-1.5 rounded-md transition-colors text-slate-400 hover:text-white">ES</button>
-                    <button type="button" data-lang-switch="fr" class="px-2.5 py-1.5 rounded-md transition-colors text-slate-400 hover:text-white">FR</button>
+            <div class="pt-3 border-t border-slate-800 flex flex-col gap-2.5">
+                <!-- Mobile Auth Container -->
+                <div id="mob-auth-container">
+                    <!-- Populated dynamically via setupNavbarAuth -->
                 </div>
-                <a href="/admin" data-route-link class="flex-1 text-center py-2 bg-dark-900 border border-slate-700 text-slate-300 rounded-lg text-xs font-semibold">
-                    Admin Portal
-                </a>
-                <a href="#download" class="flex-1 text-center py-2 bg-brand-600 text-white rounded-lg text-xs font-semibold">
-                    Get App
-                </a>
+
+                <!-- Mobile Language Selector Dropdown -->
+                <div class="flex items-center justify-between bg-dark-900/90 border border-slate-700/80 rounded-xl p-2 text-xs">
+                    <span id="mob-lang-label" class="text-slate-400 font-medium">Language:</span>
+                    <select id="mobile-lang-select" class="bg-dark-950 border border-slate-700 rounded-lg text-slate-200 text-xs px-2.5 py-1.5 focus:outline-none focus:border-brand-500">
+                        <!-- Injected dynamically -->
+                    </select>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="/admin" id="mob-link-admin" data-route-link class="flex-1 text-center py-2 bg-dark-900 border border-slate-700 text-slate-300 rounded-lg text-xs font-semibold">
+                        Admin Portal
+                    </a>
+                    <a href="#download" id="mob-link-getapp" class="flex-1 text-center py-2 bg-brand-600 text-white rounded-lg text-xs font-semibold">
+                        Get App
+                    </a>
+                </div>
             </div>
         </div>
     </header>
@@ -251,35 +266,35 @@
             <section id="hero-section" class="pt-20 pb-12 px-4 text-center">
             <!-- Breadcrumbs for Matrix/Converter Pages -->
             <nav id="hero-breadcrumbs" aria-label="Breadcrumb" class="hidden max-w-4xl mx-auto mb-6 flex items-center justify-center gap-2 text-xs sm:text-sm text-slate-400">
-                <a href="/" data-route-link class="hover:text-brand-400 transition-colors">Home</a>
+                <a href="/" id="breadcrumb-home" data-route-link class="hover:text-brand-400 transition-colors">Home</a>
                 <span class="text-slate-600">/</span>
-                <span class="text-slate-500">Converters</span>
+                <span id="breadcrumb-converters" class="text-slate-400">Converters</span>
                 <span class="text-slate-600">/</span>
                 <span id="breadcrumb-current" class="text-brand-400 font-medium">MP4 to MP3</span>
             </nav>
-            <h1 id="hero-title" class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6 max-w-4xl mx-auto leading-tight">Fastest Bulk & Batch MP4 to MP3 Converter (Offline)</h1>
+            <h1 id="hero-title" class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6 max-w-4xl mx-auto leading-tight">Fastest Bulk MP4 to MP3 Converter Online</h1>
             <p id="hero-subtitle" class="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto mb-8">
-                Extract high-bitrate audio from single or multiple video files in bulk with zero uploads. Runs 100% locally in your browser for absolute privacy, zero data usage, and maximum speed.
+                Extract high-quality audio from single or multiple video files in bulk directly in your browser. Runs instantly and securely with zero uploads and no software required.
             </p>
 
             <!-- Route Quick Links for Format Landing Pages -->
             <div id="hero-popular-links" class="flex flex-wrap justify-center items-center gap-2 max-w-2xl mx-auto mb-10 text-xs sm:text-sm font-medium">
-                <span class="text-slate-500 mr-1">Popular Converters:</span>
+                <span id="hero-popular-label" class="text-slate-300 font-medium mr-1">Popular Converters:</span>
                 <a href="/mp4-to-mp3" data-route-link class="px-3 py-1.5 rounded-lg border transition-colors bg-dark-900 border-slate-700 text-slate-300 hover:border-brand-500 hover:text-white">MP4 to MP3</a>
                 <a href="/mp4-to-wav" data-route-link class="px-3 py-1.5 rounded-lg border transition-colors bg-dark-900 border-slate-700 text-slate-300 hover:border-brand-500 hover:text-white">MP4 to WAV</a>
                 <a href="/hevc-to-mp3" data-route-link class="px-3 py-1.5 rounded-lg border transition-colors bg-dark-900 border-slate-700 text-slate-300 hover:border-brand-500 hover:text-white">HEVC to MP3</a>
-                <a href="/video-to-flac" data-route-link class="px-3 py-1.5 rounded-lg border transition-colors bg-dark-900 border-slate-700 text-slate-300 hover:border-brand-500 hover:text-white">Video to FLAC</a>
-                <a href="/convert-m4v-to-mp3" data-route-link class="px-3 py-1.5 rounded-lg border transition-colors bg-dark-900 border-slate-700 text-slate-300 hover:border-brand-500 hover:text-white">M4V to MP3</a>
+                <a href="/mkv-to-flac" data-route-link class="px-3 py-1.5 rounded-lg border transition-colors bg-dark-900 border-slate-700 text-slate-300 hover:border-brand-500 hover:text-white">MKV to FLAC</a>
+                <a href="/m4v-to-mp3" data-route-link class="px-3 py-1.5 rounded-lg border transition-colors bg-dark-900 border-slate-700 text-slate-300 hover:border-brand-500 hover:text-white">M4V to MP3</a>
             </div>
             
             <div id="download" class="flex flex-col sm:flex-row justify-center items-center gap-4">
-                <a href="https://www.amazon.com/gp/product/B0H6VSPLT6" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto px-8 py-4 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl shadow-lg shadow-brand-500/20 transition-all flex items-center justify-center gap-2">
+                <a href="https://www.amazon.com/gp/product/B0H6VSPLT6" id="hero-btn-amazon" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto px-8 py-4 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl shadow-lg shadow-brand-500/20 transition-all flex items-center justify-center gap-2">
                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M13.627 12.015L6.643 20.31a.754.754 0 0 1-.772.235.753.753 0 0 1-.502-.676V4.133a.755.755 0 0 1 .5-.675.756.756 0 0 1 .773.235l6.985 8.322zM15.485 10.87l4.083-2.482a.758.758 0 0 1 1.054.26c.216.368.083.84-.287 1.066l-3.233 1.966 1.134 1.353 3.655 4.356c.277.33.242.822-.078 1.11-.321.288-.81.258-1.088-.073l-4.195-5.001-1.045-.64v-1.915z"/></svg>
-                    Amazon Appstore
+                    <span id="hero-btn-amazon-text">Amazon Appstore</span>
                 </a>
-                <a href="app-release.apk" download="VidtoAudio.apk" class="w-full sm:w-auto px-8 py-4 bg-dark-800 hover:bg-dark-900 border border-slate-700 text-slate-300 font-semibold rounded-xl transition-all flex items-center justify-center gap-2">
+                <a href="app-release.apk" id="hero-btn-apk" download="VidtoAudio.apk" class="w-full sm:w-auto px-8 py-4 bg-dark-800 hover:bg-dark-900 border border-slate-700 text-slate-300 font-semibold rounded-xl transition-all flex items-center justify-center gap-2">
                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M16 11h5l-9 10-9-10h5v-11h8v11zm3 8v3h-14v-3h-2v5h18v-5h-2z"/></svg>
-                    Direct APK Download
+                    <span id="hero-btn-apk-text">Direct APK Download</span>
                 </a>
             </div>
         </section>
@@ -287,13 +302,13 @@
         <!-- Trust Bar -->
         <section id="trust-bar-section" class="border-y border-slate-800/50 bg-dark-900/30">
             <div class="max-w-5xl mx-auto px-4 py-6 flex flex-wrap justify-center items-center gap-x-8 gap-y-4 text-sm font-medium text-slate-400">
-                <div class="flex items-center gap-2"><svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 100% Offline</div>
+                <div class="flex items-center gap-2"><svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> <span id="trust-offline-text">100% Free Online</span></div>
                 <div class="hidden sm:block text-slate-700">&bull;</div>
-                <div class="flex items-center gap-2"><svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg> Sequential Bulk Queue</div>
+                <div class="flex items-center gap-2"><svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg> <span id="trust-queue-text">Sequential Bulk Queue</span></div>
                 <div class="hidden sm:block text-slate-700">&bull;</div>
-                <div class="flex items-center gap-2"><svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> 128 / 192 / 320 kbps</div>
+                <div class="flex items-center gap-2"><svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> <span id="trust-bitrate-text">128 / 192 / 320 kbps</span></div>
                 <div class="hidden sm:block text-slate-700">&bull;</div>
-                <div class="flex items-center gap-2"><svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> No Uploads Required</div>
+                <div class="flex items-center gap-2"><svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> <span id="trust-nouploads-text">No Uploads Required</span></div>
             </div>
         </section>
 
@@ -301,24 +316,24 @@
         <section id="converter-tool-section" class="max-w-3xl mx-auto mt-12 mb-16 px-4">
             <div class="bg-dark-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
                 <div class="text-center mb-6">
-                    <h2 id="converter-title" class="text-xl font-semibold text-white mb-2">Try it here: Bulk & Batch MP4 to MP3 Converter</h2>
-                    <p id="converter-subtitle" class="text-slate-400 text-sm">Select single or multiple video files. Converted sequentially in your browser via FFmpeg WebAssembly.</p>
+                    <h2 id="converter-title" class="text-xl font-semibold text-white mb-2">Try it here: Bulk MP4 to MP3 Converter Online</h2>
+                    <p id="converter-subtitle" class="text-slate-400 text-sm">Select single or multiple video files. Converts instantly and securely in your browser with zero server uploads.</p>
                 </div>
 
                 <div id="converter-ui" class="flex flex-col items-center w-full">
                     <!-- Multiple file input with accessible label -->
                     <input type="file" id="video-file" accept="video/*,.mp4,.mkv,.avi,.webm,.mov,.flv,.wmv,.m4v" multiple class="hidden" aria-label="Select MP4 and video files for batch audio extraction" />
                     <label for="video-file" id="dropzone-label" aria-label="Upload video files for bulk conversion" class="cursor-pointer group border-2 border-dashed border-slate-700 hover:border-brand-500 rounded-xl w-full py-10 px-4 flex flex-col items-center transition-all bg-dark-800/50 mb-6 focus-within:ring-2 focus-within:ring-brand-500">
-                        <svg class="w-10 h-10 text-slate-500 group-hover:text-brand-400 mb-3 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                        <svg class="w-10 h-10 text-slate-400 group-hover:text-brand-400 mb-3 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                         <span id="dropzone-text" class="text-slate-200 font-medium group-hover:text-white transition-colors text-center text-sm sm:text-base">Click or drag & drop video files for bulk conversion</span>
-                        <span class="text-slate-400 text-xs mt-2 text-center" id="file-name-display">No files chosen (Select one or multiple files)</span>
-                        <span class="text-slate-500 text-[11px] mt-1 text-center">Supports MP4, MKV, AVI, WEBM, MOV, FLV, WMV & more</span>
+                        <span class="text-slate-300 text-xs mt-2 text-center" id="file-name-display">No files chosen (Select one or multiple files)</span>
+                        <span id="dropzone-supported-formats" class="text-slate-300 text-[11px] mt-1 text-center font-medium">Supports MP4, MKV, AVI, WEBM, MOV, FLV, WMV & more</span>
                     </label>
 
                     <!-- Format and Audio Quality Dropdowns -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md mb-6 text-left">
                         <div>
-                            <label for="output-format" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Output Format</label>
+                            <label for="output-format" class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">Output Format</label>
                             <select id="output-format" class="w-full bg-dark-800 border border-slate-700 text-white text-sm rounded-lg focus:ring-brand-500 focus:border-brand-500 block p-3">
                                 <option value="mp3" selected>MP3 (Compressed, Universal)</option>
                                 <option value="wav">WAV (Lossless, High Quality)</option>
@@ -332,7 +347,7 @@
                             </select>
                         </div>
                         <div>
-                            <label for="audio-bitrate" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Audio Quality</label>
+                            <label for="audio-bitrate" class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">Audio Quality</label>
                             <select id="audio-bitrate" class="w-full bg-dark-800 border border-slate-700 text-white text-sm rounded-lg focus:ring-brand-500 focus:border-brand-500 block p-3">
                                 <option value="320k" selected>Studio (320kbps)</option>
                                 <option value="192k">High (192kbps)</option>
@@ -344,7 +359,7 @@
                     <button id="convert-btn" class="w-full sm:w-auto px-8 py-3.5 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl shadow-lg shadow-brand-500/20 transition-all opacity-50 cursor-not-allowed text-sm flex items-center justify-center gap-2" disabled>
                         Extract Audio
                     </button>
-                    <p id="format-summary" class="text-xs text-slate-500 text-center mt-3 font-medium">Output: MP3 (Studio 320kbps)</p>
+                    <p id="format-summary" class="text-xs text-slate-300 text-center mt-3 font-medium">Output: MP3 (Studio 320kbps)</p>
                 </div>
 
                 <!-- Processing UI with detailed progress state -->
@@ -360,7 +375,7 @@
                     </div>
                     <p id="processing-status" class="text-white font-semibold text-base text-center">Processing file 1 of 1... 0%</p>
                     <p id="processing-filename" class="text-xs text-brand-400 font-mono mt-1 text-center truncate max-w-sm"></p>
-                    <p class="text-xs text-slate-500 mt-2 text-center">Sequential offline processing &bull; Zero server uploads</p>
+                    <p id="processing-subtext" class="text-xs text-slate-400 mt-2 text-center">Sequential offline processing &bull; Zero server uploads</p>
                 </div>
 
                 <!-- Success UI with ZIP download and individual buttons -->
@@ -394,8 +409,8 @@
                     <div id="batch-results-container" class="w-full mb-6">
                         <div class="w-full bg-dark-800/60 border border-slate-700/80 rounded-xl overflow-hidden shadow-inner">
                             <div class="px-4 py-3 bg-dark-800/90 border-b border-slate-700/80 flex items-center justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                                <span id="batch-results-count">Converted Tracks</span>
-                                <span>Actions</span>
+                                <span id="batch-results-header-text">Converted Tracks</span>
+                                <span id="batch-results-header-actions">Actions</span>
                             </div>
                             <div id="batch-results-list" class="divide-y divide-slate-800/80 max-h-72 overflow-y-auto">
                                 <!-- Dynamic File Items -->
@@ -406,7 +421,7 @@
                     <!-- Audio Player & Trimmer for active/preview track -->
                     <div id="single-player-container" class="w-full bg-dark-800/50 border border-slate-700 rounded-xl p-5 mb-6">
                         <div class="flex items-center justify-between mb-3">
-                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Audio Preview</span>
+                            <span id="player-preview-title" class="text-xs font-semibold uppercase tracking-wider text-slate-400">Audio Preview</span>
                             <span id="preview-file-name" class="text-xs text-brand-400 font-mono truncate max-w-xs"></span>
                         </div>
                         <div id="waveform" class="w-full h-24 mb-4"></div>
@@ -419,7 +434,7 @@
                                 </button>
                                 <button id="enable-trim-btn" class="px-4 py-2 bg-dark-700 hover:bg-dark-600 border border-slate-600 text-sm font-medium rounded-lg text-slate-200 transition-colors flex items-center gap-2">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z"></path></svg>
-                                    Trim Audio
+                                    <span id="player-trim-btn-text">Trim Audio</span>
                                 </button>
                             </div>
                             <div class="flex items-center gap-4">
@@ -431,19 +446,19 @@
                             </div>
                         </div>
 
-                        <div id="audio-metadata" class="mt-4 pt-3 border-t border-slate-700/50 flex flex-wrap gap-4 text-xs font-mono text-slate-500 justify-center">
+                        <div id="audio-metadata" class="mt-4 pt-3 border-t border-slate-700/50 flex flex-wrap gap-4 text-xs font-mono text-slate-400 justify-center">
                             <span id="meta-duration">Duration: --</span>
-                            <span class="text-slate-700">|</span>
+                            <span class="text-slate-600">|</span>
                             <span id="meta-samplerate">Sample Rate: --</span>
-                            <span class="text-slate-700">|</span>
+                            <span class="text-slate-600">|</span>
                             <span id="meta-size">Size: --</span>
                         </div>
 
                         <div id="trim-controls" class="hidden mt-5 pt-5 border-t border-slate-700/50 flex flex-col sm:flex-row justify-between items-center gap-4">
-                            <div class="text-sm text-brand-400 bg-brand-900/20 px-3 py-1.5 rounded text-center">Drag the colored edges on the waveform to select region</div>
+                            <div id="trim-controls-hint" class="text-sm text-brand-400 bg-brand-900/20 px-3 py-1.5 rounded text-center">Drag the colored edges on the waveform to select region</div>
                             <button id="apply-trim-btn" class="w-full sm:w-auto px-5 py-2 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium rounded-lg shadow-lg transition-colors flex items-center justify-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z"></path></svg>
-                                Crop Selection
+                                <span id="apply-trim-btn-text">Crop Selection</span>
                             </button>
                         </div>
                     </div>
@@ -458,28 +473,28 @@
         <article id="batch-conversion-seo" class="max-w-3xl mx-auto px-4 mb-16">
             <div class="bg-dark-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
                 <div class="flex items-center gap-2 mb-3">
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-brand-950 text-brand-400 border border-brand-800/60">
+                    <span id="batch-seo-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-brand-950 text-brand-400 border border-brand-800/60">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                        Offline Batch Processing
+                        <span id="batch-seo-badge-text">Offline Batch Processing</span>
                     </span>
-                    <span class="text-xs text-slate-500 font-mono">100% Client-Side WebAssembly</span>
+                    <span id="batch-seo-subbadge" class="text-xs text-slate-300 font-mono font-medium">100% Client-Side WebAssembly</span>
                 </div>
-                <h2 class="text-xl sm:text-2xl font-bold text-white mb-3 tracking-tight">How Offline Batch & Bulk MP4 to MP3 Conversion Saves Data and Time</h2>
-                <p class="text-slate-300 leading-relaxed text-sm sm:text-base mb-4">
+                <h2 id="batch-seo-title" class="text-xl sm:text-2xl font-bold text-white mb-3 tracking-tight">How Offline Batch & Bulk MP4 to MP3 Conversion Saves Data and Time</h2>
+                <p id="batch-seo-desc" class="text-slate-300 leading-relaxed text-sm sm:text-base mb-4">
                     Traditional online media converters require uploading heavy video files to remote cloud servers before extraction can even begin. When processing batches of high-definition MP4 clips, this results in hundreds of megabytes of wasted internet data and agonizing upload bottlenecks. Our offline batch MP4 to MP3 converter completely eliminates cloud uploads by running FFmpeg WebAssembly directly on your device. Every video is converted sequentially in client memory, conserving your mobile bandwidth, safeguarding sensitive personal media from third-party servers, and allowing instant one-click ZIP downloads of your high-bitrate MP3 tracks.
                 </p>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-800/80 text-xs text-slate-400">
                     <div class="flex items-center gap-2">
                         <svg class="w-4 h-4 text-brand-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        <span><strong>Zero Data Consumption:</strong> No cloud file uploads</span>
+                        <span id="batch-seo-b1"><strong>Zero Data Consumption:</strong> No cloud file uploads</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <svg class="w-4 h-4 text-brand-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        <span><strong>Sequential Memory Safety:</strong> No browser crashes</span>
+                        <span id="batch-seo-b2"><strong>Sequential Memory Safety:</strong> No browser crashes</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <svg class="w-4 h-4 text-brand-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        <span><strong>One-Click ZIP Export:</strong> Packaged in browser</span>
+                        <span id="batch-seo-b3"><strong>One-Click ZIP Export:</strong> Packaged in browser</span>
                     </div>
                 </div>
             </div>
@@ -518,16 +533,16 @@
         <!-- Why We Built This -->
         <section id="why-we-built-section" class="max-w-4xl mx-auto px-4 py-12">
             <div class="border-l-4 border-brand-500 pl-6 py-2 bg-dark-900/20 rounded-r-xl p-4">
-                <h2 class="text-2xl font-semibold text-white mb-3">Why We Built VidToAudio</h2>
-                <p class="text-slate-400 leading-relaxed mb-4">
+                <h2 id="why-built-title" class="text-2xl font-semibold text-white mb-3">Why We Built VidToAudio</h2>
+                <p id="why-built-p1" class="text-slate-400 leading-relaxed mb-4">
                     Hi, I'm the developer behind VidToAudio. When I needed to <strong class="text-slate-300 font-medium">extract audio from video</strong> for a project, I found that most "MP4 to WAV free" tools online required uploading my private videos to remote servers. This felt slow, invasive, and completely unnecessary given the processing power of modern smartphones.
                 </p>
-                <p class="text-slate-400 leading-relaxed">
+                <p id="why-built-p2" class="text-slate-400 leading-relaxed">
                     I built this <strong class="text-slate-300 font-medium">offline audio converter</strong> to utilize true on-device processing. It runs entirely on your phone's CPU. No uploads, no waiting in server queues, and total privacy for your files. We even added a Privacy Ledger directly in the app settings so you can verify that zero bytes of your media are ever transmitted over the network.
                 </p>
-                <p class="text-slate-500 text-sm mt-4 flex items-center gap-2">
+                <p class="text-slate-400 text-sm mt-4 flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    Last Updated: <time datetime="2026-07-10">July 10, 2026</time>
+                    <span id="why-built-updated">Last Updated: <time datetime="2026-07-10">July 10, 2026</time></span>
                 </p>
             </div>
         </section>
@@ -535,42 +550,54 @@
         <!-- How It Works -->
         <section id="how-it-works" class="bg-dark-900 py-20 mt-8">
             <div class="max-w-7xl mx-auto px-4">
-                <h2 class="text-3xl font-bold text-white text-center mb-16">How It Works (Real App Flow)</h2>
+                <h2 id="how-title" class="text-3xl font-bold text-white text-center mb-16">How It Works (Real App Flow)</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
                     <div class="text-center group">
                         <div class="bg-dark-800 aspect-[9/19] rounded-xl flex items-center justify-center overflow-hidden border border-slate-700 shadow-xl mb-6 relative group-hover:border-brand-500 transition-colors">
-                            <img src="/select-video.png" alt="VidToAudio app Select Video screen" class="object-cover w-full h-full opacity-40 mix-blend-luminosity">
-                            <span class="absolute text-slate-400 text-sm px-4 bg-dark-900/80 py-2 rounded-lg backdrop-blur-sm border border-slate-700">Select Video Screen</span>
+                            <picture>
+                                <source srcset="/select-video.webp" type="image/webp">
+                                <img src="/select-video.png" alt="VidToAudio app Select Video screen" width="360" height="735" loading="lazy" decoding="async" class="object-cover w-full h-full opacity-40 mix-blend-luminosity">
+                            </picture>
+                            <span id="how-s1-badge" class="absolute text-slate-300 text-sm px-4 bg-dark-900/80 py-2 rounded-lg backdrop-blur-sm border border-slate-700 font-medium">Select Video Screen</span>
                         </div>
-                        <h3 class="text-white font-semibold mb-2">1. Select Video</h3>
-                        <p class="text-sm text-slate-400">Pick any MP4 or video file straight from your gallery or local file manager.</p>
+                        <h3 id="how-s1-title" class="text-white font-semibold mb-2">1. Select Video</h3>
+                        <p id="how-s1-desc" class="text-sm text-slate-400">Pick any MP4 or video file straight from your gallery or local file manager.</p>
                     </div>
                     
                     <div class="text-center group">
                         <div class="bg-dark-800 aspect-[9/19] rounded-xl flex items-center justify-center overflow-hidden border border-slate-700 shadow-xl mb-6 relative group-hover:border-brand-500 transition-colors">
-                            <img src="/format.png" alt="VidToAudio app Extract screen showing MP3 AAC WAV format selection" class="object-cover w-full h-full opacity-40 mix-blend-luminosity">
-                            <span class="absolute text-slate-400 text-sm px-4 bg-dark-900/80 py-2 rounded-lg backdrop-blur-sm border border-slate-700">Extract Screen</span>
+                            <picture>
+                                <source srcset="/format.webp" type="image/webp">
+                                <img src="/format.png" alt="VidToAudio app Extract screen showing MP3 AAC WAV format selection" width="360" height="735" loading="lazy" decoding="async" class="object-cover w-full h-full opacity-40 mix-blend-luminosity">
+                            </picture>
+                            <span id="how-s2-badge" class="absolute text-slate-300 text-sm px-4 bg-dark-900/80 py-2 rounded-lg backdrop-blur-sm border border-slate-700 font-medium">Extract Screen</span>
                         </div>
-                        <h3 class="text-white font-semibold mb-2">2. Choose Format</h3>
-                        <p class="text-sm text-slate-400">Select WAV, MP3, AAC, FLAC, M4A, or OGG. Set your preferred <strong class="text-slate-300 font-medium">bitrate quality audio export</strong> (128, 192, 320 kbps).</p>
+                        <h3 id="how-s2-title" class="text-white font-semibold mb-2">2. Choose Format</h3>
+                        <p id="how-s2-desc" class="text-sm text-slate-400">Select WAV, MP3, AAC, FLAC, M4A, or OGG. Set your preferred <strong class="text-slate-300 font-medium">bitrate quality audio export</strong> (128, 192, 320 kbps).</p>
                     </div>
 
                     <div class="text-center group">
                         <div class="bg-dark-800 aspect-[9/19] rounded-xl flex items-center justify-center overflow-hidden border border-slate-700 shadow-xl mb-6 relative group-hover:border-brand-500 transition-colors">
-                            <img src="/noise.png" alt="VidToAudio app Noise Reduction screen" class="object-cover w-full h-full opacity-40 mix-blend-luminosity">
-                            <span class="absolute text-slate-400 text-sm px-4 bg-dark-900/80 py-2 rounded-lg backdrop-blur-sm border border-slate-700">Noise Reduction Screen</span>
+                            <picture>
+                                <source srcset="/noise.webp" type="image/webp">
+                                <img src="/noise.png" alt="VidToAudio app Noise Reduction screen" width="360" height="735" loading="lazy" decoding="async" class="object-cover w-full h-full opacity-40 mix-blend-luminosity">
+                            </picture>
+                            <span id="how-s3-badge" class="absolute text-slate-300 text-sm px-4 bg-dark-900/80 py-2 rounded-lg backdrop-blur-sm border border-slate-700 font-medium">Noise Reduction Screen</span>
                         </div>
-                        <h3 class="text-white font-semibold mb-2">3. Enable AI Noise Reduction</h3>
-                        <p class="text-sm text-slate-400">Optional: Toggle the Beta AI feature to clean up background static before extraction.</p>
+                        <h3 id="how-s3-title" class="text-white font-semibold mb-2">3. Enable AI Noise Reduction</h3>
+                        <p id="how-s3-desc" class="text-sm text-slate-400">Optional: Toggle the Beta AI feature to clean up background static before extraction.</p>
                     </div>
 
                     <div class="text-center group">
                         <div class="bg-dark-800 aspect-[9/19] rounded-xl flex items-center justify-center overflow-hidden border border-slate-700 shadow-xl mb-6 relative group-hover:border-brand-500 transition-colors">
-                            <img src="/extract-trim.png" alt="VidToAudio app Library screen showing converted files history" class="object-cover w-full h-full opacity-40 mix-blend-luminosity">
-                            <span class="absolute text-slate-400 text-sm px-4 bg-dark-900/80 py-2 rounded-lg backdrop-blur-sm border border-slate-700">Library & Trim</span>
+                            <picture>
+                                <source srcset="/extract-trim.webp" type="image/webp">
+                                <img src="/extract-trim.png" alt="VidToAudio app Library screen showing converted files history" width="360" height="735" loading="lazy" decoding="async" class="object-cover w-full h-full opacity-40 mix-blend-luminosity">
+                            </picture>
+                            <span id="how-s4-badge" class="absolute text-slate-300 text-sm px-4 bg-dark-900/80 py-2 rounded-lg backdrop-blur-sm border border-slate-700 font-medium">Library & Trim</span>
                         </div>
-                        <h3 class="text-white font-semibold mb-2">4. Extract & Trim</h3>
-                        <p class="text-sm text-slate-400">Extract instantly. Use the Quick Trim feature to cut the audio, then find it in your Library history.</p>
+                        <h3 id="how-s4-title" class="text-white font-semibold mb-2">4. Extract & Trim</h3>
+                        <p id="how-s4-desc" class="text-sm text-slate-400">Extract instantly. Use the Quick Trim feature to cut the audio, then find it in your Library history.</p>
                     </div>
                 </div>
             </div>
@@ -578,87 +605,99 @@
 
         <!-- Features Grid -->
         <section id="features" class="max-w-7xl mx-auto px-4 py-24">
-            <h2 class="text-3xl font-bold text-white text-center mb-16">Engineered for Audio Fidelity</h2>
+            <h2 id="features-title" class="text-3xl font-bold text-white text-center mb-16">Engineered for Audio Fidelity</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <!-- Feature 1 -->
                 <div class="bg-dark-800/40 border border-slate-800 p-8 rounded-2xl hover:bg-dark-800 transition-colors">
                     <div class="w-12 h-12 bg-brand-900/30 text-brand-400 rounded-lg flex items-center justify-center mb-6 border border-brand-800/50">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
                     </div>
-                    <h3 class="text-xl font-semibold text-white mb-3">Format Compatibility</h3>
-                    <p class="text-slate-400 leading-relaxed">Extract audio to MP3, AAC, WAV, M4A, FLAC, or OGG. Lossless formats like WAV and FLAC maintain absolute original quality without compression artifacts.</p>
+                    <h3 id="feat-1-title" class="text-xl font-semibold text-white mb-3">Format Compatibility</h3>
+                    <p id="feat-1-desc" class="text-slate-400 leading-relaxed">Extract audio to MP3, AAC, WAV, M4A, FLAC, or OGG. Lossless formats like WAV and FLAC maintain absolute original quality without compression artifacts.</p>
                 </div>
                 <!-- Feature 2 -->
                 <div class="bg-dark-800/40 border border-slate-800 p-8 rounded-2xl hover:bg-dark-800 transition-colors">
                     <div class="w-12 h-12 bg-brand-900/30 text-brand-400 rounded-lg flex items-center justify-center mb-6 border border-brand-800/50">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
                     </div>
-                    <h3 class="text-xl font-semibold text-white mb-3">Bitrate Quality Control</h3>
-                    <p class="text-slate-400 leading-relaxed">User selectable export quality allows you to choose between 128 kbps for small file sizes, 192 kbps for standard listening, and 320 kbps for premium audio fidelity.</p>
+                    <h3 id="feat-2-title" class="text-xl font-semibold text-white mb-3">Bitrate Quality Control</h3>
+                    <p id="feat-2-desc" class="text-slate-400 leading-relaxed">User selectable export quality allows you to choose between 128 kbps for small file sizes, 192 kbps for standard listening, and 320 kbps for premium audio fidelity.</p>
                 </div>
                 <!-- Feature 3 -->
                 <div class="bg-dark-800/40 border border-slate-800 p-8 rounded-2xl hover:bg-dark-800 transition-colors">
                     <div class="w-12 h-12 bg-brand-900/30 text-brand-400 rounded-lg flex items-center justify-center mb-6 border border-brand-800/50">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
                     </div>
-                    <h3 class="text-xl font-semibold text-white mb-3">AI Noise Reduction (Beta)</h3>
-                    <p class="text-slate-400 leading-relaxed">Our on-device neural engine automatically detects and removes background hums, wind, and static, keeping vocals crystal clear and isolated.</p>
+                    <h3 id="feat-3-title" class="text-xl font-semibold text-white mb-3">AI Noise Reduction (Beta)</h3>
+                    <p id="feat-3-desc" class="text-slate-400 leading-relaxed">Our on-device neural engine automatically detects and removes background hums, wind, and static, keeping vocals crystal clear and isolated.</p>
                 </div>
                 <!-- Feature 4 -->
                 <div class="bg-dark-800/40 border border-slate-800 p-8 rounded-2xl hover:bg-dark-800 transition-colors">
                     <div class="w-12 h-12 bg-brand-900/30 text-brand-400 rounded-lg flex items-center justify-center mb-6 border border-brand-800/50">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z"></path></svg>
                     </div>
-                    <h3 class="text-xl font-semibold text-white mb-3">Quick Trim & Waveform</h3>
-                    <p class="text-slate-400 leading-relaxed">Preview your extraction with a visual waveform. Use the 10s rewind/forward playback controls to trim exactly the portion you need before saving to disk.</p>
+                    <h3 id="feat-4-title" class="text-xl font-semibold text-white mb-3">Quick Trim & Waveform</h3>
+                    <p id="feat-4-desc" class="text-slate-400 leading-relaxed">Preview your extraction with a visual waveform. Use the 10s rewind/forward playback controls to trim exactly the portion you need before saving to disk.</p>
                 </div>
                 <!-- Feature 5 -->
                 <div class="bg-dark-800/40 border border-slate-800 p-8 rounded-2xl hover:bg-dark-800 transition-colors">
                     <div class="w-12 h-12 bg-brand-900/30 text-brand-400 rounded-lg flex items-center justify-center mb-6 border border-brand-800/50">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                     </div>
-                    <h3 class="text-xl font-semibold text-white mb-3">Library Management</h3>
-                    <p class="text-slate-400 leading-relaxed">The built-in Library shows your converted files history, complete with filename, status, and date/time. Easily configure a custom output folder path.</p>
+                    <h3 id="feat-5-title" class="text-xl font-semibold text-white mb-3">Library Management</h3>
+                    <p id="feat-5-desc" class="text-slate-400 leading-relaxed">The built-in Library shows your converted files history, complete with filename, status, and date/time. Easily configure a custom output folder path.</p>
                 </div>
                 <!-- Feature 6 -->
                 <div class="bg-dark-800/40 border border-slate-800 p-8 rounded-2xl hover:bg-dark-800 transition-colors">
                     <div class="w-12 h-12 bg-brand-900/30 text-brand-400 rounded-lg flex items-center justify-center mb-6 border border-brand-800/50">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
                     </div>
-                    <h3 class="text-xl font-semibold text-white mb-3">Privacy Ledger</h3>
-                    <p class="text-slate-400 leading-relaxed">Review local processing logs in real-time within the settings. We provide full transparency to prove that zero bytes ever leave your device during extraction.</p>
+                    <h3 id="feat-6-title" class="text-xl font-semibold text-white mb-3">Privacy Ledger</h3>
+                    <p id="feat-6-desc" class="text-slate-400 leading-relaxed">Review local processing logs in real-time within the settings. We provide full transparency to prove that zero bytes ever leave your device during extraction.</p>
                 </div>
             </div>
         </section>
 
         <!-- Screenshot Showcase -->
         <section id="screenshot-showcase-section" class="max-w-7xl mx-auto px-4 py-12 border-t border-slate-800/50">
-            <h2 class="text-3xl font-bold text-white text-center mb-4">App Interface & Transparency</h2>
-            <p class="text-center text-slate-400 mb-12 max-w-2xl mx-auto">See exactly what you get. A clean, native Android interface designed for rapid audio conversion without the clutter.</p>
+            <h2 id="screenshot-title" class="text-3xl font-bold text-white text-center mb-4">App Interface & Transparency</h2>
+            <p id="screenshot-subtitle" class="text-center text-slate-400 mb-12 max-w-2xl mx-auto">See exactly what you get. A clean, native Android interface designed for rapid audio conversion without the clutter.</p>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
                 <div class="text-center">
                     <div class="bg-dark-800 aspect-[9/19] rounded-xl overflow-hidden border border-slate-700 shadow-xl mb-4 relative">
-                        <img src="/format.png" alt="VidToAudio app Extract screen showing MP3 AAC WAV format selection" class="object-cover w-full h-full opacity-60">
+                        <picture>
+                            <source srcset="/format.webp" type="image/webp">
+                            <img src="/format.png" alt="VidToAudio app Extract screen showing MP3 AAC WAV format selection" width="360" height="735" loading="lazy" decoding="async" class="object-cover w-full h-full opacity-60">
+                        </picture>
                     </div>
-                    <p class="text-sm text-slate-300 font-medium">Extract & Format Setup</p>
+                    <p id="screenshot-s1" class="text-sm text-slate-300 font-medium">Extract & Format Setup</p>
                 </div>
                 <div class="text-center">
                     <div class="bg-dark-800 aspect-[9/19] rounded-xl overflow-hidden border border-slate-700 shadow-xl mb-4 relative">
-                        <img src="/library.png" alt="VidToAudio app Library screen showing converted files history" class="object-cover w-full h-full opacity-60">
+                        <picture>
+                            <source srcset="/library.webp" type="image/webp">
+                            <img src="/library.png" alt="VidToAudio app Library screen showing converted files history" width="360" height="735" loading="lazy" decoding="async" class="object-cover w-full h-full opacity-60">
+                        </picture>
                     </div>
-                    <p class="text-sm text-slate-300 font-medium">Converted Library</p>
+                    <p id="screenshot-s2" class="text-sm text-slate-300 font-medium">Converted Library</p>
                 </div>
                 <div class="text-center">
                     <div class="bg-dark-800 aspect-[9/19] rounded-xl overflow-hidden border border-slate-700 shadow-xl mb-4 relative">
-                        <img src="/noise.png" alt="VidToAudio app Noise Reduction screen" class="object-cover w-full h-full opacity-60">
+                        <picture>
+                            <source srcset="/noise.webp" type="image/webp">
+                            <img src="/noise.png" alt="VidToAudio app Noise Reduction screen" width="360" height="735" loading="lazy" decoding="async" class="object-cover w-full h-full opacity-60">
+                        </picture>
                     </div>
-                    <p class="text-sm text-slate-300 font-medium">AI Noise Reduction</p>
+                    <p id="screenshot-s3" class="text-sm text-slate-300 font-medium">AI Noise Reduction</p>
                 </div>
                 <div class="text-center">
                     <div class="bg-dark-800 aspect-[9/19] rounded-xl overflow-hidden border border-slate-700 shadow-xl mb-4 relative">
-                        <img src="/setting.png" alt="VidToAudio app Settings screen showing Privacy Ledger and custom folder path" class="object-cover w-full h-full opacity-60">
+                        <picture>
+                            <source srcset="/setting.webp" type="image/webp">
+                            <img src="/setting.png" alt="VidToAudio app Settings screen showing Privacy Ledger and custom folder path" width="360" height="735" loading="lazy" decoding="async" class="object-cover w-full h-full opacity-60">
+                        </picture>
                     </div>
-                    <p class="text-sm text-slate-300 font-medium">Settings & Privacy Ledger</p>
+                    <p id="screenshot-s4" class="text-sm text-slate-300 font-medium">Settings & Privacy Ledger</p>
                 </div>
             </div>
         </section>
@@ -667,23 +706,23 @@
         <section id="comparison-section" class="bg-dark-900 border-y border-slate-800 py-20 mt-12">
             <div class="max-w-5xl mx-auto px-4 flex flex-col md:flex-row items-center gap-12">
                 <div class="md:w-1/2">
-                    <h2 class="text-3xl font-bold text-white mb-6">Why On-Device vs Online Converters?</h2>
-                    <p class="text-slate-400 mb-4 leading-relaxed">When you use a standard website to <strong class="text-slate-300 font-medium">convert video to audio without internet</strong>, you are actually uploading your personal videos to their remote servers. This consumes your mobile data limit, takes much longer depending on your connection, and exposes your private media to unknown third parties.</p>
-                    <p class="text-slate-400 leading-relaxed">VidToAudio functions as a true native <strong class="text-slate-300 font-medium">offline audio converter</strong>. By running the extraction algorithms locally on your Android device's CPU, we eliminate upload times entirely, save your cellular data, and guarantee absolute 100% privacy.</p>
+                    <h2 id="comparison-title" class="text-3xl font-bold text-white mb-6">Why On-Device vs Online Converters?</h2>
+                    <p id="comparison-p1" class="text-slate-400 mb-4 leading-relaxed">When you use a standard website to <strong class="text-slate-300 font-medium">convert video to audio without internet</strong>, you are actually uploading your personal videos to their remote servers. This consumes your mobile data limit, takes much longer depending on your connection, and exposes your private media to unknown third parties.</p>
+                    <p id="comparison-p2" class="text-slate-400 leading-relaxed">VidToAudio functions as a true native <strong class="text-slate-300 font-medium">offline audio converter</strong>. By running the extraction algorithms locally on your Android device's CPU, we eliminate upload times entirely, save your cellular data, and guarantee absolute 100% privacy.</p>
                 </div>
                 <div class="md:w-1/2 w-full">
                     <div class="bg-dark-950 p-6 sm:p-8 rounded-2xl border border-slate-800 shadow-2xl">
                         <div class="flex justify-between items-center border-b border-slate-800 pb-4 mb-4">
-                            <span class="text-slate-300">Data Uploaded</span>
+                            <span id="comparison-m1-label" class="text-slate-300">Data Uploaded</span>
                             <span class="text-brand-400 font-mono font-bold">0 KB</span>
                         </div>
                         <div class="flex justify-between items-center border-b border-slate-800 pb-4 mb-4">
-                            <span class="text-slate-300">Server Wait Time</span>
+                            <span id="comparison-m2-label" class="text-slate-300">Server Wait Time</span>
                             <span class="text-brand-400 font-mono font-bold">0 Seconds</span>
                         </div>
                         <div class="flex justify-between items-center">
-                            <span class="text-slate-300">Privacy Status</span>
-                            <span class="text-brand-400 font-mono text-sm px-3 py-1 bg-brand-900/30 border border-brand-800/50 rounded-full font-bold">SECURE (LOCAL)</span>
+                            <span id="comparison-m3-label" class="text-slate-300">Privacy Status</span>
+                            <span id="comparison-m3-value" class="text-brand-400 font-mono text-sm px-3 py-1 bg-brand-900/30 border border-brand-800/50 rounded-full font-bold">SECURE (LOCAL)</span>
                         </div>
                     </div>
                 </div>
@@ -692,41 +731,41 @@
 
         <!-- FAQ Section -->
         <section id="faq" class="max-w-4xl mx-auto px-4 py-24">
-            <h2 class="text-3xl font-bold text-white text-center mb-4">Frequently Asked Questions</h2>
-            <p class="text-center text-slate-400 text-sm mb-12 max-w-xl mx-auto">Everything you need to know about offline on-device audio conversion with VidToAudio.</p>
+            <h2 id="faq-main-title" class="text-3xl font-bold text-white text-center mb-4">Frequently Asked Questions</h2>
+            <p id="faq-main-subtitle" class="text-center text-slate-400 text-sm mb-12 max-w-xl mx-auto">Everything you need to know about offline on-device audio conversion with VidToAudio.</p>
             
             <div id="dynamic-faq" class="space-y-6 mb-6"></div>
 
             <div class="space-y-6">
                 <!-- FAQ 1 -->
                 <div class="bg-dark-900 border border-slate-800 rounded-xl p-6">
-                    <h3 class="text-lg font-semibold text-white mb-2">Does VidToAudio need internet?</h3>
-                    <p class="text-slate-400">No, VidToAudio is a completely offline audio converter. All conversions happen on your device's hardware, meaning you can convert video to audio without internet access or cellular data.</p>
+                    <h3 id="faq-q1-title" class="text-lg font-semibold text-white mb-2">Does VidToAudio need internet?</h3>
+                    <p id="faq-q1-ans" class="text-slate-400">No, VidToAudio is a completely offline audio converter. All conversions happen on your device's hardware, meaning you can convert video to audio without internet access or cellular data.</p>
                 </div>
                 <!-- FAQ 2 -->
                 <div class="bg-dark-900 border border-slate-800 rounded-xl p-6">
-                    <h3 class="text-lg font-semibold text-white mb-2">What formats are supported?</h3>
-                    <p class="text-slate-400">You can extract audio into multiple output formats including MP3, AAC, WAV, M4A, FLAC, and OGG. Lossless formats like WAV and FLAC are highly recommended for preserving original quality.</p>
+                    <h3 id="faq-q2-title" class="text-lg font-semibold text-white mb-2">What formats are supported?</h3>
+                    <p id="faq-q2-ans" class="text-slate-400">You can extract audio into multiple output formats including MP3, AAC, WAV, M4A, FLAC, and OGG. Lossless formats like WAV and FLAC are highly recommended for preserving original quality.</p>
                 </div>
                 <!-- FAQ 3 -->
                 <div class="bg-dark-900 border border-slate-800 rounded-xl p-6">
-                    <h3 class="text-lg font-semibold text-white mb-2">Does noise reduction affect voice quality?</h3>
-                    <p class="text-slate-400">Our AI Noise Reduction (currently in Beta) is specifically tuned to isolate human vocals and preserve audio fidelity while aggressively removing background hums, wind, and static.</p>
+                    <h3 id="faq-q3-title" class="text-lg font-semibold text-white mb-2">Does noise reduction affect voice quality?</h3>
+                    <p id="faq-q3-ans" class="text-slate-400">Our AI Noise Reduction (currently in Beta) is specifically tuned to isolate human vocals and preserve audio fidelity while aggressively removing background hums, wind, and static.</p>
                 </div>
                 <!-- FAQ 4 -->
                 <div class="bg-dark-900 border border-slate-800 rounded-xl p-6">
-                    <h3 class="text-lg font-semibold text-white mb-2">Is there a file size limit?</h3>
-                    <p class="text-slate-400">Because VidToAudio utilizes on-device processing instead of cloud servers, there are no artificial file size limits. You are only limited by your phone's available storage and RAM.</p>
+                    <h3 id="faq-q4-title" class="text-lg font-semibold text-white mb-2">Is there a file size limit?</h3>
+                    <p id="faq-q4-ans" class="text-slate-400">Because VidToAudio utilizes on-device processing instead of cloud servers, there are no artificial file size limits. You are only limited by your phone's available storage and RAM.</p>
                 </div>
                 <!-- FAQ 5 -->
                 <div class="bg-dark-900 border border-slate-800 rounded-xl p-6">
-                    <h3 class="text-lg font-semibold text-white mb-2">Where are converted files saved?</h3>
-                    <p class="text-slate-400">Converted files are saved directly to your phone's local storage. You can set a custom output folder path in the app settings, and quickly view or play all your files in the built-in Library section.</p>
+                    <h3 id="faq-q5-title" class="text-lg font-semibold text-white mb-2">Where are converted files saved?</h3>
+                    <p id="faq-q5-ans" class="text-slate-400">Converted files are saved directly to your phone's local storage. You can set a custom output folder path in the app settings, and quickly view or play all your files in the built-in Library section.</p>
                 </div>
                 <!-- FAQ 6 -->
                 <div class="bg-dark-900 border border-slate-800 rounded-xl p-6">
-                    <h3 class="text-lg font-semibold text-white mb-2">Does VidToAudio require a subscription?</h3>
-                    <p class="text-slate-400">No, the core MP4 to WAV converter and extraction features are completely free to use. There are no mandatory subscriptions to extract audio from video.</p>
+                    <h3 id="faq-q6-title" class="text-lg font-semibold text-white mb-2">Does VidToAudio require a subscription?</h3>
+                    <p id="faq-q6-ans" class="text-slate-400">No, the core MP4 to WAV converter and extraction features are completely free to use. There are no mandatory subscriptions to extract audio from video.</p>
                 </div>
             </div>
         </section>
@@ -778,11 +817,11 @@
                         <div class="w-11 h-11 rounded-xl bg-sky-950/60 text-sky-400 border border-sky-800/80 flex items-center justify-center font-bold">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </div>
-                        <span class="text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-dark-950 text-sky-400 border border-sky-900">EN • ES • FR</span>
+                        <span id="about-p3-badge" class="text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-dark-950 text-sky-400 border border-sky-900">21 Languages</span>
                     </div>
-                    <h3 id="about-p3-title" class="text-lg font-bold text-white tracking-tight">Global Multilingual Accessibility (EN, ES, FR)</h3>
+                    <h3 id="about-p3-title" class="text-lg font-bold text-white tracking-tight">Global Multilingual Accessibility</h3>
                     <p id="about-p3-desc" class="text-slate-400 text-sm leading-relaxed">
-                        VidToAudio is engineered for creators, journalists, educators, and audio professionals worldwide. The platform features native multi-language architecture with dedicated interfaces and documentation in English, Spanish (Español), and French (Français), enabling users across the globe to convert and edit media comfortably in their native language.
+                        VidToAudio is engineered for creators, journalists, educators, and audio professionals worldwide. The platform features native multi-language architecture with dedicated interfaces and documentation in English, Spanish (Español), French (Français), German (Deutsch), and 17 other global languages, enabling users across the globe to convert and edit media comfortably in their native language.
                     </p>
                 </div>
 
@@ -792,7 +831,7 @@
                         <div class="w-11 h-11 rounded-xl bg-brand-950 text-brand-400 border border-brand-800/80 flex items-center justify-center font-bold">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         </div>
-                        <span class="text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-dark-950 text-brand-400 border border-brand-900">Transparency</span>
+                        <span id="about-p4-badge" class="text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-dark-950 text-brand-400 border border-brand-900">Transparency</span>
                     </div>
                     <h3 id="about-p4-title" class="text-lg font-bold text-white tracking-tight">Publisher Accountability & Google Verification Standards</h3>
                     <p id="about-p4-desc" class="text-slate-400 text-sm leading-relaxed">
@@ -830,7 +869,7 @@
                     <span class="hidden sm:inline text-slate-600">&bull;</span>
                     <a href="/contact.html" id="about-contact-link" class="text-slate-300 hover:text-brand-400 underline font-medium transition-colors">Contact Us</a>
                     <span class="hidden sm:inline text-slate-600">&bull;</span>
-                    <a href="/editor" data-route-link class="text-slate-300 hover:text-teal-400 font-medium transition-colors">Web Editor</a>
+                    <a href="/editor" id="about-editor-link" data-route-link class="text-slate-300 hover:text-teal-400 font-medium transition-colors">Web Editor</a>
                 </div>
             </div>
         </section>
@@ -840,15 +879,15 @@
     <!-- Footer -->
     <footer class="bg-dark-950 border-t border-slate-800 pt-16 pb-8">
         <div class="max-w-7xl mx-auto px-4 text-center">
-            <h2 class="text-2xl font-bold text-white mb-6">Ready to Extract Audio Securely?</h2>
+            <h2 id="footer-ready-heading" class="text-2xl font-bold text-white mb-6">Ready to Extract Audio Securely?</h2>
             <div class="flex justify-center gap-4 mb-12">
-                <a href="#download" class="px-8 py-3 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl shadow-lg transition-colors">
+                <a href="#download" id="footer-download-btn" class="px-8 py-3 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl shadow-lg transition-colors">
                     Download VidToAudio
                 </a>
             </div>
             
-            <div class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs text-slate-400 mb-8">
-                <span class="text-slate-500 font-medium">Popular Converters:</span>
+            <div id="footer-popular-links" class="flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs text-slate-400 mb-8">
+                <span id="footer-popular-label" class="text-slate-500 font-medium">Popular Converters:</span>
                 <a href="/mp4-to-wav" data-route-link class="hover:text-brand-400 transition-colors">MP4 to WAV</a>
                 <a href="/mp4-to-mp3" data-route-link class="hover:text-brand-400 transition-colors">MP4 to MP3</a>
                 <a href="/hevc-to-mp3" data-route-link class="hover:text-brand-400 transition-colors">HEVC to MP3</a>
@@ -861,10 +900,10 @@
             <section id="all-converters-section" class="border-t border-slate-800/80 pt-10 pb-6 mt-8 text-left">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                     <div>
-                        <h3 class="text-lg font-bold text-white tracking-tight">All Video to Audio Converters</h3>
-                        <p class="text-xs text-slate-400 mt-1">Browse all 81 offline on-device audio extraction formats.</p>
+                        <h3 id="footer-all-converters-title" class="text-lg font-bold text-white tracking-tight">All Video to Audio Converters</h3>
+                        <p id="footer-all-converters-subtitle" class="text-xs text-slate-400 mt-1">Browse all 81 offline on-device audio extraction formats.</p>
                     </div>
-                    <span class="text-xs px-3 py-1 rounded-full bg-brand-950 text-brand-400 border border-brand-800/60 font-medium self-start sm:self-auto">
+                    <span id="footer-matrix-badge" class="text-xs px-3 py-1 rounded-full bg-brand-950 text-brand-400 border border-brand-800/60 font-medium self-start sm:self-auto">
                         81 Matrix Combinations
                     </span>
                 </div>
@@ -879,11 +918,11 @@
                     &copy; <span id="year"></span> <span id="footer-custom-text">VidToAudio. All rights reserved. 100% On-Device Audio Extraction.</span>
                 </div>
                 <div class="flex flex-wrap justify-center md:justify-end gap-x-6 gap-y-2 text-sm">
-                    <a href="/blog" data-route-link class="text-slate-500 hover:text-slate-300 transition-colors">Blog</a>
-                    <a href="/privacy-policy.html" class="text-slate-500 hover:text-slate-300 transition-colors">Privacy Policy</a>
-                    <a href="/terms.html" class="text-slate-500 hover:text-slate-300 transition-colors">Terms of Service</a>
-                    <a href="/disclaimer.html" class="text-slate-500 hover:text-slate-300 transition-colors">Disclaimer</a>
-                    <a href="/contact.html" class="text-slate-500 hover:text-slate-300 transition-colors">Contact Us</a>
+                    <a href="/blog" id="footer-blog-link" data-route-link class="text-slate-500 hover:text-slate-300 transition-colors">Blog</a>
+                    <a href="/privacy-policy.html" id="footer-privacy-link" class="text-slate-500 hover:text-slate-300 transition-colors">Privacy Policy</a>
+                    <a href="/terms.html" id="footer-terms-link" class="text-slate-500 hover:text-slate-300 transition-colors">Terms of Service</a>
+                    <a href="/disclaimer.html" id="footer-disclaimer-link" class="text-slate-500 hover:text-slate-300 transition-colors">Disclaimer</a>
+                    <a href="/contact.html" id="footer-contact-link" class="text-slate-500 hover:text-slate-300 transition-colors">Contact Us</a>
                 </div>
             </div>
         </div>
@@ -953,6 +992,14 @@
             progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
             progressCircle.style.strokeDashoffset = circumference;
             
+            function getI18n() {
+                if (typeof window.getTranslations === 'function') {
+                    const lang = window.getCurrentLanguage ? window.getCurrentLanguage() : 'en';
+                    return window.getTranslations(lang);
+                }
+                return null;
+            }
+
             function setProgress(percent) {
                 const offset = circumference - (percent / 100) * circumference;
                 progressCircle.style.strokeDashoffset = offset;
@@ -960,9 +1007,12 @@
             }
 
             function updateFormatSummary() {
+                const t = getI18n();
                 const formatText = formatSelect.options[formatSelect.selectedIndex]?.text.split(' ')[0] || selectedFormatExt.toUpperCase();
                 const bitrateText = bitrateSelect.value;
-                if (['flac', 'wav', 'aiff'].includes(selectedFormatExt)) {
+                if (t && t.converter && t.converter.outputSummary) {
+                    formatSummary.innerText = t.converter.outputSummary.replace('{format}', formatText).replace('{bitrate}', bitrateText);
+                } else if (['flac', 'wav', 'aiff'].includes(selectedFormatExt)) {
                     formatSummary.innerText = `Output: ${formatText} (Lossless Uncompressed)`;
                 } else {
                     formatSummary.innerText = `Output: ${formatText} (${bitrateText} Audio Bitrate)`;
@@ -979,6 +1029,7 @@
             });
 
             function showError(msg) {
+                const t = getI18n();
                 uiError.innerHTML = `
                     <div class="flex items-center justify-center gap-2 font-medium">
                         <svg class="w-5 h-5 flex-shrink-0 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -993,7 +1044,8 @@
                 uiConverter.classList.remove('hidden');
                 setProgress(0);
                 convertBtn.disabled = false;
-                convertBtn.innerText = selectedFiles.length > 1 ? `Extract Audio (${selectedFiles.length} Files)` : 'Extract Audio';
+                const extractText = t ? t.converter.extractAudio : 'Extract Audio';
+                convertBtn.innerText = selectedFiles.length > 1 ? `${extractText} (${selectedFiles.length})` : extractText;
             }
 
             function formatTime(seconds) {
@@ -1004,24 +1056,28 @@
             }
 
             function handleFilesSelection(files) {
+                const t = getI18n();
                 selectedFiles = Array.from(files).filter(f => f && f.size > 0);
                 if (selectedFiles.length === 0) {
-                    fileNameDisplay.innerText = 'No files chosen (Select one or multiple files)';
+                    fileNameDisplay.innerText = t ? t.converter.noFilesChosen : 'No files chosen (Select one or multiple files)';
                     fileNameDisplay.classList.remove('text-brand-400');
                     convertBtn.disabled = true;
                     convertBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                    convertBtn.innerText = 'Extract Audio';
+                    convertBtn.innerText = t ? t.converter.extractAudio : 'Extract Audio';
                     return;
                 }
 
                 if (selectedFiles.length === 1) {
                     const mb = (selectedFiles[0].size / 1024 / 1024).toFixed(1);
                     fileNameDisplay.innerText = `${selectedFiles[0].name} (${mb} MB)`;
-                    convertBtn.innerText = 'Extract Audio (1 File)';
+                    const extractText = t ? (t.converter.extractAudioCount ? t.converter.extractAudioCount.replace('{count}', '1') : `${t.converter.extractAudio} (1)`) : 'Extract Audio (1 File)';
+                    convertBtn.innerText = extractText;
                 } else {
                     const totalMB = (selectedFiles.reduce((sum, f) => sum + f.size, 0) / 1024 / 1024).toFixed(1);
-                    fileNameDisplay.innerText = `${selectedFiles.length} files selected (${totalMB} MB total)`;
-                    convertBtn.innerText = `Extract Audio (${selectedFiles.length} Files)`;
+                    const filesCountStr = t ? `${selectedFiles.length} files selected` : `${selectedFiles.length} files selected`;
+                    fileNameDisplay.innerText = `${filesCountStr} (${totalMB} MB total)`;
+                    const extractText = t ? (t.converter.extractAudioCount ? t.converter.extractAudioCount.replace('{count}', String(selectedFiles.length)) : `${t.converter.extractAudio} (${selectedFiles.length})`) : `Extract Audio (${selectedFiles.length} Files)`;
+                    convertBtn.innerText = extractText;
                 }
 
                 fileNameDisplay.classList.add('text-brand-400');
@@ -1061,6 +1117,7 @@
             }
 
             function resetAllState() {
+                const t = getI18n();
                 uiSuccess.classList.add('hidden');
                 uiSuccess.classList.remove('flex');
                 uiProcessing.classList.add('hidden');
@@ -1070,11 +1127,11 @@
                 fileInput.value = "";
                 selectedFiles = [];
                 convertedBatchResults = [];
-                fileNameDisplay.innerText = 'No files chosen (Select one or multiple files)';
+                fileNameDisplay.innerText = t ? t.converter.noFilesChosen : 'No files chosen (Select one or multiple files)';
                 fileNameDisplay.classList.remove('text-brand-400');
                 convertBtn.disabled = true;
                 convertBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                convertBtn.innerText = 'Extract Audio';
+                convertBtn.innerText = t ? t.converter.extractAudio : 'Extract Audio';
                 trimControls.classList.add('hidden');
                 if (wavesurfer) {
                     wavesurfer.destroy();
@@ -1132,11 +1189,9 @@
 
                 // Ensure FFmpeg scripts are loaded
                 if (!window.FFmpegWASM || !window.FFmpegUtil) {
-                    if (onStatus) onStatus('Loading FFmpeg scripts...');
-                    for (let i = 0; i < 30; i++) {
-                        if (window.FFmpegWASM && window.FFmpegUtil) break;
-                        await new Promise(r => setTimeout(r, 100));
-                    }
+                    if (onStatus) onStatus('Loading FFmpeg engine...');
+                    await ensureScriptLoaded('FFmpegWASM', '/ffmpeg/ffmpeg.js', 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js');
+                    await ensureScriptLoaded('FFmpegUtil', '/ffmpeg/util.js', 'https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/umd/index.js');
                 }
 
                 const { FFmpeg } = window.FFmpegWASM || {};
@@ -1515,14 +1570,21 @@
                 uiSuccess.classList.remove('hidden');
                 uiSuccess.classList.add('flex');
 
+                const t = getI18n();
+
                 if (successTitle) {
-                    successTitle.innerText = results.length > 1 ? 'Batch Conversion Complete!' : 'Conversion Complete!';
+                    successTitle.innerText = t ? t.converter.successTitle : (results.length > 1 ? 'Batch Conversion Complete!' : 'Conversion Complete!');
                 }
                 if (successSubtitle) {
-                    successSubtitle.innerText = `${successful.length} of ${results.length} files extracted successfully to ${ext.toUpperCase()}`;
+                    if (t && t.converter.successSubtitle) {
+                        successSubtitle.innerText = t.converter.successSubtitle.replace('{count}', String(successful.length));
+                    } else {
+                        successSubtitle.innerText = `${successful.length} of ${results.length} files extracted successfully to ${ext.toUpperCase()}`;
+                    }
                 }
                 if (batchResultsCount) {
-                    batchResultsCount.innerText = `Converted Tracks (${successful.length}/${results.length})`;
+                    const headerText = t ? (t.converter.convertedTracks || 'Converted Tracks') : 'Converted Tracks';
+                    batchResultsCount.innerText = `${headerText} (${successful.length}/${results.length})`;
                 }
 
                 // Render Results List with Individual Download Buttons
@@ -1545,11 +1607,11 @@
                                     <div class="flex items-center gap-2 flex-shrink-0">
                                         <button data-track-idx="${idx}" class="preview-track-btn px-2.5 py-1.5 bg-dark-700 hover:bg-dark-600 border border-slate-600 text-slate-300 hover:text-white rounded-lg text-xs font-medium transition-colors hidden sm:flex items-center gap-1" title="Preview Audio">
                                             <svg class="w-3.5 h-3.5 text-brand-400" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                                            <span>Play</span>
+                                            <span>${t ? (t.converter.play || 'Play') : 'Play'}</span>
                                         </button>
                                         <a href="${trackUrl}" download="${item.name}" class="px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-sm">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                            <span>Download</span>
+                                            <span>${t ? (t.converter.downloadTrack || 'Download') : 'Download'}</span>
                                         </a>
                                     </div>
                                 </div>
@@ -1563,10 +1625,10 @@
                                         </div>
                                         <div class="min-w-0">
                                             <p class="text-sm font-medium text-slate-300 truncate">${item.name}</p>
-                                            <p class="text-xs text-red-400 font-mono">${item.error || 'Conversion failed'}</p>
+                                            <p class="text-xs text-red-400 font-mono">${item.error || (t ? t.converter.errorMessage : 'Conversion failed')}</p>
                                         </div>
                                     </div>
-                                    <span class="text-xs text-red-400 font-medium px-2 py-1 bg-red-950/60 border border-red-900 rounded">Error</span>
+                                    <span class="text-xs text-red-400 font-medium px-2 py-1 bg-red-950/60 border border-red-900 rounded">${t ? (t.converter.errorTitle || 'Error') : 'Error'}</span>
                                 </div>
                             `;
                         }
@@ -1591,7 +1653,7 @@
                         downloadZipBtn.disabled = true;
                         downloadZipBtn.innerHTML = `
                             <svg class="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                            <span>Archiving ZIP...</span>
+                            <span>${t ? (t.converter.processingPleaseWait || 'Archiving ZIP...') : 'Archiving ZIP...'}</span>
                         `;
 
                         try {
@@ -1924,6 +1986,25 @@
                 } catch (err) {
                     console.error("Trimming error:", err);
                     showError("An error occurred while cropping the audio.");
+                }
+            });
+
+            // Re-render dynamic text on language changes
+            window.addEventListener('languagechange', () => {
+                updateFormatSummary();
+                if (selectedFiles.length === 0) {
+                    const t = getI18n();
+                    if (fileNameDisplay) {
+                        fileNameDisplay.innerText = t ? t.converter.noFilesChosen : 'No files chosen (Select one or multiple files)';
+                    }
+                    if (convertBtn && convertBtn.disabled) {
+                        convertBtn.innerText = t ? t.converter.extractAudio : 'Extract Audio';
+                    }
+                } else {
+                    handleFilesSelection(selectedFiles);
+                }
+                if (convertedBatchResults.length > 0 && !uiSuccess.classList.contains('hidden')) {
+                    renderBatchSuccess(convertedBatchResults, selectedFormatExt);
                 }
             });
         });

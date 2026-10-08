@@ -13,20 +13,20 @@ export const enTranslations: TranslationDictionary = {
     terms: 'Terms of Service'
   },
   hero: {
-    homeTitle: 'Fastest Bulk & Batch MP4 to MP3 Converter (Offline)',
-    homeSubtitle: 'Extract high-bitrate audio from single or multiple video files in bulk with zero uploads. Runs 100% locally in your browser for absolute privacy, zero data usage, and maximum speed.',
+    homeTitle: 'Fastest Bulk MP4 to MP3 Converter Online',
+    homeSubtitle: 'Extract high-quality audio from single or multiple video files in bulk directly in your browser. Runs instantly and securely with zero uploads and no software required.',
     popularConverters: 'Popular Converters:',
     amazonAppstore: 'Amazon Appstore',
     directApkDownload: 'Direct APK Download',
-    trustOffline: '100% Offline',
+    trustOffline: '100% Free Online',
     trustQueue: 'Sequential Bulk Queue',
     trustBitrate: '128 / 192 / 320 kbps',
     trustNoUploads: 'No Uploads Required'
   },
   converter: {
-    tryItHereHome: 'Try it here: Bulk & Batch MP4 to MP3 Converter',
+    tryItHereHome: 'Try it here: Bulk MP4 to MP3 Converter Online',
     tryItHereMatrix: 'Try it here: Bulk & Batch {INPUT} to {OUTPUT} Converter',
-    subtitleHome: 'Select single or multiple video files. Converted sequentially in your browser via FFmpeg WebAssembly.',
+    subtitleHome: 'Select single or multiple video files. Converts instantly and securely in your browser with zero server uploads.',
     subtitleMatrix: 'Select single or multiple {INPUT} video files. Converted to {OUTPUT} sequentially in your browser via FFmpeg WebAssembly.',
     dropzoneTextHome: 'Click or drag & drop video files for bulk conversion',
     dropzoneTextMatrix: 'Click or drag & drop {INPUT} video files for {OUTPUT} conversion',
@@ -58,18 +58,47 @@ export const enTranslations: TranslationDictionary = {
     cropAudioSelection: 'Cropping audio selection...',
     errorTitle: 'Conversion Error',
     errorMessage: 'An unexpected error occurred during audio processing.',
-    tryAgain: 'Try Again'
+    tryAgain: 'Try Again',
+    audioPreview: 'Audio Preview',
+    trimAudio: 'Trim Audio',
+    cropSelection: 'Crop Selection',
+    waveformHint: 'Drag the colored edges on the waveform to select region',
+    durationLabel: 'Duration:',
+    sampleRateLabel: 'Sample Rate:',
+    sizeLabel: 'Size:',
+    convertedTracks: 'Converted Tracks',
+    actions: 'Actions',
+    sequentialOffline: 'Sequential offline processing • Zero server uploads'
+  },
+  batchSeo: {
+    badge: 'Offline Batch Processing',
+    subBadge: '100% Client-Side WebAssembly',
+    title: 'How Offline Batch & Bulk MP4 to MP3 Conversion Saves Data and Time',
+    desc: 'Traditional online media converters require uploading heavy video files to remote cloud servers before extraction can even begin. When processing batches of high-definition MP4 clips, this results in hundreds of megabytes of wasted internet data and agonizing upload bottlenecks. Our offline batch MP4 to MP3 converter completely eliminates cloud uploads by running FFmpeg WebAssembly directly on your device. Every video is converted sequentially in client memory, conserving your mobile bandwidth, safeguarding sensitive personal media from third-party servers, and allowing instant one-click ZIP downloads of your high-bitrate MP3 tracks.',
+    b1: 'Zero Data Consumption: No cloud file uploads',
+    b2: 'Sequential Memory Safety: No browser crashes',
+    b3: 'One-Click ZIP Export: Packaged in browser'
+  },
+  whyWeBuilt: {
+    title: 'Why We Built VidToAudio',
+    p1: "Hi, I'm the developer behind VidToAudio. When I needed to extract audio from video for a project, I found that most \"MP4 to WAV free\" tools online required uploading my private videos to remote servers. This felt slow, invasive, and completely unnecessary given the processing power of modern smartphones.",
+    p2: 'I built this offline audio converter to utilize true on-device processing. It runs entirely on your phone\'s CPU. No uploads, no waiting in server queues, and total privacy for your files. We even added a Privacy Ledger directly in the app settings so you can verify that zero bytes of your media are ever transmitted over the network.',
+    lastUpdated: 'Last Updated: July 10, 2026'
   },
   howItWorks: {
     title: 'How It Works (Real App Flow)',
     step1Title: '1. Select Video',
     step1Desc: 'Pick any MP4 or video file straight from your gallery or local file manager.',
+    step1Badge: 'Select Video Screen',
     step2Title: '2. Choose Format',
     step2Desc: 'Select WAV, MP3, AAC, FLAC, M4A, or OGG. Set your preferred bitrate quality audio export (128, 192, 320 kbps).',
+    step2Badge: 'Extract Screen',
     step3Title: '3. Enable AI Noise Reduction',
     step3Desc: 'Optional: Toggle the Beta AI feature to clean up background static before extraction.',
+    step3Badge: 'Noise Reduction Screen',
     step4Title: '4. Extract & Trim',
-    step4Desc: 'Extract instantly. Use the Quick Trim feature to cut the audio, then find it in your Library history.'
+    step4Desc: 'Extract instantly. Use the Quick Trim feature to cut the audio, then find it in your Library history.',
+    step4Badge: 'Library & Trim'
   },
   features: {
     title: 'Engineered for Audio Fidelity',
@@ -275,6 +304,14 @@ export const enTranslations: TranslationDictionary = {
     privacyNotice: 'All conversions happen strictly on your device CPU. No audio or video data ever leaves your computer or phone.',
     rightsReserved: 'All rights reserved.',
     privacyPolicy: 'Privacy Policy',
-    termsOfService: 'Terms of Service'
+    termsOfService: 'Terms of Service',
+    readyTitle: 'Ready to Extract Audio Securely?',
+    downloadBtn: 'Download VidToAudio',
+    popularLabel: 'Popular Converters:',
+    matrixTitle: 'All Video to Audio Converters',
+    matrixSubtitle: 'Browse all 81 offline on-device audio extraction formats.',
+    matrixBadge: '81 Matrix Combinations',
+    disclaimer: 'Disclaimer',
+    contact: 'Contact Us'
   }
 };

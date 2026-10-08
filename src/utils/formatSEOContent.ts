@@ -10,8 +10,9 @@ interface FormatLocalizedText {
 
 interface FormatLocalizationBundle {
   en: FormatLocalizedText;
-  es: FormatLocalizedText;
-  fr: FormatLocalizedText;
+  es?: FormatLocalizedText;
+  fr?: FormatLocalizedText;
+  [key: string]: FormatLocalizedText | undefined;
 }
 
 const INPUT_FORMAT_DETAILS_I18N: Record<string, FormatLocalizationBundle> = {
@@ -36,6 +37,20 @@ const INPUT_FORMAT_DETAILS_I18N: Record<string, FormatLocalizationBundle> = {
       description: "Le conteneur MPEG-4 Partie 14 représente la norme mondiale absolue pour la diffusion vidéo sur smartphones, caméras et services de streaming. Les fichiers MP4 intègrent généralement de la vidéo haute définition avec des pistes audio AAC ou MP3.",
       typicalAudio: "Audio stéréo AAC-LC, HE-AAC ou MP3 à 44.1 kHz / 48 kHz",
       primaryUse: "Enregistrements vidéo du quotidien, réseaux sociaux, podcasts vidéo et captures d’écran mobiles"
+    },
+    de: {
+      fullName: "MPEG-4 Part 14 (MP4)",
+      category: "Universeller digitaler Videocontainer",
+      description: "Der MPEG-4 Part 14-Container ist der weltweite Standard für die digitale Videoverteilung auf Smartphones, Kameras und Streaming-Diensten. MP4-Dateien bündeln hochauflösendes Video mit AAC- oder MP3-Audiospuren.",
+      typicalAudio: "AAC-LC, HE-AAC oder MP3-Stereo-Audio bei 44,1 kHz / 48 kHz",
+      primaryUse: "Alltägliche Kameraaufnahmen, Social-Media-Clips, Video-Podcasts und Bildschirmaufnahmen"
+    },
+    it: {
+      fullName: "MPEG-4 Parte 14 (MP4)",
+      category: "Contenitore Video Digitale Universale",
+      description: "Il contenitore MPEG-4 Parte 14 è lo standard globale per la distribuzione di video digitali su smartphone, fotocamere e servizi di streaming. I file MP4 integrano video ad alta definizione con tracce audio AAC o MP3.",
+      typicalAudio: "Audio stereo AAC-LC, HE-AAC o MP3 a 44,1 kHz / 48 kHz",
+      primaryUse: "Registrazioni video quotidiane, clip social, podcast video e registrazioni dello schermo"
     }
   },
   hevc: {
@@ -59,6 +74,20 @@ const INPUT_FORMAT_DETAILS_I18N: Record<string, FormatLocalizationBundle> = {
       description: "La norme HEVC (H.265) assure une compression poussée conçue pour les captures 4K et 8K, caméras d’action (GoPro), drones (DJI) et smartphones récents. Extraire la piste audio supprime la lourde charge de décodage graphique.",
       typicalAudio: "AAC à haut débit, AC3 ou PCM linéaire non compressé",
       primaryUse: "Caméras sportives 4K, prises de vue par drone, vidéos mobiles cinématiques et flux UHD"
+    },
+    de: {
+      fullName: "High Efficiency Video Coding (HEVC / H.265)",
+      category: "Ultra-HD-Videocontainer der nächsten Generation",
+      description: "HEVC (H.265) bietet fortschrittliche Videokompression für 4K- und 8K-Aufnahmen, Action-Kameras (GoPro), Drohnen (DJI) und moderne Smartphones. Das Extrahieren der Tonspur beseitigt die rechenintensive Videodekodierung.",
+      typicalAudio: "High-Bitrate AAC, AC3 oder unkomprimiertes Linear-PCM",
+      primaryUse: "4K-Action-Kameras, Drohnenaufnahmen, Smartphone-Videos und UHD-Sendungen"
+    },
+    it: {
+      fullName: "High Efficiency Video Coding (HEVC / H.265)",
+      category: "Contenitore Video Ultra-HD di Nuova Generazione",
+      description: "HEVC (H.265) offre compressione video avanzata per riprese 4K e 8K, action cam e smartphone moderni. Estrarre l'audio rimuove il pesante carico di decodifica video.",
+      typicalAudio: "AAC ad alto bitrate, AC3 o PCM lineare non compresso",
+      primaryUse: "Action camera 4K, riprese da droni e video cinematografici su smartphone"
     }
   },
   mkv: {
@@ -82,6 +111,20 @@ const INPUT_FORMAT_DETAILS_I18N: Record<string, FormatLocalizationBundle> = {
       description: "Matroska (MKV) est un conteneur ouvert conçu pour regrouper un nombre illimité de flux vidéo, audio, sous-titres et métadonnées. Très populaire pour stocker du son surround multicanal ou des pistes musicales pures sans perte.",
       typicalAudio: "Flux multicanaux 5.1/7.1 AC3, DTS, FLAC ou Vorbis",
       primaryUse: "Archivage de films HD, diffusions multilingues et enregistrements de gameplay"
+    },
+    de: {
+      fullName: "Matroska Multimedia Container (MKV)",
+      category: "Flexibler Open-Source-Mediencontainer",
+      description: "Matroska (MKV) ist ein offener Standardcontainer, der unbegrenzte Video-, Audio- und Untertitelspuren in einer Datei speichert. Häufig genutzt für Mehrkanal-Surround-Sound oder verlustfreie Audio-Stems.",
+      typicalAudio: "Mehrkanal 5.1/7.1 AC3, DTS, FLAC oder Vorbis-Streams",
+      primaryUse: "HD-Filmarchivierung, mehrsprachige Ausstrahlungen und Gameplay-Aufnahmen"
+    },
+    it: {
+      fullName: "Contenitore Multimediale Matroska (MKV)",
+      category: "Contenitore Multimediale Flessibile Open Source",
+      description: "Matroska (MKV) è un formato aperto in grado di contenere un numero illimitato di tracce video, audio e sottotitoli in un unico file.",
+      typicalAudio: "Tracce multicanale 5.1/7.1 AC3, DTS, FLAC o Vorbis",
+      primaryUse: "Archiviazione film HD, trasmissioni multilingue e gameplay"
     }
   },
   mov: {
@@ -105,6 +148,20 @@ const INPUT_FORMAT_DETAILS_I18N: Record<string, FormatLocalizationBundle> = {
       description: "Le format MOV est l’architecture multimédia d’Apple utilisée nativement par les iPhone, iPad, Final Cut Pro et les workflows ProRes cinéma. Les fichiers MOV intègrent souvent un son brut de qualité studio.",
       typicalAudio: "PCM linéaire non compressé 16/24 bits ou audio studio AAC",
       primaryUse: "Vidéos 4K HDR iPhone, montages Final Cut Pro et rushes caméras professionnelles"
+    },
+    de: {
+      fullName: "Apple QuickTime Movie (MOV)",
+      category: "Professionelle Apple-Videoarchitektur",
+      description: "Der MOV-Container ist Apples native Multimedia-Architektur für iPhone, iPad, Final Cut Pro und ProRes-Workflows. MOV-Dateien enthalten oft unkomprimiertes Studio-Audio in makelloser Qualität.",
+      typicalAudio: "Unkomprimiertes 16-Bit / 24-Bit Linear-PCM oder Studio-AAC",
+      primaryUse: "iPhone 4K HDR-Videos, Final Cut Pro-Projekte und DSLR-Produktionen"
+    },
+    it: {
+      fullName: "Apple QuickTime Movie (MOV)",
+      category: "Architettura Video Professionale Apple",
+      description: "Il formato MOV è l'architettura nativa di Apple per iPhone, iPad e flussi ProRes. Include spesso audio non compresso da studio.",
+      typicalAudio: "PCM lineare non compresso a 16/24 bit o audio studio AAC",
+      primaryUse: "Video 4K iPhone, montaggi Final Cut Pro e produzioni DSLR"
     }
   },
   webm: {
@@ -128,6 +185,20 @@ const INPUT_FORMAT_DETAILS_I18N: Record<string, FormatLocalizationBundle> = {
       description: "WebM est un conteneur open source soutenu par Google, conçu pour la diffusion vidéo fluide en HTML5 avec un son haute fidélité à faible latence.",
       typicalAudio: "Audio natif Opus ou Vorbis échantillonné à 48 kHz",
       primaryUse: "Captures de navigateur web HTML5, flux YouTube, partages d’écran Discord et applications web"
+    },
+    de: {
+      fullName: "WebM-Mediencontainer (VP8 / VP9 / AV1)",
+      category: "Offenes lizenzfreies HTML5-Webmedium",
+      description: "WebM ist ein von Google unterstützter Open-Source-Container für effizientes HTML5-Streaming mit latenzarmen, hochauflösenden Audioströmen.",
+      typicalAudio: "Natives Opus- oder Vorbis-Audio bei 48 kHz",
+      primaryUse: "HTML5-Browser-Aufnahmen, YouTube-Streams und Webanwendungen"
+    },
+    it: {
+      fullName: "Contenitore Multimediale WebM (VP8 / VP9 / AV1)",
+      category: "Video Web HTML5 Open Source",
+      description: "WebM è un formato aperto supportato da Google pensato per lo streaming HTML5 fluido con audio ad alta fedeltà.",
+      typicalAudio: "Audio nativo Opus o Vorbis campionato a 48 kHz",
+      primaryUse: "Catture browser HTML5, video YouTube e app web"
     }
   },
   avi: {
@@ -246,6 +317,20 @@ const OUTPUT_FORMAT_DETAILS_I18N: Record<string, FormatLocalizationBundle> = {
       description: "Le MP3 est la norme absolue de l’audio grand public, garantissant une compatibilité native à 100% avec les smartphones, autoradios et ordinateurs.",
       typicalAudio: "Débit constant (CBR) jusqu’à 320 kbps à 44.1 kHz / 48 kHz",
       primaryUse: "Écoute nomade de musique, diffusion de podcasts, mémos vocaux et transcriptions"
+    },
+    de: {
+      fullName: "MPEG-1 Audio Layer III (MP3)",
+      category: "Universell komprimiertes Audioformat",
+      description: "MP3 ist der weltweite Standard für digitales Audio mit 100 % Kompatibilität auf modernen Smartphones, Autoradios und Betriebssystemen.",
+      typicalAudio: "Konstante Bitrate (CBR) bis 320 kbps bei 44,1 kHz / 48 kHz",
+      primaryUse: "Tragbare Musikwiedergabe, Podcasts, Sprachnotizen und Transkripte"
+    },
+    it: {
+      fullName: "MPEG-1 Audio Layer III (MP3)",
+      category: "Audio Digitale Compresso Universale",
+      description: "MP3 è lo standard universale per l'audio digitale, con compatibilità al 100% su smartphone, sistemi auto e computer.",
+      typicalAudio: "Bitrate costante (CBR) fino a 320 kbps a 44,1 kHz / 48 kHz",
+      primaryUse: "Ascolto musicale portatile, podcast, memo vocali e trascrizioni"
     }
   },
   wav: {
@@ -269,6 +354,20 @@ const OUTPUT_FORMAT_DETAILS_I18N: Record<string, FormatLocalizationBundle> = {
       description: "Le format WAV est la référence sans compression des studios et stations DAW professionnelles, garantissant une reproduction acoustique mathématiquement parfaite.",
       typicalAudio: "PCM linéaire non compressé 16/24 bits jusqu’à 96 kHz",
       primaryUse: "Montage audio DAW, mastering en studio, diffusion broadcast et analyse acoustique"
+    },
+    de: {
+      fullName: "Waveform Audio File Format (WAV / PCM)",
+      category: "Verlustfreies Studio-Linear-PCM-Audio",
+      description: "WAV ist der unkomprimierte Studio-Standard für Musikproduktion, Rundfunk und DAWs mit mathematisch perfekter Klangtreue ohne Kompressionsverluste.",
+      typicalAudio: "Unkomprimiertes 16-Bit / 24-Bit Linear-PCM bis zu 96 kHz",
+      primaryUse: "DAW-Audiobearbeitung, Studio-Mastering und akustische Analyse"
+    },
+    it: {
+      fullName: "Waveform Audio File Format (WAV / PCM)",
+      category: "Audio PCM Lineare Senza Perdita di Qualità Studio",
+      description: "WAV è lo standard da studio non compresso per produzione musicale e DAW professionali, conservando una fedeltà perfetta.",
+      typicalAudio: "PCM lineare non compresso a 16/24 bit fino a 96 kHz",
+      primaryUse: "Editing audio DAW, mastering in studio e analisi vocale"
     }
   },
   aac: {
@@ -444,13 +543,17 @@ export function generateFormatArticle(inExt: string, outExt: string, lang: Suppo
   const inBundle = INPUT_FORMAT_DETAILS_I18N[normIn] || {
     en: { fullName: `${normIn.toUpperCase()} Video`, category: "Digital Video Container", description: `The ${normIn.toUpperCase()} video format packages visual frames with audio.`, typicalAudio: "Standard audio", primaryUse: "General video playback" },
     es: { fullName: `Vídeo ${normIn.toUpperCase()}`, category: "Contenedor de Vídeo Digital", description: `El formato ${normIn.toUpperCase()} integra fotogramas visuales con audio.`, typicalAudio: "Audio estándar", primaryUse: "Reproducción de vídeo general" },
-    fr: { fullName: `Vidéo ${normIn.toUpperCase()}`, category: "Conteneur Vidéo Numérique", description: `Le format ${normIn.toUpperCase()} regroupe des images et de l'audio.`, typicalAudio: "Audio standard", primaryUse: "Lecture vidéo générale" }
+    fr: { fullName: `Vidéo ${normIn.toUpperCase()}`, category: "Conteneur Vidéo Numérique", description: `Le format ${normIn.toUpperCase()} regroupe des images et de l'audio.`, typicalAudio: "Audio standard", primaryUse: "Lecture vidéo générale" },
+    de: { fullName: `${normIn.toUpperCase()}-Video`, category: "Digitaler Videocontainer", description: `Das ${normIn.toUpperCase()}-Format bündelt Bildframes mit Audio.`, typicalAudio: "Standard-Audio", primaryUse: "Allgemeine Videowiedergabe" },
+    it: { fullName: `Video ${normIn.toUpperCase()}`, category: "Contenitore Video Digitale", description: `Il formato ${normIn.toUpperCase()} integra immagini e audio.`, typicalAudio: "Audio standard", primaryUse: "Riproduzione video generale" }
   };
 
   const outBundle = OUTPUT_FORMAT_DETAILS_I18N[normOut] || {
     en: { fullName: `${normOut.toUpperCase()} Audio`, category: "Digital Audio Format", description: `The ${normOut.toUpperCase()} format is optimized for audio playback.`, typicalAudio: "Digital audio", primaryUse: "Music listening" },
     es: { fullName: `Audio ${normOut.toUpperCase()}`, category: "Formato de Audio Digital", description: `El formato ${normOut.toUpperCase()} está optimizado para reproducción sonora.`, typicalAudio: "Audio digital", primaryUse: "Escucha musical" },
-    fr: { fullName: `Audio ${normOut.toUpperCase()}`, category: "Format Audio Numérique", description: `Le format ${normOut.toUpperCase()} est optimisé pour l'écoute sonore.`, typicalAudio: "Audio numérique", primaryUse: "Écoute musicale" }
+    fr: { fullName: `Audio ${normOut.toUpperCase()}`, category: "Format Audio Numérique", description: `Le format ${normOut.toUpperCase()} est optimisé pour l'écoute sonore.`, typicalAudio: "Audio numérique", primaryUse: "Écoute musicale" },
+    de: { fullName: `${normOut.toUpperCase()}-Audio`, category: "Digitales Audioformat", description: `Das ${normOut.toUpperCase()}-Format ist für die Audiowiedergabe optimiert.`, typicalAudio: "Digitales Audio", primaryUse: "Musikwiedergabe" },
+    it: { fullName: `Audio ${normOut.toUpperCase()}`, category: "Formato Audio Digitale", description: `Il formato ${normOut.toUpperCase()} è ottimizzato per l'ascolto sonoro.`, typicalAudio: "Audio digitale", primaryUse: "Ascolto musicale" }
   };
 
   const inDetails = inBundle[lang] || inBundle.en;
@@ -460,171 +563,178 @@ export function generateFormatArticle(inExt: string, outExt: string, lang: Suppo
   const outUpper = normOut.toUpperCase();
   const isLossless = ['wav', 'flac', 'aiff'].includes(normOut);
 
-  if (lang === 'es') {
-    const audioFidelityNote = isLossless
-      ? `Dado que ${outUpper} es un estándar sin compresión, cada detalle acústico, reverberación armónica y frecuencia vocal de tu vídeo ${inUpper} se conserva con cero pérdidas de compresión.`
-      : `Al exportar a ${outUpper} con hasta 320 kbps, logras un sonido de nivel de estudio con agudos cristalinos y graves profundos reduciendo el tamaño hasta un 90% comparado con el vídeo original.`;
+  const articleI18n: Record<string, {
+    badge: string;
+    subBadge: string;
+    title: string;
+    p1: string;
+    p2: string;
+    p3: string;
+    cardInputLabel: string;
+    cardTargetLabel: string;
+    cardEngineLabel: string;
+    cardPrivacyLabel: string;
+    cardPrivacyVal: string;
+    cardPrivacySub: string;
+    losslessText: string;
+    lossyText: string;
+    clientSideText: string;
+  }> = {
+    de: {
+      badge: "Technische Spezifikation & Leitfaden",
+      subBadge: `${inUpper}-zu-${outUpper}-Audiokonvertierung`,
+      title: `So extrahieren Sie ${outUpper}-Audio aus ${inUpper}-Videodateien online`,
+      p1: `Die Konvertierung von <strong class="text-white font-medium">${inDetails.fullName}</strong>-Video in <strong class="text-white font-medium">${outDetails.fullName}</strong> ist die effizienteste Methode, um Tonspuren, Dialoge und Gesang ohne gigabyteschwere Videodateien zu extrahieren. ${inDetails.description} Durch das Isolieren des Audiostreams erhalten Sie eine kompakte Audiodatei, die perfekt für ${outDetails.primaryUse.toLowerCase()} geeignet ist.`,
+      p2: `Die Wahl von <strong class="text-brand-400 font-medium">${outUpper}</strong> als Zielformat bietet deutliche Vorteile. ${outDetails.description} ${
+        isLossless
+          ? `Da ${outUpper} ein unkomprimiertes verlustfreies Format ist, bleibt jedes akustische Detail, jede Raumresonanz und harmonische Obertone Ihrer ${inUpper}-Videodatei ohne Kompressionsverlust erhalten.`
+          : `Durch den Export nach ${outUpper} mit bis zu 320 kbps erzielen Sie Klang auf Studioniveau mit glasklaren Höhen und tiefen Bässen bei einer Reduzierung der Dateigröße um bis zu 90 % gegenüber dem Originalvideo.`
+      } Ob für Podcast-Bearbeitung, Musik im Auto oder Sprachtranskription: ${outUpper} bietet die optimale Balance aus Klangtreue und universeller Kompatibilität.`,
+      p3: `Im Gegensatz zu Cloud-Konvertern, bei denen Sie private <strong class="text-slate-200 font-medium">${inUpper}</strong>-Videodateien auf externe Server hochladen müssen, läuft VidToAudio zu 100 % lokal auf der CPU Ihres Geräts über FFmpeg WebAssembly. Ihre Mediendateien verlassen niemals Ihren Browser: keine mobilen Datenübertragungen, keine Wartezeiten und garantierte Privatsphäre.`,
+      cardInputLabel: "Eingabe-Container",
+      cardTargetLabel: "Ziel-Audio",
+      cardEngineLabel: "Verarbeitungs-Engine",
+      cardPrivacyLabel: "Datenschutz",
+      cardPrivacyVal: "Keine Uploads",
+      cardPrivacySub: "Nur lokale Geräte-CPU",
+      losslessText: "Verlustfreies PCM",
+      lossyText: "Bis zu 320 kbps",
+      clientSideText: "100 % im Browser"
+    },
+    it: {
+      badge: "Specifiche Tecniche e Guida",
+      subBadge: `Conversione Audio da ${inUpper} a ${outUpper}`,
+      title: `Come Estrarre Audio ${outUpper} da File Video ${inUpper} Online`,
+      p1: `Convertire video <strong class="text-white font-medium">${inDetails.fullName}</strong> in <strong class="text-white font-medium">${outDetails.fullName}</strong> è il metodo più rapido per estrarre colonne sonore, dialoghi e voci senza appesantire il dispositivo con gigabyte di video. ${inDetails.description} Isolando il flusso audio, ottieni un file compatto perfetto per ${outDetails.primaryUse.toLowerCase()}.`,
+      p2: `Scegliere <strong class="text-brand-400 font-medium">${outUpper}</strong> come formato di destinazione offre vantaggi evidenti. ${outDetails.description} ${
+        isLossless
+          ? `Poiché ${outUpper} è un formato non compresso senza perdite, ogni dettaglio acustico, riverbero e armonica del tuo video ${inUpper} viene preservato senza compressione distruttiva.`
+          : `Esportando in ${outUpper} fino a 320 kbps, ottieni una resa audio da studio con alti definiti e bassi profondi, riducendo le dimensioni del file fino al 90% rispetto al video d'origine.`
+      } Che tu stia preparando audio per podcast, riproduzione in auto o trascrizione vocale, ${outUpper} offre il perfetto equilibrio tra qualità acustica e compatibilità.`,
+      p3: `A differenza dei convertitori cloud che richiedono di caricare video privati su server remoti, VidToAudio funziona al 100% in locale nel browser tramite WebAssembly. I tuoi file non lasciano mai il dispositivo: zero consumo dati e totale privacy.`,
+      cardInputLabel: "Contenitore Input",
+      cardTargetLabel: "Audio Target",
+      cardEngineLabel: "Motore di Calcolo",
+      cardPrivacyLabel: "Privacy Dati",
+      cardPrivacyVal: "Zero Caricamenti",
+      cardPrivacySub: "Solo CPU Dispositivo",
+      losslessText: "PCM Senza Perdite",
+      lossyText: "Fino a 320 kbps",
+      clientSideText: "100% nel Browser"
+    },
+    es: {
+      badge: "Especificación Técnica y Guía",
+      subBadge: `Conversión de Audio de ${inUpper} a ${outUpper}`,
+      title: `Cómo Extraer Audio ${outUpper} de Archivos de Vídeo ${inUpper} en Línea`,
+      p1: `Convertir vídeo <strong class="text-white font-medium">${inDetails.fullName}</strong> en <strong class="text-white font-medium">${outDetails.fullName}</strong> es el método más eficiente para extraer pistas musicales, diálogos y voces sin cargar con gigabytes innecesarios de vídeo. ${inDetails.description} Al aislar el flujo de audio, obtienes un archivo sonoro ligero perfectamente adaptado para ${outDetails.primaryUse.toLowerCase()}.`,
+      p2: `Elegir <strong class="text-brand-400 font-medium">${outUpper}</strong> como tu formato de destino ofrece claras ventajas. ${outDetails.description} ${
+        isLossless
+          ? `Dado que ${outUpper} es un estándar sin compresión, cada detalle acústico, reverberación armónica y frecuencia vocal de tu vídeo ${inUpper} se conserva con cero pérdidas de compresión.`
+          : `Al exportar a ${outUpper} con hasta 320 kbps, logras un sonido de nivel de estudio con agudos cristalinos y graves profundos reduciendo el tamaño hasta un 90% comparado con el vídeo original.`
+      } Ya sea para edición de podcast, escucha en el coche o transcripción de voz, ${outUpper} ofrece el balance ideal entre fidelidad y compatibilidad universal.`,
+      p3: `A diferencia de los convertidores en la nube que te obligan a subir archivos privados de vídeo <strong class="text-slate-200 font-medium">${inUpper}</strong> a servidores remotos, VidToAudio funciona 100% de manera local en el procesador de tu dispositivo mediante FFmpeg WebAssembly. Tus archivos jamás abandonan tu navegador: cero consumo de datos móviles, cero tiempos de espera y privacidad garantizada.`,
+      cardInputLabel: "Contenedor Entrada",
+      cardTargetLabel: "Audio Destino",
+      cardEngineLabel: "Motor de Cómputo",
+      cardPrivacyLabel: "Privacidad",
+      cardPrivacyVal: "Sin Subidas",
+      cardPrivacySub: "CPU Local Únicamente",
+      losslessText: "PCM Sin Pérdida",
+      lossyText: "Hasta 320 kbps",
+      clientSideText: "100% en Navegador"
+    },
+    fr: {
+      badge: "Spécification Technique et Guide",
+      subBadge: `Conversion Audio de ${inUpper} vers ${outUpper}`,
+      title: `Comment Extraire l’Audio ${outUpper} à Partir de Fichiers Vidéo ${inUpper} en Ligne`,
+      p1: `Convertir une vidéo <strong class="text-white font-medium">${inDetails.fullName}</strong> en <strong class="text-white font-medium">${outDetails.fullName}</strong> est la solution la plus performante pour isoler des musiques, dialogues ou voix-off sans conserver des gigaoctets vidéo encombrants. ${inDetails.description} L’extraction audio isole le contenu sonore dans un fichier léger idéalement calibré pour ${outDetails.primaryUse.toLowerCase()}.`,
+      p2: `Sélectionner <strong class="text-brand-400 font-medium">${outUpper}</strong> comme format cible offre des atouts majeurs. ${outDetails.description} ${
+        isLossless
+          ? `Puisque ${outUpper} est un format sans compression, chaque nuance acoustique, réverbération harmonique et dynamique vocale de votre vidéo ${inUpper} est restituée avec zéro perte de compression.`
+          : `En exportant vers ${outUpper} jusqu'à 320 kbps, vous profitez d'une fidélité studio avec des aigus cristallins et des graves profonds tout en diminuant le poids du fichier jusqu'à 90% par rapport à la vidéo source.`
+      } Que vous prépariez un podcast, une écoute en voiture ou une transcription texte, ${outUpper} allie harmonieusement pureté acoustique et compatibilité d’écoute universelle.`,
+      p3: `Contrairement aux services cloud qui vous forcent à transférer vos vidéos privées <strong class="text-slate-200 font-medium">${inUpper}</strong> vers des serveurs distants, VidToAudio opère à 100% sur le processeur de votre appareil via FFmpeg WebAssembly. Vos données ne quittent jamais votre navigateur : zéro consommation de données mobiles, réactivité immédiate et confidentialité absolue.`,
+      cardInputLabel: "Conteneur Vidéo",
+      cardTargetLabel: "Audio Cible",
+      cardEngineLabel: "Moteur de Traitement",
+      cardPrivacyLabel: "Confidentialité",
+      cardPrivacyVal: "Zéro Upload",
+      cardPrivacySub: "Calcul Local Uniquement",
+      losslessText: "PCM Sans Perte",
+      lossyText: "Jusqu’à 320 kbps",
+      clientSideText: "100% Côté Navigateur"
+    },
+    en: {
+      badge: "Technical Specification & Guide",
+      subBadge: `${inUpper} to ${outUpper} Audio Conversion`,
+      title: `How to Extract ${outUpper} Audio from ${inUpper} Video Files Online`,
+      p1: `Converting <strong class="text-white font-medium">${inDetails.fullName}</strong> video into <strong class="text-white font-medium">${outDetails.fullName}</strong> is the most efficient method to extract sound tracks, speech dialogues, musical performances, or voiceovers without carrying gigabytes of video weight. ${inDetails.description} By extracting the audio stream, you isolate the acoustic content into a nimble audio file perfectly formatted for ${outDetails.primaryUse.toLowerCase()}.`,
+      p2: `Choosing <strong class="text-brand-400 font-medium">${outUpper}</strong> as your export format provides distinct advantages. ${outDetails.description} ${
+        isLossless
+          ? `Because ${outUpper} is an uncompressed lossless format, every subtle acoustic detail, room reverberation, and frequency harmonic from your ${inUpper} video is preserved with zero compression loss.`
+          : `By exporting to ${outUpper} at up to 320 kbps, you achieve studio-quality sound with crisp highs and deep bass while reducing file size by up to 90% compared to the source video.`
+      } Whether you are preparing audio for podcast editing, car stereo listening, speech-to-text transcription, or DAW mastering, ${outUpper} delivers the perfect blend of fidelity and playback compatibility.`,
+      p3: `Unlike cloud converter websites that force you to upload private <strong class="text-slate-200 font-medium">${inUpper}</strong> video files to remote servers, VidToAudio operates 100% locally on your device hardware using FFmpeg WebAssembly. Your media never leaves your browser sandbox. Conversions execute with zero network latency, zero mobile data consumption, and absolute privacy for your personal or commercial recordings.`,
+      cardInputLabel: "Input Container",
+      cardTargetLabel: "Target Audio",
+      cardEngineLabel: "Processing Engine",
+      cardPrivacyLabel: "Data Privacy",
+      cardPrivacyVal: "Zero Uploads",
+      cardPrivacySub: "Device CPU Only",
+      losslessText: "Lossless PCM",
+      lossyText: "Up to 320 kbps",
+      clientSideText: "100% Client-Side"
+    }
+  };
 
-    return `
-      <div class="bg-dark-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl relative overflow-hidden text-left">
-        <div class="flex flex-wrap items-center gap-2 mb-4">
-          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-brand-950 text-brand-400 border border-brand-800/60">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-            Especificación Técnica y Guía
-          </span>
-          <span class="text-xs text-slate-500 font-mono">Conversión de Audio de ${inUpper} a ${outUpper}</span>
-        </div>
-
-        <h2 class="text-xl sm:text-2xl font-bold text-white mb-4 tracking-tight">
-          Cómo Extraer Audio ${outUpper} de Archivos de Vídeo ${inUpper} Sin Conexión
-        </h2>
-
-        <p class="text-slate-300 leading-relaxed text-sm sm:text-base mb-4">
-          Convertir vídeo <strong class="text-white font-medium">${inDetails.fullName}</strong> en <strong class="text-white font-medium">${outDetails.fullName}</strong> es el método más eficiente para extraer pistas musicales, diálogos y voces sin cargar con gigabytes innecesarios de vídeo. ${inDetails.description} Al aislar el flujo de audio, obtienes un archivo sonoro ligero perfectamente adaptado para ${outDetails.primaryUse.toLowerCase()}.
-        </p>
-
-        <p class="text-slate-300 leading-relaxed text-sm sm:text-base mb-4">
-          Elegir <strong class="text-brand-400 font-medium">${outUpper}</strong> como tu formato de destino ofrece claras ventajas. ${outDetails.description} ${audioFidelityNote} Ya sea para edición de podcast, escucha en el coche o transcripción de voz, ${outUpper} ofrece el balance ideal entre fidelidad y compatibilidad universal.
-        </p>
-
-        <p class="text-slate-300 leading-relaxed text-sm sm:text-base mb-6">
-          A diferencia de los convertidores en la nube que te obligan a subir archivos privados de vídeo <strong class="text-slate-200 font-medium">${inUpper}</strong> a servidores remotos, VidToAudio funciona 100% de manera local en el procesador de tu dispositivo mediante FFmpeg WebAssembly. Tus archivos jamás abandonan tu navegador: cero consumo de datos móviles, cero tiempos de espera y privacidad garantizada.
-        </p>
-
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-5 border-t border-slate-800/80 text-xs">
-          <div class="bg-dark-800/60 p-3 rounded-xl border border-slate-800">
-            <span class="text-slate-500 block text-[11px] uppercase tracking-wider mb-0.5">Contenedor Entrada</span>
-            <span class="text-white font-semibold font-mono">${inUpper}</span>
-            <span class="text-slate-400 block text-[11px] truncate mt-0.5">${inDetails.category}</span>
-          </div>
-          <div class="bg-dark-800/60 p-3 rounded-xl border border-slate-800">
-            <span class="text-slate-500 block text-[11px] uppercase tracking-wider mb-0.5">Audio Destino</span>
-            <span class="text-brand-400 font-semibold font-mono">${outUpper}</span>
-            <span class="text-slate-400 block text-[11px] truncate mt-0.5">${isLossless ? 'PCM Sin Pérdida' : 'Hasta 320 kbps'}</span>
-          </div>
-          <div class="bg-dark-800/60 p-3 rounded-xl border border-slate-800">
-            <span class="text-slate-500 block text-[11px] uppercase tracking-wider mb-0.5">Motor de Cómputo</span>
-            <span class="text-white font-semibold font-mono">WebAssembly</span>
-            <span class="text-slate-400 block text-[11px] truncate mt-0.5">100% en Navegador</span>
-          </div>
-          <div class="bg-dark-800/60 p-3 rounded-xl border border-slate-800">
-            <span class="text-slate-500 block text-[11px] uppercase tracking-wider mb-0.5">Privacidad</span>
-            <span class="text-emerald-400 font-semibold font-mono">Sin Subidas</span>
-            <span class="text-slate-400 block text-[11px] truncate mt-0.5">CPU Local Únicamente</span>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  if (lang === 'fr') {
-    const audioFidelityNote = isLossless
-      ? `Puisque ${outUpper} est un format sans compression, chaque nuance acoustique, réverbération harmonique et dynamique vocale de votre vidéo ${inUpper} est restituée avec zéro perte de compression.`
-      : `En exportant vers ${outUpper} jusqu'à 320 kbps, vous profitez d'une fidélité studio avec des aigus cristallins et des graves profonds tout en diminuant le poids du fichier jusqu'à 90% par rapport à la vidéo source.`;
-
-    return `
-      <div class="bg-dark-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl relative overflow-hidden text-left">
-        <div class="flex flex-wrap items-center gap-2 mb-4">
-          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-brand-950 text-brand-400 border border-brand-800/60">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-            Spécification Technique et Guide
-          </span>
-          <span class="text-xs text-slate-500 font-mono">Conversion Audio de ${inUpper} vers ${outUpper}</span>
-        </div>
-
-        <h2 class="text-xl sm:text-2xl font-bold text-white mb-4 tracking-tight">
-          Comment Extraire l’Audio ${outUpper} à Partir de Fichiers Vidéo ${inUpper} Hors Ligne
-        </h2>
-
-        <p class="text-slate-300 leading-relaxed text-sm sm:text-base mb-4">
-          Convertir une vidéo <strong class="text-white font-medium">${inDetails.fullName}</strong> en <strong class="text-white font-medium">${outDetails.fullName}</strong> est la solution la plus performante pour isoler des musiques, dialogues ou voix-off sans conserver des gigaoctets vidéo encombrants. ${inDetails.description} L’extraction audio isole le contenu sonore dans un fichier léger idéalement calibré pour ${outDetails.primaryUse.toLowerCase()}.
-        </p>
-
-        <p class="text-slate-300 leading-relaxed text-sm sm:text-base mb-4">
-          Sélectionner <strong class="text-brand-400 font-medium">${outUpper}</strong> comme format cible offre des atouts majeurs. ${outDetails.description} ${audioFidelityNote} Que vous prépariez un podcast, une écoute en voiture ou une transcription texte, ${outUpper} allie harmonieusement pureté acoustique et compatibilité d’écoute universelle.
-        </p>
-
-        <p class="text-slate-300 leading-relaxed text-sm sm:text-base mb-6">
-          Contrairement aux services cloud qui vous forcent à transférer vos vidéos privées <strong class="text-slate-200 font-medium">${inUpper}</strong> vers des serveurs distants, VidToAudio opère à 100% sur le processeur de votre appareil via FFmpeg WebAssembly. Vos données ne quittent jamais votre navigateur : zéro consommation de données mobiles, réactivité immédiate et confidentialité absolue.
-        </p>
-
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-5 border-t border-slate-800/80 text-xs">
-          <div class="bg-dark-800/60 p-3 rounded-xl border border-slate-800">
-            <span class="text-slate-500 block text-[11px] uppercase tracking-wider mb-0.5">Conteneur Vidéo</span>
-            <span class="text-white font-semibold font-mono">${inUpper}</span>
-            <span class="text-slate-400 block text-[11px] truncate mt-0.5">${inDetails.category}</span>
-          </div>
-          <div class="bg-dark-800/60 p-3 rounded-xl border border-slate-800">
-            <span class="text-slate-500 block text-[11px] uppercase tracking-wider mb-0.5">Audio Cible</span>
-            <span class="text-brand-400 font-semibold font-mono">${outUpper}</span>
-            <span class="text-slate-400 block text-[11px] truncate mt-0.5">${isLossless ? 'PCM Sans Perte' : 'Jusqu’à 320 kbps'}</span>
-          </div>
-          <div class="bg-dark-800/60 p-3 rounded-xl border border-slate-800">
-            <span class="text-slate-500 block text-[11px] uppercase tracking-wider mb-0.5">Moteur de Traitement</span>
-            <span class="text-white font-semibold font-mono">WebAssembly</span>
-            <span class="text-slate-400 block text-[11px] truncate mt-0.5">100% Côté Navigateur</span>
-          </div>
-          <div class="bg-dark-800/60 p-3 rounded-xl border border-slate-800">
-            <span class="text-slate-500 block text-[11px] uppercase tracking-wider mb-0.5">Confidentialité</span>
-            <span class="text-emerald-400 font-semibold font-mono">Zéro Upload</span>
-            <span class="text-slate-400 block text-[11px] truncate mt-0.5">Calcul Local Uniquement</span>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  // English fallback default
-  const audioFidelityNote = isLossless
-    ? `Because ${outUpper} is an uncompressed lossless format, every subtle acoustic detail, room reverberation, and frequency harmonic from your ${inUpper} video is preserved with zero compression loss.`
-    : `By exporting to ${outUpper} at up to 320 kbps, you achieve studio-quality sound with crisp highs and deep bass while reducing file size by up to 90% compared to the source video.`;
+  const copy = articleI18n[lang] || articleI18n.en;
 
   return `
     <div class="bg-dark-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl relative overflow-hidden text-left">
       <div class="flex flex-wrap items-center gap-2 mb-4">
         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-brand-950 text-brand-400 border border-brand-800/60">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-          Technical Specification & Guide
+          ${copy.badge}
         </span>
-        <span class="text-xs text-slate-500 font-mono">${inUpper} to ${outUpper} Audio Conversion</span>
+        <span class="text-xs text-slate-500 font-mono">${copy.subBadge}</span>
       </div>
 
       <h2 class="text-xl sm:text-2xl font-bold text-white mb-4 tracking-tight">
-        How to Extract ${outUpper} Audio from ${inUpper} Video Files Offline
+        ${copy.title}
       </h2>
 
       <p class="text-slate-300 leading-relaxed text-sm sm:text-base mb-4">
-        Converting <strong class="text-white font-medium">${inDetails.fullName}</strong> video into <strong class="text-white font-medium">${outDetails.fullName}</strong> is the most efficient method to extract sound tracks, speech dialogues, musical performances, or voiceovers without carrying gigabytes of video weight. ${inDetails.description} By extracting the audio stream, you isolate the acoustic content into a nimble audio file perfectly formatted for ${outDetails.primaryUse.toLowerCase()}.
+        ${copy.p1}
       </p>
 
       <p class="text-slate-300 leading-relaxed text-sm sm:text-base mb-4">
-        Choosing <strong class="text-brand-400 font-medium">${outUpper}</strong> as your export format provides distinct advantages. ${outDetails.description} ${audioFidelityNote} Whether you are preparing audio for podcast editing, car stereo listening, speech-to-text transcription, or DAW mastering, ${outUpper} delivers the perfect blend of fidelity and playback compatibility.
+        ${copy.p2}
       </p>
 
       <p class="text-slate-300 leading-relaxed text-sm sm:text-base mb-6">
-        Unlike cloud converter websites that force you to upload private <strong class="text-slate-200 font-medium">${inUpper}</strong> video files to remote servers, VidToAudio operates 100% locally on your device hardware using FFmpeg WebAssembly. Your media never leaves your browser sandbox. Conversions execute with zero network latency, zero mobile data consumption, and absolute privacy for your personal or commercial recordings.
+        ${copy.p3}
       </p>
 
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-5 border-t border-slate-800/80 text-xs">
         <div class="bg-dark-800/60 p-3 rounded-xl border border-slate-800">
-          <span class="text-slate-500 block text-[11px] uppercase tracking-wider mb-0.5">Input Container</span>
+          <span class="text-slate-500 block text-[11px] uppercase tracking-wider mb-0.5">${copy.cardInputLabel}</span>
           <span class="text-white font-semibold font-mono">${inUpper}</span>
           <span class="text-slate-400 block text-[11px] truncate mt-0.5">${inDetails.category}</span>
         </div>
         <div class="bg-dark-800/60 p-3 rounded-xl border border-slate-800">
-          <span class="text-slate-500 block text-[11px] uppercase tracking-wider mb-0.5">Target Audio</span>
+          <span class="text-slate-500 block text-[11px] uppercase tracking-wider mb-0.5">${copy.cardTargetLabel}</span>
           <span class="text-brand-400 font-semibold font-mono">${outUpper}</span>
-          <span class="text-slate-400 block text-[11px] truncate mt-0.5">${isLossless ? 'Lossless PCM' : 'Up to 320 kbps'}</span>
+          <span class="text-slate-400 block text-[11px] truncate mt-0.5">${isLossless ? copy.losslessText : copy.lossyText}</span>
         </div>
         <div class="bg-dark-800/60 p-3 rounded-xl border border-slate-800">
-          <span class="text-slate-500 block text-[11px] uppercase tracking-wider mb-0.5">Processing Engine</span>
+          <span class="text-slate-500 block text-[11px] uppercase tracking-wider mb-0.5">${copy.cardEngineLabel}</span>
           <span class="text-white font-semibold font-mono">WebAssembly</span>
-          <span class="text-slate-400 block text-[11px] truncate mt-0.5">100% Client-Side</span>
+          <span class="text-slate-400 block text-[11px] truncate mt-0.5">${copy.clientSideText}</span>
         </div>
         <div class="bg-dark-800/60 p-3 rounded-xl border border-slate-800">
-          <span class="text-slate-500 block text-[11px] uppercase tracking-wider mb-0.5">Data Privacy</span>
-          <span class="text-emerald-400 font-semibold font-mono">Zero Uploads</span>
-          <span class="text-slate-400 block text-[11px] truncate mt-0.5">Device CPU Only</span>
+          <span class="text-slate-500 block text-[11px] uppercase tracking-wider mb-0.5">${copy.cardPrivacyLabel}</span>
+          <span class="text-emerald-400 font-semibold font-mono">${copy.cardPrivacyVal}</span>
+          <span class="text-slate-400 block text-[11px] truncate mt-0.5">${copy.cardPrivacySub}</span>
         </div>
       </div>
     </div>
@@ -650,8 +760,8 @@ export function generateFormatFAQs(inExt: string, outExt: string, lang: Supporte
   const inBundle = INPUT_FORMAT_DETAILS_I18N[normIn];
   const outBundle = OUTPUT_FORMAT_DETAILS_I18N[normOut];
 
-  const inDetails = inBundle ? inBundle[lang] : { fullName: `${inUpper} Video`, primaryUse: "media playback" };
-  const outDetails = outBundle ? outBundle[lang] : { fullName: `${outUpper} Audio`, primaryUse: "audio listening" };
+  const inDetails = (inBundle ? (inBundle[lang] || inBundle.en) : null) || { fullName: `${inUpper} Video`, primaryUse: "media playback" };
+  const outDetails = (outBundle ? (outBundle[lang] || outBundle.en) : null) || { fullName: `${outUpper} Audio`, primaryUse: "audio listening" };
 
   if (lang === 'es') {
     return [
@@ -703,6 +813,33 @@ export function generateFormatFAQs(inExt: string, outExt: string, lang: Supporte
       {
         question: `Quels appareils et logiciels peuvent lire le fichier audio ${outUpper} extrait ?`,
         answer: `${outUpper} est optimisé pour ${outDetails.primaryUse.toLowerCase()}. Vous pouvez le lire immédiatement sur iOS, Android, macOS, Windows, l'écouter sur votre autoradio ou l'importer dans vos logiciels de montage audio et vidéo sans nécessiter de codec particulier.`
+      }
+    ];
+  }
+
+  if (lang === 'de') {
+    return [
+      {
+        question: `Wird durch die Extraktion von ${outUpper} aus ${inUpper} die Audioqualität verringert?`,
+        answer: isLossless
+          ? `${outUpper} ist ein verlustfreies Audioformat. Bei der Konvertierung von ${inUpper} (${inDetails.fullName}) zu ${outUpper} extrahiert unsere lokale WebAssembly-Engine den Audiostream bitgenau ohne verlustbehaftete Kompression. Jedes klangliche Detail bleibt zu 100 % erhalten.`
+          : `Es geht keine wahrnehmbare Audioqualität verloren. Die WebAssembly-Engine im Browser transkodiert das Audio aus ${inUpper} zu ${outUpper} (${outDetails.fullName}) mit hoher Bitrate von bis zu 320 kbps. Dies bewahrt glasklare Höhen und Stimmen, während die Dateigröße um bis zu 90 % sinkt.`
+      },
+      {
+        question: `Wie viel Speicherplatz spare ich bei der Konvertierung von ${inUpper} zu ${outUpper}?`,
+        answer: `Da ${inUpper}-Videos hochauflösende Bilddaten enthalten, machen Videodaten 85 % bis 95 % des gesamten Dateigewichts aus. Durch das Entfernen der Videospur schrumpft eine 500-MB-Datei auf ca. 12 bis 45 MB in ${outUpper}.`
+      },
+      {
+        question: `Wird meine ${inUpper}-Datei während der Konvertierung auf externe Server hochgeladen?`,
+        answer: `Nein, niemals. Im Gegensatz zu herkömmlichen Online-Konvertern verarbeitet VidToAudio alle Medien zu 100 % lokal auf der CPU Ihres Geräts via WebAssembly. Ihre ${inUpper}-Dateien verlassen Ihren Browser zu keinem Zeitpunkt.`
+      },
+      {
+        question: `Kann ich mehrere ${inUpper}-Dateien gleichzeitig als Stapel nach ${outUpper} konvertieren?`,
+        answer: `Ja, VidToAudio unterstützt native Stapel- und Batch-Verarbeitung. Sie können mehrere ${inUpper}-Dateien auswählen oder per Drag-and-Drop ablegen. Die Dateien werden nacheinander berechnet und können einzeln oder als ZIP heruntergeladen werden.`
+      },
+      {
+        question: `Auf welchen Geräten und Programmen kann die extrahierte ${outUpper}-Datei abgespielt werden?`,
+        answer: `${outUpper} ist universell kompatibel mit iOS, Android, macOS, Windows, Autoradios und professionellen Videoschnittprogrammen ohne zusätzliche Codecs.`
       }
     ];
   }

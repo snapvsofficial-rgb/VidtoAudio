@@ -2,16 +2,61 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Blogs collection: publicly readable, writable by authenticated admins
-    match /blogs/{blogId} {
-      allow read: if true;
-      allow write: if request.auth != null;
+    
+    // Admin check helper function
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.email == 'darksidetrueofficial@gmail.com' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
     }
 
-    // Config collection (SEO templates, format toggles): publicly readable, writable by authenticated admins
+    // Users collection: user can read and manage their own profile, admin has full access
+    match /users/{userId} {
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Reviews collection:
+    // - Approved reviews are readable by everyone (public)
+    // - Authenticated users can read their own pending/rejected reviews
+    // - Admins can read all reviews
+    // - Authenticated users can submit a review in 'pending' status
+    // - Only Admins can approve/reject/delete reviews
+    match /reviews/{reviewId} {
+      allow read: if resource.data.status == 'approved' || 
+                    (request.auth != null && (request.auth.uid == resource.data.userId || isAdmin()));
+      
+      allow create: if request.auth != null && 
+                      request.resource.data.userId == request.auth.uid &&
+                      request.resource.data.status == 'pending' &&
+                      request.resource.data.rating >= 1 &&
+                      request.resource.data.rating <= 5;
+
+      allow update: if isAdmin() || (
+        request.auth != null && 
+        request.auth.uid == resource.data.userId &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.userId == resource.data.userId
+      );
+
+      allow delete: if isAdmin();
+    }
+
+    // Blogs collection: publicly readable, writable by verified admins
+    match /blogs/{blogId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Config collection (SEO templates, format toggles): publicly readable, writable by verified admins
     match /config/{configId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if isAdmin();
     }
   }
 }
+

@@ -43,3 +43,31 @@ export interface SiteSettingsConfig {
   vercelDeployHook?: string;
   updatedAt?: any;
 }
+
+export type UserRole = 'admin' | 'user';
+
+export interface UserProfile {
+  uid: string;
+  email: string;
+  displayName: string;
+  role: UserRole;
+  createdAt?: any;
+  updatedAt?: any;
+}
+
+export type ReviewStatus = 'pending' | 'approved' | 'rejected';
+
+export interface UserReview {
+  id?: string;
+  slug: string;
+  inExt: string;
+  outExt: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  rating: number;
+  comment: string;
+  status: ReviewStatus;
+  createdAt?: any;
+  updatedAt?: any;
+}

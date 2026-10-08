@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "VidToAudio",
+  "description": "Fast, privacy-focused in-browser video-to-audio converter with zero server uploads.",
+  "url": "https://vidtoaudio.com",
+  "version": "1.0.4",
+  "categories": [
+    "utilities",
+    "audio-converter",
+    "multimedia"
+  ],
+  "capabilities": [
+    {
+      "id": "audio-extraction",
+      "name": "Audio Extraction",
+      "description": "Converts MP4, MKV, AVI, WEBM, MOV video files to MP3, WAV, AAC, FLAC, OGG without server uploads.",
+      "protocol": "https",
+      "endpoint": "https://vidtoaudio.com/"
+    },
+    {
+      "id": "video-editor",
+      "name": "Video Editor Studio",
+      "description": "Browser-based video trimmer and timeline audio extraction utility.",
+      "protocol": "https",
+      "endpoint": "https://vidtoaudio.com/editor"
+    }
+  ],
+  "resources": [
+    {
+      "type": "documentation",
+      "url": "https://vidtoaudio.com/llms.txt"
+    },
+    {
+      "type": "sitemap",
+      "url": "https://vidtoaudio.com/sitemap.xml"
+    }
+  ]
+}

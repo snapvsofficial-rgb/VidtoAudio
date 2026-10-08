@@ -1,0 +1,32 @@
+# VidToAudio - Free Online Audio Converter
+
+> Fast, private, and secure in-browser audio extraction tool powered by WebAssembly FFmpeg. Extracts uncompressed WAV, 320kbps MP3, AAC, FLAC, OGG, M4A, WMA, OPUS, and AIFF directly on your device without server uploads.
+
+## Key Features
+- **100% Client-Side Processing**: Zero server uploads. All audio extraction is performed locally using WebAssembly.
+- **Bulk & Batch Conversion**: Convert multiple video files sequentially without memory leaks.
+- **Audio Trimming & Waveform Preview**: Built-in visual waveform cropper with interactive region selection.
+- **Multilingual Support**: Fully localized across 21 global languages including English, German, Spanish, French, Italian, and more.
+
+## Core Pages
+- [Homepage](https://vidtoaudio.com/)
+- [Online Video Editor Studio](https://vidtoaudio.com/editor)
+- [Technical Blog & Guides](https://vidtoaudio.com/blog)
+- [About Us & Architecture](https://vidtoaudio.com/about)
+- [Privacy Policy](https://vidtoaudio.com/privacy-policy.html)
+- [Terms of Service](https://vidtoaudio.com/terms.html)
+- [Contact Support](https://vidtoaudio.com/contact.html)
+
+## Popular Converters
+- [MP4 to MP3 Converter](https://vidtoaudio.com/mp4-to-mp3)
+- [MP4 to WAV Converter](https://vidtoaudio.com/mp4-to-wav)
+- [MKV to MP3 Converter](https://vidtoaudio.com/mkv-to-mp3)
+- [MKV to FLAC Converter](https://vidtoaudio.com/mkv-to-flac)
+- [MOV to AAC Converter](https://vidtoaudio.com/mov-to-aac)
+- [WEBM to OGG Converter](https://vidtoaudio.com/webm-to-ogg)
+- [HEVC to MP3 Converter](https://vidtoaudio.com/hevc-to-mp3)
+- [M4V to MP3 Converter](https://vidtoaudio.com/m4v-to-mp3)
+- [AVI to MP3 Converter](https://vidtoaudio.com/avi-to-mp3)
+
+## Technical Architecture
+VidToAudio utilizes on-device FFmpeg WebAssembly compiled with SIMD and Web Workers. Videos are processed in local browser memory via HTML5 File and Blob APIs, guaranteeing absolute data privacy and zero network bandwidth usage.

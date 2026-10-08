@@ -76,29 +76,28 @@ async function fetchDynamicBlogSlugs() {
 async function generateSitemap() {
   const urlBlocks = [];
 
+  // All 21 supported languages
+  const ALL_LANGUAGES = [
+    'en', 'de', 'fr', 'es', 'it', 'nl', 'sv', 'pl', 'pt', 'el',
+    'sk', 'tr', 'uk', 'ru', 'ja', 'ko', 'zh', 'ar', 'id', 'th', 'vi'
+  ];
+
   // Helper for generating multilingual URL blocks with Google xhtml:link alternates
   const addLocalizedUrls = (routePath, changefreq, priorityMap, customLastMod = lastmod) => {
     const getLoc = (lang, p) => {
       if (lang === 'en') {
         return `${BASE_URL}${p}`;
       }
-      return `${BASE_URL}/${lang}${p === '/' ? '/' : p}`;
+      return p === '/' ? `${BASE_URL}/${lang}` : `${BASE_URL}/${lang}${p}`;
     };
 
     const xhtmlLinks = [
-      `    <xhtml:link rel="alternate" hreflang="en" href="${getLoc('en', routePath)}"/>`,
-      `    <xhtml:link rel="alternate" hreflang="es" href="${getLoc('es', routePath)}"/>`,
-      `    <xhtml:link rel="alternate" hreflang="fr" href="${getLoc('fr', routePath)}"/>`,
+      ...ALL_LANGUAGES.map(l => `    <xhtml:link rel="alternate" hreflang="${l}" href="${getLoc(l, routePath)}"/>`),
       `    <xhtml:link rel="alternate" hreflang="x-default" href="${getLoc('en', routePath)}"/>`
     ].join('\n');
 
-    const langs = [
-      { code: 'en', priority: priorityMap.en || 1.0 },
-      { code: 'es', priority: priorityMap.es || 0.8 },
-      { code: 'fr', priority: priorityMap.fr || 0.8 }
-    ];
-
-    langs.forEach(({ code, priority }) => {
+    ALL_LANGUAGES.forEach((code) => {
+      const priority = priorityMap[code] || (code === 'en' ? 1.0 : 0.8);
       const loc = getLoc(code, routePath);
       urlBlocks.push(`  <url>
     <loc>${loc}</loc>
@@ -110,28 +109,28 @@ ${xhtmlLinks}
     });
   };
 
-  // 1. Root Homepage (Priority 1.0 EN, 0.9 ES/FR)
-  addLocalizedUrls('/', 'weekly', { en: 1.0, es: 0.9, fr: 0.9 });
+  // 1. Root Homepage (Priority 1.0 EN, 0.9 international)
+  addLocalizedUrls('/', 'weekly', { en: 1.0 });
 
-  // 2. Web Video Editor Studio (Priority 0.9 EN, 0.85 ES/FR)
-  addLocalizedUrls('/editor', 'weekly', { en: 0.9, es: 0.85, fr: 0.85 });
+  // 2. Web Video Editor Studio (Priority 0.9 EN, 0.85 international)
+  addLocalizedUrls('/editor', 'weekly', { en: 0.9 });
 
-  // 3. Blog Index (Priority 0.8 EN, 0.7 ES/FR)
-  addLocalizedUrls('/blog', 'daily', { en: 0.8, es: 0.7, fr: 0.7 });
+  // 3. Blog Index (Priority 0.8 EN, 0.7 international)
+  addLocalizedUrls('/blog', 'daily', { en: 0.8 });
 
-  // 3b. About Us & Publisher Transparency (Priority 0.8 EN, 0.7 ES/FR)
-  addLocalizedUrls('/about', 'monthly', { en: 0.8, es: 0.7, fr: 0.7 });
+  // 3b. About Us & Publisher Transparency (Priority 0.8 EN, 0.7 international)
+  addLocalizedUrls('/about', 'monthly', { en: 0.8 });
 
   // 4. Dynamic Blog Articles from Firestore
   const blogEntries = await fetchDynamicBlogSlugs();
   blogEntries.forEach(({ slug, lastmod: postMod }) => {
-    addLocalizedUrls(`/blog/${slug}`, 'monthly', { en: 0.7, es: 0.6, fr: 0.6 }, postMod || lastmod);
+    addLocalizedUrls(`/blog/${slug}`, 'monthly', { en: 0.7 }, postMod || lastmod);
   });
 
-  // 5. Programmatic Format Converter Routes (81 combinations x 3 languages)
+  // 5. Programmatic Format Converter Routes (81 combinations x 21 languages)
   validInputs.forEach(inExt => {
     validOutputs.forEach(outExt => {
-      addLocalizedUrls(`/${inExt}-to-${outExt}`, 'weekly', { en: 0.8, es: 0.7, fr: 0.7 });
+      addLocalizedUrls(`/${inExt}-to-${outExt}`, 'weekly', { en: 0.8 });
     });
   });
 
@@ -185,7 +184,7 @@ ${urlBlocks.join('\n')}
   const rootSitemapPath = path.join(__dirname, 'sitemap.xml');
   fs.writeFileSync(rootSitemapPath, sitemapXml, 'utf-8');
 
-  console.log(`[Sitemap Generator] Successfully generated sitemap with ${urlBlocks.length} URLs across EN, ES, FR:`);
+  console.log(`[Sitemap Generator] Successfully generated sitemap with ${urlBlocks.length} URLs across 21 global languages:`);
   console.log(` - ${publicSitemapPath}`);
   console.log(` - ${rootSitemapPath}`);
 }

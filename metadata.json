@@ -1,6 +1,6 @@
 {
   "name": "VidToAudio",
-  "description": "Batch convert multiple MP4 to MP3 files offline directly in your browser. Fastest bulk conversion, no server uploads required. Get 320kbps studio quality instantly.",
+  "description": "Fastest bulk MP4 to MP3 converter online. Batch convert multiple video files to 320kbps MP3 instantly and securely in your browser with zero uploads.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

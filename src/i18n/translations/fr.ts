@@ -58,18 +58,47 @@ export const frTranslations: TranslationDictionary = {
     cropAudioSelection: 'Découpage du segment audio en cours...',
     errorTitle: 'Erreur de Conversion',
     errorMessage: 'Une erreur inattendue est survenue pendant le traitement audio.',
-    tryAgain: 'Réessayer'
+    tryAgain: 'Réessayer',
+    audioPreview: 'Aperçu Audio',
+    trimAudio: 'Rogner l’Audio',
+    cropSelection: 'Découper la Sélection',
+    waveformHint: 'Faites glisser les bordures sur la forme d’onde pour sélectionner le segment',
+    durationLabel: 'Durée :',
+    sampleRateLabel: 'Fréquence d’échantillonnage :',
+    sizeLabel: 'Taille :',
+    convertedTracks: 'Pistes Converties',
+    actions: 'Actions',
+    sequentialOffline: 'Traitement séquentiel hors ligne • Zéro transfert vers le cloud'
+  },
+  batchSeo: {
+    badge: 'Traitement par Lots Hors Ligne',
+    subBadge: '100% WebAssembly dans le Navigateur',
+    title: 'Comment la Conversion par Lots MP4 en MP3 Économise Données et Temps',
+    desc: 'Les convertisseurs en ligne conventionnels exigent de téléverser de lourds fichiers vidéo sur des serveurs distants avant extraction. En traitant plusieurs clips volumineux, cela consomme inutilement votre forfait internet et entraîne d’interminables temps d’attente. Notre convertisseur hors ligne supprime tout téléversement en exécutant FFmpeg WebAssembly directement sur votre appareil. Chaque vidéo est traitée dans la mémoire locale, garantissant une confidentialité totale et des téléchargements ZIP instantanés.',
+    b1: 'Zéro Consommation de Données : Aucun téléversement cloud',
+    b2: 'Sécurité Mémoire Séquentielle : Zéro plantage',
+    b3: 'Export ZIP en 1 Clic : Compilé dans le navigateur'
+  },
+  whyWeBuilt: {
+    title: 'Pourquoi Nous Avons Créé VidToAudio',
+    p1: 'Bonjour ! En tant que développeur, quand j’ai eu besoin d’extraire l’audio d’une vidéo, la plupart des outils en ligne m’obligeaient à envoyer mes vidéos personnelles sur leurs serveurs. C’était lent et contraire à la vie privée.',
+    p2: 'J’ai conçu VidToAudio pour offrir un traitement 100% local, exécuté directement sur le processeur de votre appareil. Zéro transfert, zéro file d’attente et une confidentialité inviolable.',
+    lastUpdated: 'Dernière mise à jour : 10 juillet 2026'
   },
   howItWorks: {
     title: 'Comment Ça Marche (Fonctionnement Réel)',
     step1Title: '1. Choisissez la Vidéo',
     step1Desc: 'Sélectionnez n’importe quelle vidéo MP4 directement depuis vos dossiers locaux.',
+    step1Badge: 'Écran Sélection Vidéo',
     step2Title: '2. Choisissez le Format',
     step2Desc: 'Sélectionnez WAV, MP3, AAC, FLAC, M4A ou OGG. Choisissez le débit audio souhaité (128, 192, 320 kbps).',
+    step2Badge: 'Écran Extraction',
     step3Title: '3. Activez la Réduction de Bruit IA',
     step3Desc: 'Facultatif : activez la fonctionnalité IA Bêta pour éliminer les bruits parasites avant l’extraction.',
+    step3Badge: 'Réduction de Bruit',
     step4Title: '4. Extrayez et Rognez',
-    step4Desc: 'Extraction instantanée. Ajustez avec l’outil de découpe rapide et retrouvez le résultat dans votre historique.'
+    step4Desc: 'Extraction instantanée. Ajustez avec l’outil de découpe rapide et retrouvez le résultat dans votre historique.',
+    step4Badge: 'Bibliothèque & Découpe'
   },
   features: {
     title: 'Conçu pour une Fidélité Audio Irréprochable',
@@ -275,6 +304,14 @@ export const frTranslations: TranslationDictionary = {
     privacyNotice: 'Toutes les conversions s’effectuent strictement sur le processeur de votre appareil. Aucune donnée audio ou vidéo ne quitte votre terminal.',
     rightsReserved: 'Tous droits réservés.',
     privacyPolicy: 'Politique de Confidentialité',
-    termsOfService: 'Conditions d’Utilisation'
+    termsOfService: 'Conditions d’Utilisation',
+    readyTitle: 'Prêt à extraire vos fichiers audio en toute sécurité ?',
+    downloadBtn: 'Télécharger VidToAudio',
+    popularLabel: 'Convertisseurs populaires :',
+    matrixTitle: 'Tous les Convertisseurs Vidéo en Audio',
+    matrixSubtitle: 'Parcourez les 81 formats d’extraction audio exécutés localement.',
+    matrixBadge: '81 Combinaisons Matricielles',
+    disclaimer: 'Clause de non-responsabilité',
+    contact: 'Contactez-nous'
   }
 };

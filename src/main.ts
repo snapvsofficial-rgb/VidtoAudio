@@ -1,3 +1,4 @@
+import './index.css';
 import { 
   fetchSEOTemplate, 
   fetchFormatToggles, 
@@ -28,6 +29,34 @@ import {
   updateHreflangTags
 } from './i18n';
 import { updateEditorLanguage } from './editor/videoEditorApp';
+import { onAuthUserChange, signOutUser, isEmailAdmin } from './services/authService';
+import { openAuthModal } from './components/AuthModal';
+
+// Expose i18n and router API immediately for inline scripts
+if (typeof window !== 'undefined') {
+  window.addEventListener('unhandledrejection', (event) => {
+    const reasonMsg = (event?.reason?.message) || String(event?.reason || '');
+    if (reasonMsg.includes('Pending promise was never set') || reasonMsg.includes('INTERNAL ASSERTION FAILED')) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      console.warn('Safely intercepted Firebase Auth popup assertion in iframe:', reasonMsg);
+    }
+  });
+  window.addEventListener('error', (event) => {
+    const errorMsg = event?.message || String(event?.error?.message || '');
+    if (errorMsg.includes('Pending promise was never set') || errorMsg.includes('INTERNAL ASSERTION FAILED')) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      console.warn('Safely intercepted Firebase Auth error in iframe:', errorMsg);
+    }
+  });
+
+  (window as any).getTranslations = getTranslations;
+  (window as any).getCurrentLanguage = getCurrentLanguage;
+  (window as any).SUPPORTED_LANGUAGES = SUPPORTED_LANGUAGES;
+  (window as any).navigateTo = navigateTo;
+  (window as any).applyLanguageToUI = applyLanguageToUI;
+}
 
 // Format definitions
 export const validInputs = ['mp4', 'mkv', 'avi', 'webm', 'mov', 'flv', 'wmv', 'hevc', 'm4v'];
@@ -491,6 +520,34 @@ export function generateDynamicFAQs(inExt: string, outExt: string, lang: Support
         q: `Quelle est la qualité sonore en convertissant ${inUpper} en ${outUpper} ?`,
         a: `Notre moteur préserve la fréquence d'échantillonnage et la fidélité native du fichier source ${inUpper}. L'exportation en ${outUpper} offre une restitution limpide avec contrôle des débits binaires et prise en charge sans perte.`
       }
+    ],
+    de: [
+      {
+        q: `Gibt es eine Dateigrößenbeschränkung für die Konvertierung von ${inUpper} in ${outUpper}?`,
+        a: `Da VidToAudio lokal in Ihrem Browser mittels WebAssembly und Hardwarebeschleunigung ausgeführt wird, gibt es keine künstlichen Cloud-Beschränkungen. Sie können Audiospuren aus großen ${inUpper}-Dateien extrahieren, ohne ein einziges Byte hochzuladen.`
+      },
+      {
+        q: `Warum ${outUpper} aus ${inUpper} offline im Browser extrahieren?`,
+        a: `Die lokale Extraktion im Browser garantiert absolute Privatsphäre, sofortige Verarbeitungsgeschwindigkeit ohne Bandbreitendrosselung und null mobilen Datenverbrauch. Ihre ${inUpper}-Videodatei verlässt zu keinem Zeitpunkt Ihr Gerät.`
+      },
+      {
+        q: `Welche Audioqualität kann ich bei der Konvertierung von ${inUpper} in ${outUpper} erwarten?`,
+        a: `Unsere Konvertierungs-Engine bewahrt die ursprüngliche Abtastrate und Audiotreue der ${inUpper}-Quelldatei. Der Export nach ${outUpper} liefert kristallklaren Klang mit voller Kontrolle über Bitraten und verlustfreie Codierung.`
+      }
+    ],
+    it: [
+      {
+        q: `C'è un limite di dimensione file per la conversione da ${inUpper} a ${outUpper}?`,
+        a: `Poiché VidToAudio viene eseguito localmente nel browser tramite WebAssembly, non vi è alcun limite di dimensione cloud. Puoi estrarre tracce audio da file ${inUpper} pesanti senza caricare alcun byte sui server.`
+      },
+      {
+        q: `Perché estrarre ${outUpper} da ${inUpper} offline nel browser?`,
+        a: `La conversione locale nel browser garantisce totale privacy, velocità istantanea senza rallentamenti di banda e zero consumo di dati mobili. Il tuo video ${inUpper} non lascia mai il tuo dispositivo.`
+      },
+      {
+        q: `Quale qualità audio posso aspettarmi convertendo ${inUpper} in ${outUpper}?`,
+        a: `Il nostro motore conserva la frequenza di campionamento e la fedeltà originale del file ${inUpper}. L'esportazione in ${outUpper} offre una riproduzione acustica impeccabile.`
+      }
     ]
   }[lang] || [
     {
@@ -563,6 +620,13 @@ export function updateFormatDropdown(selectedExt?: string) {
 export function applyLanguageToUI(lang: SupportedLanguage) {
   setCurrentLanguage(lang);
   const t = getTranslations(lang);
+  const currentLangConfig = SUPPORTED_LANGUAGES[lang];
+
+  // 0. Update HTML Document Language & Reading Direction
+  if (typeof document !== 'undefined') {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = (currentLangConfig && currentLangConfig.dir) ? currentLangConfig.dir : 'ltr';
+  }
 
   // 1. Navigation Desktop & Mobile
   const navLinkHome = document.getElementById('nav-link-home');
@@ -608,6 +672,10 @@ export function applyLanguageToUI(lang: SupportedLanguage) {
   const mobLinkEditor = document.getElementById('mob-link-editor');
   const mobLinkAbout = document.getElementById('mob-link-about');
   const mobLinkPrivacy = document.getElementById('mob-link-privacy');
+  const mobLinkContact = document.getElementById('mob-link-contact');
+  const mobLangLabel = document.getElementById('mob-lang-label');
+  const mobLinkAdmin = document.getElementById('mob-link-admin');
+  const mobLinkGetApp = document.getElementById('mob-link-getapp');
 
   if (mobLinkHome) {
     mobLinkHome.textContent = t.nav.home;
@@ -633,10 +701,31 @@ export function applyLanguageToUI(lang: SupportedLanguage) {
   if (mobLinkPrivacy) {
     mobLinkPrivacy.textContent = t.nav.privacy;
   }
+  if (mobLinkContact) {
+    mobLinkContact.textContent = t.footer?.contact || 'Contact Us';
+  }
+  if (mobLangLabel) {
+    mobLangLabel.textContent = t.nav?.languageLabel || 'Language:';
+  }
+  if (mobLinkAdmin) {
+    mobLinkAdmin.textContent = t.nav.admin;
+  }
+  if (mobLinkGetApp) {
+    mobLinkGetApp.textContent = t.nav.getApp;
+  }
 
   // 2. Trust Bar
+  const trustOffline = document.getElementById('trust-offline-text');
+  if (trustOffline) trustOffline.textContent = t.hero.trustOffline;
+  const trustQueue = document.getElementById('trust-queue-text');
+  if (trustQueue) trustQueue.textContent = t.hero.trustQueue;
+  const trustBitrate = document.getElementById('trust-bitrate-text');
+  if (trustBitrate) trustBitrate.textContent = t.hero.trustBitrate;
+  const trustNoUploads = document.getElementById('trust-nouploads-text');
+  if (trustNoUploads) trustNoUploads.textContent = t.hero.trustNoUploads;
+
   const trustBarSection = document.getElementById('trust-bar-section');
-  if (trustBarSection) {
+  if (trustBarSection && (!trustOffline || !trustQueue || !trustBitrate || !trustNoUploads)) {
     const items = trustBarSection.querySelectorAll('.flex.items-center.gap-2');
     if (items.length >= 4) {
       const span0 = items[0].lastChild;
@@ -650,16 +739,106 @@ export function applyLanguageToUI(lang: SupportedLanguage) {
     }
   }
 
-  // 3. Converter Form labels & buttons
+  // 3. Hero Titles, CTA & Breadcrumbs
+  const currentRoute = parseRoute(window.location.pathname);
+  const isMatrixPage = currentRoute.type === 'converter' && !currentRoute.isFallback;
+  const inUpper = currentRoute.displayInput || (currentRoute.input ? currentRoute.input.toUpperCase() : 'MP4');
+  const outUpper = currentRoute.output ? currentRoute.output.toUpperCase() : 'MP3';
+
+  const heroTitle = document.getElementById('hero-title');
+  if (heroTitle) {
+    heroTitle.textContent = isMatrixPage
+      ? interpolate(t.matrix.heroTitle, { INPUT: inUpper, OUTPUT: outUpper })
+      : t.hero.homeTitle;
+  }
+  const heroSubtitle = document.getElementById('hero-subtitle');
+  if (heroSubtitle) {
+    heroSubtitle.textContent = isMatrixPage
+      ? interpolate(t.matrix.heroSubtitle, { INPUT: inUpper, OUTPUT: outUpper })
+      : t.hero.homeSubtitle;
+  }
+
+  const heroBtnAmazonText = document.getElementById('hero-btn-amazon-text');
+  if (heroBtnAmazonText) {
+    heroBtnAmazonText.textContent = t.hero.amazonAppstore || 'Amazon Appstore';
+  }
+  const heroBtnApkText = document.getElementById('hero-btn-apk-text');
+  if (heroBtnApkText) {
+    heroBtnApkText.textContent = t.hero.directApkDownload || 'Direct APK Download';
+  }
+  const breadcrumbHome = document.getElementById('breadcrumb-home');
+  if (breadcrumbHome) {
+    breadcrumbHome.textContent = t.matrix.breadcrumbHome || 'Home';
+  }
+  const breadcrumbConverters = document.getElementById('breadcrumb-converters');
+  if (breadcrumbConverters) {
+    breadcrumbConverters.textContent = t.matrix.breadcrumbConverters || 'Converters';
+  }
+  const heroPopularLabel = document.getElementById('hero-popular-label');
+  if (heroPopularLabel) {
+    heroPopularLabel.textContent = t.hero.popularConverters;
+  }
+
+  // 4. Converter Form labels & buttons
+  const converterTitle = document.getElementById('converter-title');
+  if (converterTitle) {
+    converterTitle.textContent = isMatrixPage
+      ? interpolate(t.converter.tryItHereMatrix, { INPUT: inUpper, OUTPUT: outUpper })
+      : t.converter.tryItHereHome;
+  }
+
+  const converterSubtitle = document.getElementById('converter-subtitle');
+  if (converterSubtitle) {
+    converterSubtitle.textContent = isMatrixPage
+      ? interpolate(t.converter.subtitleMatrix, { INPUT: inUpper, OUTPUT: outUpper })
+      : t.converter.subtitleHome;
+  }
+
+  const dropzoneText = document.getElementById('dropzone-text');
+  if (dropzoneText) {
+    dropzoneText.textContent = isMatrixPage
+      ? interpolate(t.converter.dropzoneTextMatrix, { INPUT: inUpper, OUTPUT: outUpper })
+      : t.converter.dropzoneTextHome;
+  }
+
+  const fileNameDisplay = document.getElementById('file-name-display');
+  if (fileNameDisplay && !fileNameDisplay.classList.contains('text-brand-400')) {
+    fileNameDisplay.textContent = t.converter.noFilesChosen;
+  }
+
   const outputFormatLabel = document.querySelector('label[for="output-format"]');
   if (outputFormatLabel) outputFormatLabel.textContent = t.converter.outputFormat;
 
   const audioBitrateLabel = document.querySelector('label[for="audio-bitrate"]');
   if (audioBitrateLabel) audioBitrateLabel.textContent = t.converter.audioQuality;
 
+  const dropzoneSupportedFormats = document.getElementById('dropzone-supported-formats');
+  if (dropzoneSupportedFormats) {
+    dropzoneSupportedFormats.textContent = t.converter.supportsFormats;
+  }
+
+  const processingSubtext = document.getElementById('processing-subtext');
+  if (processingSubtext) {
+    processingSubtext.textContent = t.converter.sequentialOffline || 'Sequential offline processing • Zero server uploads';
+  }
+
   const convertBtn = document.getElementById('convert-btn');
   if (convertBtn && convertBtn.hasAttribute('disabled')) {
     convertBtn.textContent = t.converter.extractAudio;
+  }
+
+  const formatSummary = document.getElementById('format-summary');
+  const formatSelect = document.getElementById('output-format') as HTMLSelectElement | null;
+  const bitrateSelect = document.getElementById('audio-bitrate') as HTMLSelectElement | null;
+  if (formatSummary && formatSelect) {
+    const selectedOptionText = formatSelect.options[formatSelect.selectedIndex]?.text.split(' ')[0] || formatSelect.value.toUpperCase();
+    const bitrateText = bitrateSelect?.value || '320k';
+    if (t.converter?.outputSummary) {
+      formatSummary.textContent = interpolate(t.converter.outputSummary, {
+        format: selectedOptionText,
+        bitrate: bitrateText
+      });
+    }
   }
 
   const audioBitrateSelect = document.getElementById('audio-bitrate') as HTMLSelectElement | null;
@@ -684,49 +863,265 @@ export function applyLanguageToUI(lang: SupportedLanguage) {
     if (span) span.textContent = t.converter.convertAnother;
   }
 
-  // 4. Update Language Switcher UI Active States
+  const batchResultsHeaderText = document.getElementById('batch-results-header-text');
+  if (batchResultsHeaderText) {
+    batchResultsHeaderText.textContent = t.converter.convertedTracks || 'Converted Tracks';
+  }
+  const batchResultsHeaderActions = document.getElementById('batch-results-header-actions');
+  if (batchResultsHeaderActions) {
+    batchResultsHeaderActions.textContent = t.converter.actions || 'Actions';
+  }
+
+  // Audio Preview & Trimming Controls
+  const playerPreviewTitle = document.getElementById('player-preview-title');
+  if (playerPreviewTitle) playerPreviewTitle.textContent = t.converter.audioPreview || 'Audio Preview';
+
+  const playerTrimBtnText = document.getElementById('player-trim-btn-text');
+  if (playerTrimBtnText) playerTrimBtnText.textContent = t.converter.trimAudio || 'Trim Audio';
+
+  const trimControlsHint = document.getElementById('trim-controls-hint');
+  if (trimControlsHint) trimControlsHint.textContent = t.converter.waveformHint || 'Drag the colored edges on the waveform to select region';
+
+  const applyTrimBtnText = document.getElementById('apply-trim-btn-text');
+  if (applyTrimBtnText) applyTrimBtnText.textContent = t.converter.cropSelection || 'Crop Selection';
+
+  // Audio player metadata default labels
+  const metaDuration = document.getElementById('meta-duration');
+  if (metaDuration && metaDuration.textContent?.includes('--')) {
+    metaDuration.textContent = `${t.converter?.durationLabel || 'Duration:'} --`;
+  }
+  const metaSamplerate = document.getElementById('meta-samplerate');
+  if (metaSamplerate && metaSamplerate.textContent?.includes('--')) {
+    metaSamplerate.textContent = `${t.converter?.sampleRateLabel || 'Sample Rate:'} --`;
+  }
+  const metaSize = document.getElementById('meta-size');
+  if (metaSize && metaSize.textContent?.includes('--')) {
+    metaSize.textContent = `${t.converter?.sizeLabel || 'Size:'} --`;
+  }
+
+  // 5. Update Language Switcher UI Active States (Desktop button & mobile select)
+  const currentLangFlag = document.getElementById('current-lang-flag');
+  const currentLangCode = document.getElementById('current-lang-code');
+  if (currentLangFlag && currentLangConfig) {
+    currentLangFlag.textContent = currentLangConfig.flag;
+  }
+  if (currentLangCode && currentLangConfig) {
+    currentLangCode.textContent = currentLangConfig.code.toUpperCase();
+  }
+
+  const mobileLangSelect = document.getElementById('mobile-lang-select') as HTMLSelectElement | null;
+  if (mobileLangSelect && mobileLangSelect.value !== lang) {
+    mobileLangSelect.value = lang;
+  }
+
   document.querySelectorAll('[data-lang-switch]').forEach(btn => {
     const targetLang = btn.getAttribute('data-lang-switch');
     if (targetLang === lang) {
-      btn.classList.add('bg-brand-600', 'text-white');
-      btn.classList.remove('text-slate-400', 'hover:text-white');
+      btn.classList.add('bg-brand-600/20', 'text-brand-400', 'font-semibold');
+      btn.classList.remove('text-slate-300');
     } else {
-      btn.classList.remove('bg-brand-600', 'text-white');
-      btn.classList.add('text-slate-400', 'hover:text-white');
+      btn.classList.remove('bg-brand-600/20', 'text-brand-400', 'font-semibold');
+      btn.classList.add('text-slate-300');
     }
   });
-
-  // 5. Matrix Section Headers
-  const allConvertersSection = document.getElementById('all-converters-section');
-  if (allConvertersSection) {
-    const h3 = allConvertersSection.querySelector('h3');
-    if (h3) h3.textContent = t.matrix.allConvertersTitle;
-    const p = allConvertersSection.querySelector('p');
-    if (p) p.textContent = t.matrix.allConvertersSubtitle;
-  }
 
   // 6. Popular Converters quick links at top
   const heroPopularLinks = document.getElementById('hero-popular-links');
   if (heroPopularLinks) {
-    const labelSpan = heroPopularLinks.querySelector('span');
-    if (labelSpan) labelSpan.textContent = t.hero.popularConverters;
     heroPopularLinks.querySelectorAll('a[data-route-link]').forEach(a => {
       const href = a.getAttribute('href') || '';
-      const cleanHref = href.replace(/^\/(?:es|fr)/, '');
+      const cleanHref = href.replace(/^\/(?:[a-z]{2})(?=\/|$)/, '');
       a.setAttribute('href', buildLocalizedPath(cleanHref, lang));
     });
   }
 
-  // 7. Footer text
-  const footerCustomText = document.getElementById('footer-custom-text');
-  if (footerCustomText) {
-    footerCustomText.textContent = t.footer.rightsReserved;
+  // 7. Batch Conversion SEO Article
+  const batchSeoBadgeText = document.getElementById('batch-seo-badge-text');
+  if (batchSeoBadgeText && t.batchSeo?.badge) batchSeoBadgeText.textContent = t.batchSeo.badge;
+
+  const batchSeoSubbadge = document.getElementById('batch-seo-subbadge');
+  if (batchSeoSubbadge && t.batchSeo?.subBadge) batchSeoSubbadge.textContent = t.batchSeo.subBadge;
+
+  const batchSeoTitle = document.getElementById('batch-seo-title');
+  if (batchSeoTitle && t.batchSeo?.title) batchSeoTitle.textContent = t.batchSeo.title;
+
+  const batchSeoDesc = document.getElementById('batch-seo-desc');
+  if (batchSeoDesc && t.batchSeo?.desc) batchSeoDesc.textContent = t.batchSeo.desc;
+
+  const batchSeoB1 = document.getElementById('batch-seo-b1');
+  if (batchSeoB1 && t.batchSeo?.b1) {
+    const parts = t.batchSeo.b1.split(':');
+    batchSeoB1.innerHTML = `<strong>${parts[0]}:</strong>${parts.slice(1).join(':')}`;
+  }
+  const batchSeoB2 = document.getElementById('batch-seo-b2');
+  if (batchSeoB2 && t.batchSeo?.b2) {
+    const parts = t.batchSeo.b2.split(':');
+    batchSeoB2.innerHTML = `<strong>${parts[0]}:</strong>${parts.slice(1).join(':')}`;
+  }
+  const batchSeoB3 = document.getElementById('batch-seo-b3');
+  if (batchSeoB3 && t.batchSeo?.b3) {
+    const parts = t.batchSeo.b3.split(':');
+    batchSeoB3.innerHTML = `<strong>${parts[0]}:</strong>${parts.slice(1).join(':')}`;
   }
 
-  // 8. Update Video Editor UI in-place if active
-  updateEditorLanguage(lang);
+  // 8. Why We Built Section
+  const whyBuiltTitle = document.getElementById('why-built-title');
+  if (whyBuiltTitle && t.whyWeBuilt?.title) whyBuiltTitle.textContent = t.whyWeBuilt.title;
 
-  // 9. About Section Localization (4 Pillars & Contact Disclosures)
+  const whyBuiltP1 = document.getElementById('why-built-p1');
+  if (whyBuiltP1 && t.whyWeBuilt?.p1) whyBuiltP1.textContent = t.whyWeBuilt.p1;
+
+  const whyBuiltP2 = document.getElementById('why-built-p2');
+  if (whyBuiltP2 && t.whyWeBuilt?.p2) whyBuiltP2.textContent = t.whyWeBuilt.p2;
+
+  const whyBuiltUpdated = document.getElementById('why-built-updated');
+  if (whyBuiltUpdated && t.whyWeBuilt?.lastUpdated) whyBuiltUpdated.textContent = t.whyWeBuilt.lastUpdated;
+
+  // 9. How It Works Section
+  const howTitle = document.getElementById('how-title');
+  if (howTitle && t.howItWorks?.title) howTitle.textContent = t.howItWorks.title;
+
+  const howS1Badge = document.getElementById('how-s1-badge');
+  if (howS1Badge && t.howItWorks?.step1Badge) howS1Badge.textContent = t.howItWorks.step1Badge;
+  const howS1Title = document.getElementById('how-s1-title');
+  if (howS1Title && t.howItWorks?.step1Title) howS1Title.textContent = t.howItWorks.step1Title;
+  const howS1Desc = document.getElementById('how-s1-desc');
+  if (howS1Desc && t.howItWorks?.step1Desc) howS1Desc.textContent = t.howItWorks.step1Desc;
+
+  const howS2Badge = document.getElementById('how-s2-badge');
+  if (howS2Badge && t.howItWorks?.step2Badge) howS2Badge.textContent = t.howItWorks.step2Badge;
+  const howS2Title = document.getElementById('how-s2-title');
+  if (howS2Title && t.howItWorks?.step2Title) howS2Title.textContent = t.howItWorks.step2Title;
+  const howS2Desc = document.getElementById('how-s2-desc');
+  if (howS2Desc && t.howItWorks?.step2Desc) howS2Desc.textContent = t.howItWorks.step2Desc;
+
+  const howS3Badge = document.getElementById('how-s3-badge');
+  if (howS3Badge && t.howItWorks?.step3Badge) howS3Badge.textContent = t.howItWorks.step3Badge;
+  const howS3Title = document.getElementById('how-s3-title');
+  if (howS3Title && t.howItWorks?.step3Title) howS3Title.textContent = t.howItWorks.step3Title;
+  const howS3Desc = document.getElementById('how-s3-desc');
+  if (howS3Desc && t.howItWorks?.step3Desc) howS3Desc.textContent = t.howItWorks.step3Desc;
+
+  const howS4Badge = document.getElementById('how-s4-badge');
+  if (howS4Badge && t.howItWorks?.step4Badge) howS4Badge.textContent = t.howItWorks.step4Badge;
+  const howS4Title = document.getElementById('how-s4-title');
+  if (howS4Title && t.howItWorks?.step4Title) howS4Title.textContent = t.howItWorks.step4Title;
+  const howS4Desc = document.getElementById('how-s4-desc');
+  if (howS4Desc && t.howItWorks?.step4Desc) howS4Desc.textContent = t.howItWorks.step4Desc;
+
+  // 10. Features Section
+  const featuresTitle = document.getElementById('features-title');
+  if (featuresTitle && t.features?.title) featuresTitle.textContent = t.features.title;
+
+  const feat1Title = document.getElementById('feat-1-title');
+  if (feat1Title && t.features?.f1Title) feat1Title.textContent = t.features.f1Title;
+  const feat1Desc = document.getElementById('feat-1-desc');
+  if (feat1Desc && t.features?.f1Desc) feat1Desc.textContent = t.features.f1Desc;
+
+  const feat2Title = document.getElementById('feat-2-title');
+  if (feat2Title && t.features?.f2Title) feat2Title.textContent = t.features.f2Title;
+  const feat2Desc = document.getElementById('feat-2-desc');
+  if (feat2Desc && t.features?.f2Desc) feat2Desc.textContent = t.features.f2Desc;
+
+  const feat3Title = document.getElementById('feat-3-title');
+  if (feat3Title && t.features?.f3Title) feat3Title.textContent = t.features.f3Title;
+  const feat3Desc = document.getElementById('feat-3-desc');
+  if (feat3Desc && t.features?.f3Desc) feat3Desc.textContent = t.features.f3Desc;
+
+  const feat4Title = document.getElementById('feat-4-title');
+  if (feat4Title && t.features?.f4Title) feat4Title.textContent = t.features.f4Title;
+  const feat4Desc = document.getElementById('feat-4-desc');
+  if (feat4Desc && t.features?.f4Desc) feat4Desc.textContent = t.features.f4Desc;
+
+  const feat5Title = document.getElementById('feat-5-title');
+  if (feat5Title && t.features?.f5Title) feat5Title.textContent = t.features.f5Title;
+  const feat5Desc = document.getElementById('feat-5-desc');
+  if (feat5Desc && t.features?.f5Desc) feat5Desc.textContent = t.features.f5Desc;
+
+  const feat6Title = document.getElementById('feat-6-title');
+  if (feat6Title && t.features?.f6Title) feat6Title.textContent = t.features.f6Title;
+  const feat6Desc = document.getElementById('feat-6-desc');
+  if (feat6Desc && t.features?.f6Desc) feat6Desc.textContent = t.features.f6Desc;
+
+  // 11. Screenshots Showcase
+  const screenshotTitle = document.getElementById('screenshot-title');
+  if (screenshotTitle && t.screenshot?.title) screenshotTitle.textContent = t.screenshot.title;
+
+  const screenshotSubtitle = document.getElementById('screenshot-subtitle');
+  if (screenshotSubtitle && t.screenshot?.subtitle) screenshotSubtitle.textContent = t.screenshot.subtitle;
+
+  const screenshotS1 = document.getElementById('screenshot-s1');
+  if (screenshotS1 && t.screenshot?.s1) screenshotS1.textContent = t.screenshot.s1;
+
+  const screenshotS2 = document.getElementById('screenshot-s2');
+  if (screenshotS2 && t.screenshot?.s2) screenshotS2.textContent = t.screenshot.s2;
+
+  const screenshotS3 = document.getElementById('screenshot-s3');
+  if (screenshotS3 && t.screenshot?.s3) screenshotS3.textContent = t.screenshot.s3;
+
+  const screenshotS4 = document.getElementById('screenshot-s4');
+  if (screenshotS4 && t.screenshot?.s4) screenshotS4.textContent = t.screenshot.s4;
+
+  // 12. Comparison Section
+  const comparisonTitle = document.getElementById('comparison-title');
+  if (comparisonTitle && t.comparison?.title) comparisonTitle.textContent = t.comparison.title;
+
+  const comparisonP1 = document.getElementById('comparison-p1');
+  if (comparisonP1 && t.comparison?.p1) comparisonP1.textContent = t.comparison.p1;
+
+  const comparisonP2 = document.getElementById('comparison-p2');
+  if (comparisonP2 && t.comparison?.p2) comparisonP2.textContent = t.comparison.p2;
+
+  const comparisonM1Label = document.getElementById('comparison-m1-label');
+  if (comparisonM1Label && t.comparison?.dataUploaded) comparisonM1Label.textContent = t.comparison.dataUploaded;
+
+  const comparisonM2Label = document.getElementById('comparison-m2-label');
+  if (comparisonM2Label && t.comparison?.serverWaitTime) comparisonM2Label.textContent = t.comparison.serverWaitTime;
+
+  const comparisonM3Label = document.getElementById('comparison-m3-label');
+  if (comparisonM3Label && t.comparison?.privacyStatus) comparisonM3Label.textContent = t.comparison.privacyStatus;
+
+  const comparisonM3Value = document.getElementById('comparison-m3-value');
+  if (comparisonM3Value && t.comparison?.secureLocal) comparisonM3Value.textContent = t.comparison.secureLocal;
+
+  // 13. FAQ Section
+  const faqMainTitle = document.getElementById('faq-main-title');
+  if (faqMainTitle && t.homeFaq?.title) faqMainTitle.textContent = t.homeFaq.title;
+
+  const faqMainSubtitle = document.getElementById('faq-main-subtitle');
+  if (faqMainSubtitle && t.homeFaq?.subtitle) faqMainSubtitle.textContent = t.homeFaq.subtitle;
+
+  const faqQ1Title = document.getElementById('faq-q1-title');
+  if (faqQ1Title && t.homeFaq?.q1) faqQ1Title.textContent = t.homeFaq.q1;
+  const faqQ1Ans = document.getElementById('faq-q1-ans');
+  if (faqQ1Ans && t.homeFaq?.a1) faqQ1Ans.textContent = t.homeFaq.a1;
+
+  const faqQ2Title = document.getElementById('faq-q2-title');
+  if (faqQ2Title && t.homeFaq?.q2) faqQ2Title.textContent = t.homeFaq.q2;
+  const faqQ2Ans = document.getElementById('faq-q2-ans');
+  if (faqQ2Ans && t.homeFaq?.a2) faqQ2Ans.textContent = t.homeFaq.a2;
+
+  const faqQ3Title = document.getElementById('faq-q3-title');
+  if (faqQ3Title && t.homeFaq?.q3) faqQ3Title.textContent = t.homeFaq.q3;
+  const faqQ3Ans = document.getElementById('faq-q3-ans');
+  if (faqQ3Ans && t.homeFaq?.a3) faqQ3Ans.textContent = t.homeFaq.a3;
+
+  const faqQ4Title = document.getElementById('faq-q4-title');
+  if (faqQ4Title && t.homeFaq?.q4) faqQ4Title.textContent = t.homeFaq.q4;
+  const faqQ4Ans = document.getElementById('faq-q4-ans');
+  if (faqQ4Ans && t.homeFaq?.a4) faqQ4Ans.textContent = t.homeFaq.a4;
+
+  const faqQ5Title = document.getElementById('faq-q5-title');
+  if (faqQ5Title && t.homeFaq?.q5) faqQ5Title.textContent = t.homeFaq.q5;
+  const faqQ5Ans = document.getElementById('faq-q5-ans');
+  if (faqQ5Ans && t.homeFaq?.a5) faqQ5Ans.textContent = t.homeFaq.a5;
+
+  const faqQ6Title = document.getElementById('faq-q6-title');
+  if (faqQ6Title && t.homeFaq?.q6) faqQ6Title.textContent = t.homeFaq.q6;
+  const faqQ6Ans = document.getElementById('faq-q6-ans');
+  if (faqQ6Ans && t.homeFaq?.a6) faqQ6Ans.textContent = t.homeFaq.a6;
+
+  // 14. About Section Localization (4 Pillars & Contact Disclosures)
   const aboutBadge = document.getElementById('about-badge');
   if (aboutBadge) aboutBadge.textContent = t.about.missionBadge;
 
@@ -738,25 +1133,21 @@ export function applyLanguageToUI(lang: SupportedLanguage) {
 
   const aboutP1Title = document.getElementById('about-p1-title');
   if (aboutP1Title) aboutP1Title.textContent = t.about.p1Title;
-
   const aboutP1Desc = document.getElementById('about-p1-desc');
   if (aboutP1Desc) aboutP1Desc.textContent = t.about.p1Desc;
 
   const aboutP2Title = document.getElementById('about-p2-title');
   if (aboutP2Title) aboutP2Title.textContent = t.about.p2Title;
-
   const aboutP2Desc = document.getElementById('about-p2-desc');
   if (aboutP2Desc) aboutP2Desc.textContent = t.about.p2Desc;
 
   const aboutP3Title = document.getElementById('about-p3-title');
   if (aboutP3Title) aboutP3Title.textContent = t.about.p3Title;
-
   const aboutP3Desc = document.getElementById('about-p3-desc');
   if (aboutP3Desc) aboutP3Desc.textContent = t.about.p3Desc;
 
   const aboutP4Title = document.getElementById('about-p4-title');
   if (aboutP4Title) aboutP4Title.textContent = t.about.p4Title;
-
   const aboutP4Desc = document.getElementById('about-p4-desc');
   if (aboutP4Desc) aboutP4Desc.textContent = t.about.p4Desc;
 
@@ -771,6 +1162,115 @@ export function applyLanguageToUI(lang: SupportedLanguage) {
 
   const aboutTermsLink = document.getElementById('about-terms-link');
   if (aboutTermsLink) aboutTermsLink.textContent = t.about.termsOfService;
+
+  const aboutDisclaimerLink = document.getElementById('about-disclaimer-link');
+  if (aboutDisclaimerLink) aboutDisclaimerLink.textContent = t.footer?.disclaimer || 'Disclaimer';
+
+  const aboutContactLink = document.getElementById('about-contact-link');
+  if (aboutContactLink) aboutContactLink.textContent = t.footer?.contact || 'Contact Us';
+
+  // 15. Footer Section Localization
+  const footerReadyHeading = document.getElementById('footer-ready-heading');
+  if (footerReadyHeading) footerReadyHeading.textContent = t.footer?.readyTitle || 'Ready to Extract Audio Securely?';
+
+  const footerDownloadBtn = document.getElementById('footer-download-btn');
+  if (footerDownloadBtn) footerDownloadBtn.textContent = t.footer?.downloadBtn || 'Download VidToAudio';
+
+  const footerPopularLabel = document.getElementById('footer-popular-label');
+  if (footerPopularLabel) footerPopularLabel.textContent = t.footer?.popularLabel || 'Popular Converters:';
+
+  const footerAllConvertersTitle = document.getElementById('footer-all-converters-title');
+  if (footerAllConvertersTitle) footerAllConvertersTitle.textContent = t.matrix.allConvertersTitle;
+
+  const footerAllConvertersSubtitle = document.getElementById('footer-all-converters-subtitle');
+  if (footerAllConvertersSubtitle) footerAllConvertersSubtitle.textContent = t.matrix.allConvertersSubtitle;
+
+  const footerMatrixBadge = document.getElementById('footer-matrix-badge');
+  if (footerMatrixBadge) footerMatrixBadge.textContent = t.footer?.matrixBadge || '81 Matrix Combinations';
+
+  const footerCustomText = document.getElementById('footer-custom-text');
+  if (footerCustomText) footerCustomText.textContent = t.footer.rightsReserved;
+
+  const footerBlogLink = document.getElementById('footer-blog-link');
+  if (footerBlogLink) footerBlogLink.textContent = t.nav.blog;
+
+  const footerPrivacyLink = document.getElementById('footer-privacy-link');
+  if (footerPrivacyLink) footerPrivacyLink.textContent = t.footer.privacyPolicy;
+
+  const footerTermsLink = document.getElementById('footer-terms-link');
+  if (footerTermsLink) footerTermsLink.textContent = t.footer.termsOfService;
+
+  const footerDisclaimerLink = document.getElementById('footer-disclaimer-link');
+  if (footerDisclaimerLink) footerDisclaimerLink.textContent = t.footer?.disclaimer || 'Disclaimer';
+
+  const footerContactLink = document.getElementById('footer-contact-link');
+  if (footerContactLink) footerContactLink.textContent = t.footer?.contact || 'Contact Us';
+
+  const footerPopularLinks = document.getElementById('footer-popular-links');
+  if (footerPopularLinks) {
+    footerPopularLinks.querySelectorAll('a[data-route-link]').forEach(a => {
+      const href = a.getAttribute('href') || '';
+      const cleanHref = href.replace(/^\/(?:[a-z]{2})(?=\/|$)/, '');
+      a.setAttribute('href', buildLocalizedPath(cleanHref, lang));
+    });
+  }
+
+  // 16. Refresh Matrix links in footer with active locale prefix
+  renderMatrixLinks(lang);
+
+  // 17. Re-render dynamic SEO and format FAQs in target language
+  const seoContainer = document.getElementById('dynamic-seo-content');
+  const faqContainer = document.getElementById('dynamic-faq');
+  if (isMatrixPage) {
+    if (seoContainer) {
+      seoContainer.innerHTML = generateFormatArticle(currentRoute.input || 'mp4', currentRoute.output || 'mp3', lang);
+    }
+    const matrixFaqTitle = document.getElementById('matrix-faq-title');
+    if (matrixFaqTitle) {
+      matrixFaqTitle.textContent = interpolate(t.matrix.faqSectionTitle, { INPUT: inUpper, OUTPUT: outUpper });
+    }
+    const matrixFaqSubtitle = document.getElementById('matrix-faq-subtitle');
+    if (matrixFaqSubtitle) {
+      matrixFaqSubtitle.textContent = interpolate(t.matrix.faqSectionSubtitle, { INPUT: inUpper, OUTPUT: outUpper });
+    }
+    const matrixFaqAccordion = document.getElementById('matrix-faq-accordion');
+    if (matrixFaqAccordion) {
+      matrixFaqAccordion.innerHTML = generateFormatFAQAccordionHTML(currentRoute.input || 'mp4', currentRoute.output || 'mp3', lang);
+    }
+    const matrixFaqSchemaScript = document.getElementById('matrix-faq-schema') as HTMLScriptElement | null;
+    if (matrixFaqSchemaScript) {
+      matrixFaqSchemaScript.textContent = JSON.stringify(generateFormatFAQSchema(currentRoute.input || 'mp4', currentRoute.output || 'mp3', lang));
+    }
+
+    // Re-render interactive 5-star rating system with active locale
+    const matrixRatingContainer = document.getElementById('matrix-rating-container');
+    const matrixRatingSchemaScript = document.getElementById('matrix-rating-schema') as HTMLScriptElement | null;
+    if (matrixRatingContainer) {
+      const matrixSlug = (currentRoute.input && currentRoute.output)
+        ? `${currentRoute.input}-to-${currentRoute.output}`
+        : (currentRoute.cleanPath ? currentRoute.cleanPath.replace(/^\//, '') : 'converter');
+      renderRatingWidget(
+        matrixRatingContainer,
+        matrixSlug,
+        currentRoute.input || 'mp4',
+        currentRoute.output || 'mp3',
+        matrixRatingSchemaScript,
+        lang
+      );
+    }
+  } else {
+    if (faqContainer) {
+      faqContainer.innerHTML = generateDynamicFAQs(currentRoute.input || 'mp4', currentRoute.output || 'wav', lang);
+    }
+  }
+
+  // 18. Update Video Editor UI in-place if active
+  updateEditorLanguage(lang);
+
+  // 19. Dispatch custom event so inline audio converter script refreshes labels
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('languagechange', { detail: { lang } }));
+  }
 }
 
 // Master Route Applicator with Strict SEO Perfection & Security Guards
@@ -973,7 +1473,7 @@ export async function navigateTo(pathname = window.location.pathname) {
     // Root / Homepage Meta Tags
     const homeTitle = lang === 'en' && cachedSiteSettings.siteMetaTitle 
       ? cachedSiteSettings.siteMetaTitle 
-      : t.hero.homeTitle + ' - VidToAudio';
+      : (lang === 'en' ? t.hero.homeTitle : t.hero.homeTitle + ' - VidToAudio');
     const homeDesc = t.hero.homeSubtitle;
     const homeUrl = `https://vidtoaudio.com${route.canonicalPath}`;
 
@@ -1160,9 +1660,18 @@ export async function navigateTo(pathname = window.location.pathname) {
     if (faqSection) faqSection.classList.remove('hidden');
     if (aboutSection) aboutSection.classList.remove('hidden');
 
-    if (matrixRatingSection) matrixRatingSection.classList.add('hidden');
-    if (matrixRatingContainer) matrixRatingContainer.innerHTML = '';
-    if (matrixRatingSchemaScript) matrixRatingSchemaScript.textContent = '{}';
+    // Render interactive 5-star rating system on Homepage for default MP4 to MP3 converter
+    if (matrixRatingSection) matrixRatingSection.classList.remove('hidden');
+    if (matrixRatingContainer) {
+      renderRatingWidget(
+        matrixRatingContainer,
+        'mp4-to-mp3',
+        'mp4',
+        'mp3',
+        matrixRatingSchemaScript,
+        lang
+      );
+    }
 
     if (matrixFaqSection) matrixFaqSection.classList.add('hidden');
     if (matrixFaqAccordion) matrixFaqAccordion.innerHTML = '';
@@ -1197,9 +1706,12 @@ export async function navigateTo(pathname = window.location.pathname) {
   });
 }
 
-// Expose navigateTo globally
+// Expose navigateTo and translation helpers globally
 if (typeof window !== 'undefined') {
   (window as any).navigateTo = navigateTo;
+  (window as any).getTranslations = getTranslations;
+  (window as any).getCurrentLanguage = getCurrentLanguage;
+  (window as any).applyLanguageToUI = applyLanguageToUI;
 }
 
 // Setup responsive navbar interactions (toggle menu & in-page smooth scrolls)
@@ -1272,6 +1784,84 @@ function initNavbarInteractions() {
 
 // Language selector switcher initializer
 function initLanguageSwitchers() {
+  const dropdownWrapper = document.getElementById('lang-dropdown-wrapper');
+  const dropdownBtn = document.getElementById('lang-dropdown-btn');
+  const dropdownMenu = document.getElementById('lang-dropdown-menu');
+  const dropdownItems = document.getElementById('lang-dropdown-items');
+  const arrowIcon = document.getElementById('lang-dropdown-arrow');
+  const mobileSelect = document.getElementById('mobile-lang-select') as HTMLSelectElement | null;
+
+  // 1. Populate desktop dropdown items
+  if (dropdownItems) {
+    dropdownItems.innerHTML = '';
+    (Object.keys(SUPPORTED_LANGUAGES) as SupportedLanguage[]).forEach(langKey => {
+      const config = SUPPORTED_LANGUAGES[langKey];
+      const itemBtn = document.createElement('button');
+      itemBtn.type = 'button';
+      itemBtn.setAttribute('data-lang-switch', langKey);
+      itemBtn.className = 'w-full flex items-center justify-between px-3 py-2 text-xs text-left hover:bg-dark-800 transition-colors group';
+      itemBtn.innerHTML = `
+        <span class="flex items-center gap-2">
+          <span class="text-base">${config.flag}</span>
+          <span class="text-slate-200 group-hover:text-white font-medium">${config.nativeName}</span>
+          <span class="text-slate-500 text-[11px]">(${config.name})</span>
+        </span>
+        <span class="font-mono text-[10px] uppercase text-slate-500 group-hover:text-brand-400 font-semibold">${config.code}</span>
+      `;
+      dropdownItems.appendChild(itemBtn);
+    });
+  }
+
+  // 2. Populate mobile select options
+  if (mobileSelect) {
+    mobileSelect.innerHTML = '';
+    (Object.keys(SUPPORTED_LANGUAGES) as SupportedLanguage[]).forEach(langKey => {
+      const config = SUPPORTED_LANGUAGES[langKey];
+      const opt = document.createElement('option');
+      opt.value = langKey;
+      opt.textContent = `${config.flag} ${config.nativeName} (${config.name})`;
+      mobileSelect.appendChild(opt);
+    });
+
+    mobileSelect.addEventListener('change', () => {
+      const chosenLang = mobileSelect.value as SupportedLanguage;
+      if (!chosenLang || !SUPPORTED_LANGUAGES[chosenLang]) return;
+      const currentRoute = parseRoute(window.location.pathname);
+      const newPath = buildLocalizedPath(currentRoute.cleanPath, chosenLang);
+      if (window.location.pathname !== newPath) {
+        window.history.pushState({}, '', newPath);
+      }
+      navigateTo(newPath);
+    });
+  }
+
+  // 3. Dropdown toggle interaction
+  if (dropdownBtn && dropdownMenu) {
+    dropdownBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = !dropdownMenu.classList.contains('hidden');
+      if (isOpen) {
+        dropdownMenu.classList.add('hidden');
+        arrowIcon?.classList.remove('rotate-180');
+        dropdownBtn.setAttribute('aria-expanded', 'false');
+      } else {
+        dropdownMenu.classList.remove('hidden');
+        arrowIcon?.classList.add('rotate-180');
+        dropdownBtn.setAttribute('aria-expanded', 'true');
+      }
+    });
+
+    // Close dropdown on outside click
+    document.addEventListener('click', (e) => {
+      if (!dropdownWrapper?.contains(e.target as Node)) {
+        dropdownMenu.classList.add('hidden');
+        arrowIcon?.classList.remove('rotate-180');
+        dropdownBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  // 4. Delegated handler for language switch clicks
   document.addEventListener('click', (e) => {
     const target = (e.target as HTMLElement)?.closest('[data-lang-switch]') as HTMLElement | null;
     if (!target) return;
@@ -1280,6 +1870,12 @@ function initLanguageSwitchers() {
     if (!chosenLang || !SUPPORTED_LANGUAGES[chosenLang]) return;
 
     e.preventDefault();
+    if (dropdownMenu) {
+      dropdownMenu.classList.add('hidden');
+      arrowIcon?.classList.remove('rotate-180');
+      dropdownBtn?.setAttribute('aria-expanded', 'false');
+    }
+
     const currentRoute = parseRoute(window.location.pathname);
     const newPath = buildLocalizedPath(currentRoute.cleanPath, chosenLang);
 
@@ -1290,14 +1886,176 @@ function initLanguageSwitchers() {
   });
 }
 
+// Top Navigation Bar User Authentication Integration
+export function setupNavbarAuth() {
+  const navContainer = document.getElementById('nav-auth-container');
+  const mobContainer = document.getElementById('mob-auth-container');
+  const navAdminLink = document.getElementById('nav-link-admin');
+  const mobAdminLink = document.getElementById('mob-link-admin');
+
+  onAuthUserChange((user, profile) => {
+    const isLoggedIn = Boolean(user);
+    const isAdmin = isEmailAdmin(user?.email) || profile?.role === 'admin';
+    const displayName = profile?.displayName || user?.displayName || user?.email?.split('@')[0] || 'User';
+    const email = user?.email || '';
+    const initial = displayName.charAt(0).toUpperCase();
+
+    // 1. Control visibility of Admin Links
+    if (navAdminLink) {
+      if (isAdmin) {
+        navAdminLink.classList.remove('hidden');
+        navAdminLink.innerHTML = `
+          <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          <span class="text-amber-400 font-bold">Admin</span>
+        `;
+      } else if (isLoggedIn) {
+        // Standard user logged in: hide admin link to keep experience clean and protected
+        navAdminLink.classList.add('hidden');
+      } else {
+        // Guest user: show discreet admin link
+        navAdminLink.classList.remove('hidden');
+        navAdminLink.innerHTML = `
+          <svg class="w-3.5 h-3.5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+          <span class="hidden sm:inline">Admin</span>
+        `;
+      }
+    }
+
+    if (mobAdminLink) {
+      if (isAdmin) {
+        mobAdminLink.classList.remove('hidden');
+      } else if (isLoggedIn) {
+        mobAdminLink.classList.add('hidden');
+      } else {
+        mobAdminLink.classList.remove('hidden');
+      }
+    }
+
+    // 2. Render Desktop Nav Auth Widget
+    if (navContainer) {
+      if (!isLoggedIn) {
+        navContainer.innerHTML = `
+          <button type="button" id="btn-nav-signin" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-dark-900 border border-slate-700/80 hover:border-brand-500 text-brand-400 hover:text-white transition-colors flex items-center gap-1.5 shadow-sm" title="Sign In or Register">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            <span>Sign In</span>
+          </button>
+        `;
+        document.getElementById('btn-nav-signin')?.addEventListener('click', () => {
+          openAuthModal('signin');
+        });
+      } else {
+        navContainer.innerHTML = `
+          <div class="relative" id="user-menu-root">
+            <button type="button" id="btn-user-dropdown" class="flex items-center gap-1.5 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-lg bg-dark-900 border border-slate-700/80 hover:border-brand-500 text-xs text-white transition-colors">
+              <div class="w-5 h-5 rounded-md bg-gradient-to-tr from-brand-600 to-teal-400 text-white font-bold text-[10px] flex items-center justify-center">
+                ${initial}
+              </div>
+              <span class="max-w-[80px] sm:max-w-[100px] truncate font-medium text-slate-200">${displayName}</span>
+              <svg class="w-3 h-3 text-slate-400 transition-transform" id="user-dropdown-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div id="user-dropdown-card" class="hidden absolute right-0 mt-1.5 w-56 bg-dark-950 border border-slate-800 rounded-2xl shadow-2xl p-2.5 z-50 divide-y divide-slate-800/80">
+              <div class="pb-2.5 px-1.5">
+                <div class="text-xs font-bold text-white truncate">${displayName}</div>
+                <div class="text-[11px] text-slate-400 truncate">${email}</div>
+                <div class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono ${isAdmin ? 'bg-amber-950 text-amber-300 border border-amber-800/80' : 'bg-emerald-950 text-emerald-300 border border-emerald-800/80'}">
+                  <span>${isAdmin ? '👑 Administrator' : '✓ Verified Creator'}</span>
+                </div>
+              </div>
+              <div class="pt-2 space-y-1">
+                ${isAdmin ? `
+                  <a href="/admin" data-route-link class="w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-medium text-amber-400 hover:text-white hover:bg-dark-900 flex items-center gap-2 transition-colors">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    <span>Admin Control Center</span>
+                  </a>
+                ` : ''}
+                <button type="button" id="btn-user-signout" class="w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 flex items-center gap-2 transition-colors">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        const menuBtn = document.getElementById('btn-user-dropdown');
+        const menuCard = document.getElementById('user-dropdown-card');
+        const menuArrow = document.getElementById('user-dropdown-arrow');
+        menuBtn?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const isHidden = menuCard?.classList.contains('hidden');
+          if (isHidden) {
+            menuCard?.classList.remove('hidden');
+            menuArrow?.classList.add('rotate-180');
+          } else {
+            menuCard?.classList.add('hidden');
+            menuArrow?.classList.remove('rotate-180');
+          }
+        });
+
+        document.addEventListener('click', (e) => {
+          if (!menuCard?.contains(e.target as Node) && !menuBtn?.contains(e.target as Node)) {
+            menuCard?.classList.add('hidden');
+            menuArrow?.classList.remove('rotate-180');
+          }
+        });
+
+        document.getElementById('btn-user-signout')?.addEventListener('click', async () => {
+          await signOutUser();
+        });
+      }
+    }
+
+    // 3. Render Mobile Drawer Auth Widget
+    if (mobContainer) {
+      if (!isLoggedIn) {
+        mobContainer.innerHTML = `
+          <button type="button" id="btn-mob-auth-signin" class="w-full py-2.5 px-3 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            <span>Sign In / Create Account</span>
+          </button>
+        `;
+        document.getElementById('btn-mob-auth-signin')?.addEventListener('click', () => {
+          const mobileDrawer = document.getElementById('mobile-nav-menu');
+          mobileDrawer?.classList.add('hidden');
+          openAuthModal('signin');
+        });
+      } else {
+        mobContainer.innerHTML = `
+          <div class="p-3 bg-dark-900 border border-slate-800 rounded-xl flex items-center justify-between text-xs">
+            <div class="flex items-center gap-2.5 truncate">
+              <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-600 to-teal-400 text-white font-bold text-xs flex items-center justify-center flex-shrink-0">
+                ${initial}
+              </div>
+              <div class="truncate">
+                <div class="font-bold text-white truncate">${displayName}</div>
+                <div class="text-[10px] text-slate-400 truncate">${email}</div>
+              </div>
+            </div>
+            <button type="button" id="btn-mob-auth-signout" class="px-2.5 py-1.5 bg-rose-950/60 border border-rose-800/80 text-rose-300 hover:text-white rounded-lg text-xs font-medium transition-colors">
+              Sign Out
+            </button>
+          </div>
+        `;
+        document.getElementById('btn-mob-auth-signout')?.addEventListener('click', async () => {
+          await signOutUser();
+        });
+      }
+    }
+  });
+}
+
 // Initialize Application
 async function initApp() {
   (window as any).navigateTo = navigateTo;
   (window as any).applyLanguageToUI = applyLanguageToUI;
+  (window as any).getTranslations = getTranslations;
+  (window as any).getCurrentLanguage = getCurrentLanguage;
+  (window as any).SUPPORTED_LANGUAGES = SUPPORTED_LANGUAGES;
 
   // 1. Initial setup
   initNavbarInteractions();
   initLanguageSwitchers();
+  setupNavbarAuth();
   applyGlobalSettings(cachedSiteSettings);
   
   const initialRoute = parseRoute(window.location.pathname);

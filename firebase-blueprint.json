@@ -1,22 +1,80 @@
 {
   "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Authenticated user profile with role-based access control",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "description": "User email address" },
+        "displayName": { "type": "string", "description": "Display name or username" },
+        "role": { "type": "string", "enum": ["user", "admin"], "description": "Access control role" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Account registration time" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last profile update time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Review": {
+      "title": "Format Review and Rating",
+      "description": "User submitted star rating and text review subject to admin moderation",
+      "type": "object",
+      "properties": {
+        "slug": { "type": "string", "description": "Converter format slug (e.g. mp4-to-mp3)" },
+        "inExt": { "type": "string", "description": "Source video container format" },
+        "outExt": { "type": "string", "description": "Target audio format" },
+        "userId": { "type": "string", "description": "UID of the authoring user" },
+        "userEmail": { "type": "string", "description": "Email of author" },
+        "userName": { "type": "string", "description": "Display name of reviewer" },
+        "rating": { "type": "integer", "description": "Star score from 1 to 5" },
+        "comment": { "type": "string", "maxLength": 500, "minLength": 10, "description": "Review text without links" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"], "description": "Moderation status" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Submission timestamp" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last moderation timestamp" }
+      },
+      "required": ["slug", "userId", "rating", "comment", "status"]
+    },
     "Blog": {
-      "fields": {
+      "title": "Blog Article",
+      "description": "Educational blog article",
+      "type": "object",
+      "properties": {
         "title": { "type": "string", "description": "Blog post title" },
         "slug": { "type": "string", "description": "Unique URL slug for the article" },
         "content": { "type": "string", "description": "Markdown content of the article" },
         "excerpt": { "type": "string", "description": "Short excerpt summary" },
         "authorEmail": { "type": "string", "description": "Author email" },
-        "createdAt": { "type": "timestamp", "description": "Creation timestamp" },
-        "updatedAt": { "type": "timestamp", "description": "Last update timestamp" }
-      }
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp" }
+      },
+      "required": ["title", "slug", "content"]
     },
     "Config": {
-      "fields": {
+      "title": "Site Configuration",
+      "description": "Global application configuration and toggles",
+      "type": "object",
+      "properties": {
         "template": { "type": "string", "description": "SEO description template with {INPUT} and {OUTPUT}" },
-        "enabledFormats": { "type": "map", "description": "Map of format extensions to boolean enabled status" },
-        "updatedAt": { "type": "timestamp", "description": "Last update timestamp" }
+        "enabledFormats": { "type": "object", "description": "Map of format extensions to boolean enabled status" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp" }
       }
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profile collection"
+    },
+    "/reviews/{reviewId}": {
+      "schema": { "$ref": "#/entities/Review" },
+      "description": "Moderated user reviews collection"
+    },
+    "/blogs/{blogId}": {
+      "schema": { "$ref": "#/entities/Blog" },
+      "description": "Published blog posts collection"
+    },
+    "/config/{configId}": {
+      "schema": { "$ref": "#/entities/Config" },
+      "description": "Site configuration documents"
     }
   }
 }

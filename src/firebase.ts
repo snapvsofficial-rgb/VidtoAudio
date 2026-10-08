@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { initializeAuth, getAuth, browserLocalPersistence, inMemoryPersistence, Auth } from 'firebase/auth';
 import { getFirestore, setLogLevel } from 'firebase/firestore';
 
 // Suppress noisy internal gRPC/WebChannel connection retry logs when backend is offline
@@ -18,7 +18,16 @@ export const hasFirebaseConfig = Boolean(firebaseConfig.apiKey && firebaseConfig
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-export const auth = getAuth(app);
+let authInstance: Auth;
+try {
+  authInstance = initializeAuth(app, {
+    persistence: [browserLocalPersistence, inMemoryPersistence]
+  });
+} catch {
+  authInstance = getAuth(app);
+}
+
+export const auth = authInstance;
 
 const databaseId = import.meta.env.VITE_FIREBASE_DATABASE_ID;
 export const db = (databaseId && databaseId !== '(default)') 

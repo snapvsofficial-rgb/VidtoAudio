@@ -172,11 +172,16 @@ const DICT_FR: Record<string, string> = {
 };
 
 /**
- * Translates a Markdown string into Spanish or French while strictly preserving
+ * Translates a Markdown string into target language while strictly preserving
  * Markdown syntax, code blocks, tables, lists, links, and bold/italic markup.
  */
-export function translateMarkdownText(md: string, targetLang: 'es' | 'fr'): string {
+export function translateMarkdownText(md: string, targetLang: SupportedLanguage): string {
   if (!md) return '';
+  if (targetLang === 'en') return md;
+  if (targetLang !== 'es' && targetLang !== 'fr') {
+    // For non-ES/FR languages without full manual markdown dictionaries, return original clean English markdown
+    return md;
+  }
   const dict = targetLang === 'es' ? DICT_ES : DICT_FR;
 
   const lines = md.split(/\r?\n/);
@@ -248,10 +253,14 @@ export function translateMarkdownText(md: string, targetLang: 'es' | 'fr'): stri
 }
 
 /**
- * Translates a single text string (title, excerpt) into Spanish or French.
+ * Translates a single text string (title, excerpt) into target language.
  */
-export function translatePlainText(text: string, targetLang: 'es' | 'fr'): string {
+export function translatePlainText(text: string, targetLang: SupportedLanguage): string {
   if (!text) return '';
+  if (targetLang === 'en') return text;
+  if (targetLang !== 'es' && targetLang !== 'fr') {
+    return text;
+  }
   const dict = targetLang === 'es' ? DICT_ES : DICT_FR;
   let out = text;
   const sortedKeys = Object.keys(dict).sort((a, b) => b.length - a.length);

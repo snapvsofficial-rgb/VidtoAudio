@@ -19,13 +19,26 @@ import {
   saveSiteSettings,
   DEFAULT_SITE_SETTINGS
 } from '../services/configService';
-import { BlogPost, FormatTogglesConfig, SiteSettingsConfig } from '../types';
+import { 
+  isEmailAdmin, 
+  verifyUserAdmin, 
+  signOutUser, 
+  signInUser, 
+  getCachedAuth 
+} from '../services/authService';
+import { 
+  fetchAllReviewsForAdmin, 
+  moderateReviewStatus, 
+  deleteReviewById 
+} from '../services/reviewService';
+import { BlogPost, FormatTogglesConfig, SiteSettingsConfig, UserReview } from '../types';
 import { generateTranslationsForBlogPost } from '../services/translationService';
 
-export type AdminTab = 'dashboard' | 'seo' | 'blogs' | 'settings';
+export type AdminTab = 'dashboard' | 'reviews' | 'seo' | 'blogs' | 'settings';
 
 let currentTab: AdminTab = 'dashboard';
 let blogsList: BlogPost[] = [];
+let reviewsList: UserReview[] = [];
 let editingBlogId: string | null = null;
 let currentSEOTemplate = DEFAULT_SEO_TEMPLATE;
 let currentToggles: FormatTogglesConfig = { ...DEFAULT_FORMAT_TOGGLES };
@@ -54,6 +67,55 @@ export function navigateToHome() {
   }
 }
 
+/**
+ * Access Denied Screen: Displayed when a standard user (non-admin) tries to view the admin area
+ */
+export function renderAccessDeniedScreen(container: HTMLElement, user: any): void {
+  container.innerHTML = `
+    <div class="min-h-[85vh] flex items-center justify-center px-4 py-12">
+      <div class="w-full max-w-md bg-dark-900 border border-rose-800/80 rounded-3xl p-8 sm:p-10 shadow-2xl text-center relative overflow-hidden">
+        <div class="absolute -top-24 -right-24 w-48 h-48 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        
+        <div class="w-16 h-16 bg-rose-950/80 border border-rose-700/80 rounded-2xl flex items-center justify-center mx-auto mb-5 text-rose-400 shadow-inner">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+        </div>
+
+        <h2 class="text-2xl font-bold text-white tracking-tight">Access Restricted</h2>
+        
+        <div class="my-5 p-3.5 bg-dark-950 border border-slate-800 rounded-xl text-left">
+          <div class="text-[11px] text-slate-400">Signed In Account:</div>
+          <div class="text-sm font-semibold text-white truncate">${user?.email || 'Standard User'}</div>
+          <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono bg-dark-900 text-amber-400 border border-amber-900/60 mt-1.5">
+            <span>Role: Standard Creator (Non-Admin)</span>
+          </div>
+        </div>
+
+        <p class="text-xs sm:text-sm text-slate-400 leading-relaxed mb-6">
+          This section is strictly reserved for system administrators. As a registered user, you can rate converters and submit feedback, but you cannot modify site settings or moderate reviews.
+        </p>
+
+        <div class="flex flex-col gap-2.5">
+          <button id="btn-denied-home" class="w-full py-2.5 px-4 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl text-xs sm:text-sm transition-all shadow-md">
+            Return to Public Website
+          </button>
+          <button id="btn-denied-logout" class="w-full py-2.5 px-4 bg-dark-950 hover:bg-dark-800 border border-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition-colors">
+            Sign Out & Switch Account
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('btn-denied-home')?.addEventListener('click', () => {
+    navigateToHome();
+  });
+
+  document.getElementById('btn-denied-logout')?.addEventListener('click', async () => {
+    await signOutUser();
+    renderLoginScreen(container);
+  });
+}
+
 // -------------------------------------------------------------
 // MAIN ENTRY POINT & STRICT ROUTE GUARD (FAIL CLOSED)
 // -------------------------------------------------------------
@@ -70,12 +132,31 @@ export function renderAdminApp(container: HTMLElement): void {
       <div class="w-full max-w-md bg-dark-900 border border-slate-800 rounded-3xl p-8 sm:p-10 shadow-2xl text-center">
         <div class="w-12 h-12 border-2 border-brand-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
         <h3 class="text-lg font-bold text-white mb-2">Verifying Admin Privileges</h3>
-        <p class="text-xs sm:text-sm text-slate-400">Verifying credentials with Firebase Authentication...</p>
+        <p class="text-xs sm:text-sm text-slate-400">Verifying credentials and administrative authorization...</p>
       </div>
     </div>
   `;
 
+  const verifyAndDispatch = async (candidateUser: any) => {
+    if (candidateUser && candidateUser.uid) {
+      const isAdmin = isEmailAdmin(candidateUser.email) || await verifyUserAdmin(candidateUser);
+      if (isAdmin) {
+        renderDashboard(container, candidateUser);
+      } else {
+        renderAccessDeniedScreen(container, candidateUser);
+      }
+    } else {
+      renderLoginScreen(container);
+    }
+  };
+
   try {
+    const cached = getCachedAuth();
+    if (cached.user) {
+      verifyAndDispatch(cached.user);
+      return;
+    }
+
     if (!auth) {
       renderLoginScreen(container, 'Firebase Authentication service is unavailable. Access denied.');
       return;
@@ -83,24 +164,17 @@ export function renderAdminApp(container: HTMLElement): void {
 
     activeAuthUnsubscribe = onAuthStateChanged(
       auth, 
-      (user: User | null) => {
-        if (user && user.uid) {
-          // Strictly render dashboard ONLY for verified Firebase authenticated user
-          renderDashboard(container, user);
-        } else {
-          // Fail Closed: If user is not logged in, strictly render the secure Login Form
-          renderLoginScreen(container);
-        }
+      async (user: User | null) => {
+        const effectiveUser = user || getCachedAuth().user;
+        await verifyAndDispatch(effectiveUser);
       },
       (error) => {
         console.error('Firebase Auth state error:', error);
-        // Fail closed on auth error
         renderLoginScreen(container, 'Firebase Authentication error. Access restricted.');
       }
     );
   } catch (err: any) {
     console.error('Firebase Auth initialization error:', err);
-    // Fail closed on init failure
     renderLoginScreen(container, 'Failed to initialize Firebase Authentication. Access denied.');
   }
 }
@@ -223,21 +297,24 @@ async function renderDashboard(container: HTMLElement, user: User): Promise<void
 
   // Pre-load all remote/cached configurations
   try {
-    const [blogs, seo, toggles, settings] = await Promise.all([
+    const [blogs, seo, toggles, settings, reviews] = await Promise.all([
       fetchAllBlogs(),
       fetchSEOTemplate(),
       fetchFormatToggles(),
-      fetchSiteSettings()
+      fetchSiteSettings(),
+      fetchAllReviewsForAdmin()
     ]);
     blogsList = blogs;
     currentSEOTemplate = seo;
     currentToggles = toggles;
     currentSettings = settings;
+    reviewsList = reviews;
   } catch (e) {
     console.warn('Error fetching dashboard data:', e);
   }
 
   const enabledFormatsCount = Object.values(currentToggles).filter(Boolean).length;
+  const pendingReviewsCount = reviewsList.filter(r => r.status === 'pending').length;
 
   container.innerHTML = `
     <div class="min-h-[85vh] bg-dark-950 flex flex-col lg:flex-row">
@@ -282,6 +359,15 @@ async function renderDashboard(container: HTMLElement, user: User): Promise<void
             <button id="nav-tab-dashboard" class="w-full px-3.5 py-3 rounded-xl text-left text-sm font-medium flex items-center gap-3 transition-colors ${currentTab === 'dashboard' ? 'bg-brand-600 text-white font-semibold shadow-md' : 'text-slate-400 hover:text-white hover:bg-dark-800'}">
               <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
               <span>Dashboard</span>
+            </button>
+
+            <!-- Tab: Reviews Moderation -->
+            <button id="nav-tab-reviews" class="w-full px-3.5 py-3 rounded-xl text-left text-sm font-medium flex items-center gap-3 transition-colors ${currentTab === 'reviews' ? 'bg-brand-600 text-white font-semibold shadow-md' : 'text-slate-400 hover:text-white hover:bg-dark-800'}">
+              <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+              <span>Reviews & Ratings</span>
+              <span class="ml-auto text-[10px] px-2 py-0.5 rounded font-mono ${pendingReviewsCount > 0 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40 font-bold animate-pulse' : (currentTab === 'reviews' ? 'bg-brand-700 text-white' : 'bg-dark-950 text-slate-400 border border-slate-800')}">
+                ${pendingReviewsCount > 0 ? `${pendingReviewsCount} pending` : reviewsList.length}
+              </span>
             </button>
 
             <!-- Tab: Matrix SEO -->
@@ -338,10 +424,13 @@ async function renderDashboard(container: HTMLElement, user: User): Promise<void
             <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
               <a href="/admin" class="hover:text-brand-400 transition-colors">Admin</a>
               <span>/</span>
-              <span class="text-white font-medium capitalize">${currentTab === 'seo' ? 'Matrix SEO' : currentTab === 'blogs' ? 'Blog CMS' : currentTab === 'settings' ? 'Site Settings' : 'Dashboard'}</span>
+              <span class="text-white font-medium capitalize">
+                ${currentTab === 'reviews' ? 'Reviews & Ratings' : (currentTab === 'seo' ? 'Matrix SEO' : (currentTab === 'blogs' ? 'Blog CMS' : (currentTab === 'settings' ? 'Site Settings' : 'Dashboard')))}
+              </span>
             </div>
             <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">
               ${currentTab === 'dashboard' ? 'Overview & Diagnostics' : ''}
+              ${currentTab === 'reviews' ? 'Format Reviews & Rating Moderation' : ''}
               ${currentTab === 'seo' ? 'Programmatic SEO Matrix' : ''}
               ${currentTab === 'blogs' ? 'Editorial Articles & Guides' : ''}
               ${currentTab === 'settings' ? 'Global Customization & Settings' : ''}
@@ -394,6 +483,7 @@ async function renderDashboard(container: HTMLElement, user: User): Promise<void
   };
 
   setupNav('nav-tab-dashboard', 'dashboard');
+  setupNav('nav-tab-reviews', 'reviews');
   setupNav('nav-tab-seo', 'seo');
   setupNav('nav-tab-blogs', 'blogs');
   setupNav('nav-tab-settings', 'settings');
@@ -407,6 +497,8 @@ async function renderDashboard(container: HTMLElement, user: User): Promise<void
       currentTab = tab;
       renderDashboard(container, user);
     });
+  } else if (currentTab === 'reviews') {
+    renderReviewsTab(mainPane, () => renderDashboard(container, user));
   } else if (currentTab === 'seo') {
     renderSEOTab(mainPane);
   } else if (currentTab === 'blogs') {
@@ -426,6 +518,7 @@ function renderDashboardTab(
 ): void {
   const enabledCount = Object.values(currentToggles).filter(Boolean).length;
   const recentBlogs = blogsList.slice(0, 4);
+  const pendingCount = reviewsList.filter(r => r.status === 'pending').length;
 
   container.innerHTML = `
     <div class="space-y-8">
@@ -482,6 +575,17 @@ function renderDashboardTab(
       <div class="bg-dark-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
         <h2 class="text-lg font-bold text-white mb-4">Quick Management Actions</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <button id="dash-act-reviews" class="p-4 bg-dark-950 hover:bg-dark-800 border ${pendingCount > 0 ? 'border-amber-500/50 hover:border-amber-400 bg-amber-950/10' : 'border-slate-800 hover:border-brand-500'} rounded-xl text-left transition-all group">
+            <div class="w-9 h-9 rounded-lg ${pendingCount > 0 ? 'bg-amber-950 text-amber-400 border border-amber-600/60' : 'bg-brand-950 text-brand-400'} flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+            </div>
+            <div class="font-semibold text-white text-sm flex items-center justify-between">
+              <span>Moderate Reviews</span>
+              ${pendingCount > 0 ? `<span class="text-[10px] bg-amber-500 text-black px-1.5 py-0.2 rounded-full font-bold">${pendingCount}</span>` : ''}
+            </div>
+            <p class="text-xs text-slate-400 mt-1">Approve or reject creator ratings & text feedback.</p>
+          </button>
+
           <button id="dash-act-blog" class="p-4 bg-dark-950 hover:bg-dark-800 border border-slate-800 hover:border-brand-500 rounded-xl text-left transition-all group">
             <div class="w-9 h-9 rounded-lg bg-brand-950 text-brand-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
@@ -504,14 +608,6 @@ function renderDashboardTab(
             </div>
             <div class="font-semibold text-white text-sm">Theme & Site Settings</div>
             <p class="text-xs text-slate-400 mt-1">Change theme color, site meta title, and footer text.</p>
-          </button>
-
-          <button id="dash-act-rebuild" class="p-4 bg-dark-950 hover:bg-dark-800 border border-slate-800 hover:border-brand-500 rounded-xl text-left transition-all group">
-            <div class="w-9 h-9 rounded-lg bg-brand-950 text-brand-400 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-            </div>
-            <div class="font-semibold text-white text-sm">Trigger Vercel Rebuild</div>
-            <p class="text-xs text-slate-400 mt-1">Dispatch Vercel deploy hook to regenerate static sitemap.</p>
           </button>
         </div>
       </div>
@@ -562,6 +658,7 @@ function renderDashboardTab(
     </div>
   `;
 
+  document.getElementById('dash-act-reviews')?.addEventListener('click', () => switchTab('reviews'));
   document.getElementById('dash-act-blog')?.addEventListener('click', () => {
     editingBlogId = '';
     switchTab('blogs');
@@ -569,14 +666,386 @@ function renderDashboardTab(
   document.getElementById('dash-act-seo')?.addEventListener('click', () => switchTab('seo'));
   document.getElementById('dash-act-settings')?.addEventListener('click', () => switchTab('settings'));
   document.getElementById('dash-view-all-blogs')?.addEventListener('click', () => switchTab('blogs'));
-  
-  document.getElementById('dash-act-rebuild')?.addEventListener('click', () => {
-    switchTab('settings');
-    setTimeout(() => {
-      const hookInput = document.getElementById('setting-vercel-hook') as HTMLInputElement;
-      hookInput?.focus();
-    }, 100);
-  });
+}
+
+// -------------------------------------------------------------
+// TAB: USER REVIEWS & RATINGS MODERATION
+// -------------------------------------------------------------
+function renderReviewsTab(
+  container: HTMLElement, 
+  onRefresh: () => void
+): void {
+  let activeFilter: 'all' | 'pending' | 'approved' | 'rejected' = 
+    reviewsList.some(r => r.status === 'pending') ? 'pending' : 'all';
+  let activeFormat = 'all';
+  let searchQuery = '';
+
+  const renderContent = () => {
+    const totalCount = reviewsList.length;
+    const pendingList = reviewsList.filter(r => r.status === 'pending');
+    const approvedList = reviewsList.filter(r => r.status === 'approved');
+    const rejectedList = reviewsList.filter(r => r.status === 'rejected');
+    
+    const approvedAvg = approvedList.length > 0 
+      ? (approvedList.reduce((sum, r) => sum + r.rating, 0) / approvedList.length).toFixed(1)
+      : '5.0';
+
+    // Unique formats in reviews
+    const uniqueFormats = Array.from(new Set(reviewsList.map(r => r.slug).filter(Boolean)));
+
+    // Filter reviews
+    let filtered = reviewsList.filter(r => {
+      if (activeFilter !== 'all' && r.status !== activeFilter) return false;
+      if (activeFormat !== 'all' && r.slug !== activeFormat) return false;
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const matchComment = r.comment.toLowerCase().includes(q);
+        const matchUser = (r.userName || '').toLowerCase().includes(q);
+        const matchEmail = (r.userEmail || '').toLowerCase().includes(q);
+        const matchSlug = (r.slug || '').toLowerCase().includes(q);
+        if (!matchComment && !matchUser && !matchEmail && !matchSlug) return false;
+      }
+      return true;
+    });
+
+    container.innerHTML = `
+      <div class="space-y-6">
+        <!-- Toast Notification Area -->
+        <div id="reviews-toast" class="hidden p-4 rounded-xl text-xs sm:text-sm font-medium transition-all flex items-center justify-between">
+          <span id="reviews-toast-msg"></span>
+          <button type="button" id="reviews-toast-close" class="opacity-70 hover:opacity-100 ml-4 font-bold text-base">✕</button>
+        </div>
+
+        <!-- Moderation Overview Stats -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-dark-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
+            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Total Submissions</div>
+            <div class="text-3xl font-extrabold text-white">${totalCount}</div>
+            <p class="text-xs text-slate-500 mt-1">All user ratings in database</p>
+          </div>
+
+          <div class="bg-dark-900 border ${pendingList.length > 0 ? 'border-amber-500/60 bg-amber-950/20' : 'border-slate-800'} rounded-2xl p-5 shadow-lg relative overflow-hidden">
+            <div class="text-xs font-semibold ${pendingList.length > 0 ? 'text-amber-400' : 'text-slate-400'} uppercase tracking-wider mb-1 flex items-center justify-between">
+              <span>Awaiting Approval</span>
+              ${pendingList.length > 0 ? '<span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>' : ''}
+            </div>
+            <div class="text-3xl font-extrabold ${pendingList.length > 0 ? 'text-amber-400' : 'text-white'}">${pendingList.length}</div>
+            <p class="text-xs text-slate-500 mt-1">Hidden from public page until approved</p>
+          </div>
+
+          <div class="bg-dark-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
+            <div class="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-1">Live Approved</div>
+            <div class="text-3xl font-extrabold text-emerald-400">${approvedList.length}</div>
+            <p class="text-xs text-slate-500 mt-1">Displayed publicly on format pages</p>
+          </div>
+
+          <div class="bg-dark-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
+            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Avg Approved Score</div>
+            <div class="text-3xl font-extrabold text-amber-400 flex items-center gap-1.5">
+              <span>${approvedAvg}</span>
+              <span class="text-base text-slate-500 font-normal">/ 5.0</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">Calculated from approved reviews</p>
+          </div>
+        </div>
+
+        <!-- Filter Controls Bar -->
+        <div class="bg-dark-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            
+            <!-- Filter Pills -->
+            <div class="flex flex-wrap items-center gap-2">
+              <button type="button" data-status-filter="all" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors ${activeFilter === 'all' ? 'bg-brand-600 text-white' : 'bg-dark-950 text-slate-400 hover:text-white border border-slate-800'}">
+                All (${totalCount})
+              </button>
+              <button type="button" data-status-filter="pending" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 ${activeFilter === 'pending' ? 'bg-amber-600 text-white shadow-md' : 'bg-dark-950 text-amber-400/90 hover:text-amber-300 border border-amber-900/40'}">
+                <span>⏳ Pending (${pendingList.length})</span>
+              </button>
+              <button type="button" data-status-filter="approved" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 ${activeFilter === 'approved' ? 'bg-emerald-600 text-white shadow-md' : 'bg-dark-950 text-emerald-400/90 hover:text-emerald-300 border border-emerald-900/40'}">
+                <span>✓ Approved (${approvedList.length})</span>
+              </button>
+              <button type="button" data-status-filter="rejected" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 ${activeFilter === 'rejected' ? 'bg-rose-600 text-white shadow-md' : 'bg-dark-950 text-rose-400/90 hover:text-rose-300 border border-rose-900/40'}">
+                <span>✕ Rejected (${rejectedList.length})</span>
+              </button>
+            </div>
+
+            <!-- Format Dropdown & Search -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+              <select id="review-format-select" class="bg-dark-950 border border-slate-700 rounded-xl text-xs text-slate-200 px-3 py-2 focus:outline-none focus:border-brand-500">
+                <option value="all" ${activeFormat === 'all' ? 'selected' : ''}>All Converter Formats</option>
+                ${uniqueFormats.map(fmt => `
+                  <option value="${fmt}" ${activeFormat === fmt ? 'selected' : ''}>${fmt.toUpperCase()}</option>
+                `).join('')}
+              </select>
+
+              <div class="relative">
+                <input 
+                  type="text" 
+                  id="review-search-input" 
+                  placeholder="Search reviews..." 
+                  value="${searchQuery}"
+                  class="w-full sm:w-48 bg-dark-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-500"
+                />
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Reviews List Area -->
+        <div class="space-y-4">
+          ${filtered.length === 0 ? `
+            <div class="bg-dark-900 border border-slate-800 rounded-2xl p-12 text-center">
+              <div class="w-12 h-12 rounded-2xl bg-dark-950 border border-slate-800 flex items-center justify-center text-slate-500 mx-auto mb-3">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+              </div>
+              <h4 class="text-sm font-bold text-white mb-1">No Reviews Found</h4>
+              <p class="text-xs text-slate-400">There are currently no reviews matching your active filter criteria.</p>
+            </div>
+          ` : `
+            <div class="grid grid-cols-1 gap-4">
+              ${filtered.map(r => {
+                const initial = (r.userName || r.userEmail || 'U').charAt(0).toUpperCase();
+                const isPending = r.status === 'pending';
+                const isApproved = r.status === 'approved';
+                const isRejected = r.status === 'rejected';
+
+                let formattedDate = 'Recently';
+                if (r.createdAt?.seconds) {
+                  formattedDate = new Date(r.createdAt.seconds * 1000).toLocaleDateString(undefined, {
+                    month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                  });
+                } else if (typeof r.createdAt === 'string') {
+                  formattedDate = new Date(r.createdAt).toLocaleDateString();
+                }
+
+                return `
+                  <div class="bg-dark-900 border ${isPending ? 'border-amber-500/50 bg-amber-950/5' : (isApproved ? 'border-slate-800 hover:border-slate-700' : 'border-rose-950/60 bg-rose-950/5')} rounded-2xl p-5 shadow-lg transition-all">
+                    
+                    <!-- Header Row: Reviewer Details, Format Badge & Status -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 mb-3 border-b border-slate-800/80">
+                      
+                      <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-teal-400 text-white font-bold text-sm flex items-center justify-center shadow">
+                          ${initial}
+                        </div>
+                        <div>
+                          <div class="flex items-center gap-2">
+                            <span class="font-bold text-white text-sm">${r.userName || 'Anonymous Creator'}</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded font-mono uppercase font-bold bg-brand-950 border border-brand-800/80 text-brand-300">
+                              ${r.slug.toUpperCase()}
+                            </span>
+                          </div>
+                          <div class="text-[11px] text-slate-400 flex items-center gap-2">
+                            <span>${r.userEmail || 'No Email'}</span>
+                            <span>•</span>
+                            <span>${formattedDate}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="flex items-center gap-2 self-start sm:self-auto">
+                        <span class="px-2.5 py-1 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider ${
+                          isPending 
+                            ? 'bg-amber-950/80 border border-amber-600/80 text-amber-300' 
+                            : (isApproved 
+                              ? 'bg-emerald-950/80 border border-emerald-600/80 text-emerald-300' 
+                              : 'bg-rose-950/80 border border-rose-600/80 text-rose-300')
+                        }">
+                          ${isPending ? '⏳ Pending Approval' : (isApproved ? '✓ Approved (Live)' : '✕ Rejected')}
+                        </span>
+                      </div>
+
+                    </div>
+
+                    <!-- Stars & Rating Score -->
+                    <div class="flex items-center justify-between mb-2.5">
+                      <div class="flex items-center gap-1.5">
+                        <div class="flex text-amber-400">
+                          ${[1, 2, 3, 4, 5].map(s => `
+                            <svg class="w-4 h-4 fill-current ${s <= r.rating ? 'text-amber-400' : 'text-slate-700'}" viewBox="0 0 20 20">
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                            </svg>
+                          `).join('')}
+                        </div>
+                        <span class="text-xs font-mono font-bold text-slate-300">${r.rating} / 5.0</span>
+                      </div>
+
+                      <div class="text-[10px] text-slate-500 font-mono">
+                        ID: ${(r.id || '').slice(0, 16)}
+                      </div>
+                    </div>
+
+                    <!-- Review Text Content -->
+                    <div class="p-3.5 bg-dark-950/80 border border-slate-800 rounded-xl mb-4">
+                      <p class="text-xs sm:text-sm text-slate-200 leading-relaxed font-normal">
+                        "${r.comment}"
+                      </p>
+                    </div>
+
+                    <!-- Action Buttons for Moderation -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-800/60">
+                      
+                      <div class="flex items-center gap-2">
+                        <!-- Direct Link to Format Page -->
+                        <a href="/${r.slug}" target="_blank" class="px-2.5 py-1.5 bg-dark-950 hover:bg-dark-800 border border-slate-800 text-slate-400 hover:text-white rounded-lg text-xs transition-colors flex items-center gap-1">
+                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                          <span>Preview Landing Page</span>
+                        </a>
+                      </div>
+
+                      <div class="flex items-center gap-2">
+                        ${!isApproved ? `
+                          <button 
+                            type="button" 
+                            data-action-approve="${r.id}" 
+                            class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5"
+                          >
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            <span>Approve (Publish Live)</span>
+                          </button>
+                        ` : ''}
+
+                        ${!isRejected ? `
+                          <button 
+                            type="button" 
+                            data-action-reject="${r.id}" 
+                            class="px-3.5 py-1.5 bg-amber-600/20 hover:bg-amber-600/40 border border-amber-600/60 text-amber-300 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5"
+                          >
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            <span>Reject</span>
+                          </button>
+                        ` : ''}
+
+                        <button 
+                          type="button" 
+                          data-action-delete="${r.id}" 
+                          class="p-1.5 bg-dark-950 hover:bg-rose-950/80 border border-slate-800 hover:border-rose-800 text-slate-400 hover:text-rose-300 rounded-xl text-xs transition-colors"
+                          title="Delete Permanently"
+                        >
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                      </div>
+
+                    </div>
+
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `}
+        </div>
+
+      </div>
+    `;
+
+    // Toast helper
+    const showToast = (message: string, isError = false) => {
+      const toast = document.getElementById('reviews-toast');
+      const msg = document.getElementById('reviews-toast-msg');
+      if (toast && msg) {
+        msg.textContent = message;
+        toast.className = `p-4 rounded-xl text-xs sm:text-sm font-medium transition-all flex items-center justify-between ${
+          isError ? 'bg-rose-950/80 border border-rose-800 text-rose-200' : 'bg-emerald-950/80 border border-emerald-800 text-emerald-200'
+        }`;
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 5000);
+      }
+    };
+
+    document.getElementById('reviews-toast-close')?.addEventListener('click', () => {
+      document.getElementById('reviews-toast')?.classList.add('hidden');
+    });
+
+    // Bind Filter Pills
+    container.querySelectorAll<HTMLButtonElement>('[data-status-filter]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const val = btn.getAttribute('data-status-filter') as any;
+        activeFilter = val;
+        renderContent();
+      });
+    });
+
+    // Bind Format Dropdown
+    const formatSelect = container.querySelector('#review-format-select') as HTMLSelectElement | null;
+    formatSelect?.addEventListener('change', () => {
+      activeFormat = formatSelect.value;
+      renderContent();
+    });
+
+    // Bind Search Input
+    const searchInput = container.querySelector('#review-search-input') as HTMLInputElement | null;
+    searchInput?.addEventListener('input', () => {
+      searchQuery = searchInput.value;
+      renderContent();
+      const refocused = container.querySelector('#review-search-input') as HTMLInputElement | null;
+      if (refocused) {
+        refocused.focus();
+        refocused.setSelectionRange(searchQuery.length, searchQuery.length);
+      }
+    });
+
+    // Bind Approve Actions
+    container.querySelectorAll<HTMLButtonElement>('[data-action-approve]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const revId = btn.getAttribute('data-action-approve');
+        if (!revId) return;
+        btn.disabled = true;
+        btn.innerHTML = `<span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span> Approving...`;
+        try {
+          await moderateReviewStatus(revId, 'approved');
+          const target = reviewsList.find(r => r.id === revId);
+          if (target) target.status = 'approved';
+          showToast(`✓ Review successfully approved! Rating has increased and is now live on the converter page.`);
+          renderContent();
+        } catch (err: any) {
+          showToast(`Error approving review: ${err?.message || err}`, true);
+          btn.disabled = false;
+        }
+      });
+    });
+
+    // Bind Reject Actions
+    container.querySelectorAll<HTMLButtonElement>('[data-action-reject]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const revId = btn.getAttribute('data-action-reject');
+        if (!revId) return;
+        btn.disabled = true;
+        btn.innerHTML = `<span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span> Rejecting...`;
+        try {
+          await moderateReviewStatus(revId, 'rejected');
+          const target = reviewsList.find(r => r.id === revId);
+          if (target) target.status = 'rejected';
+          showToast(`Review was marked as rejected.`);
+          renderContent();
+        } catch (err: any) {
+          showToast(`Error rejecting review: ${err?.message || err}`, true);
+          btn.disabled = false;
+        }
+      });
+    });
+
+    // Bind Delete Actions
+    container.querySelectorAll<HTMLButtonElement>('[data-action-delete]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const revId = btn.getAttribute('data-action-delete');
+        if (!revId) return;
+        if (!confirm('Are you sure you want to permanently delete this user review? This action cannot be undone.')) {
+          return;
+        }
+        try {
+          await deleteReviewById(revId);
+          reviewsList = reviewsList.filter(r => r.id !== revId);
+          showToast(`Review deleted permanently.`);
+          renderContent();
+        } catch (err: any) {
+          showToast(`Error deleting review: ${err?.message || err}`, true);
+        }
+      });
+    });
+  };
+
+  renderContent();
 }
 
 // -------------------------------------------------------------

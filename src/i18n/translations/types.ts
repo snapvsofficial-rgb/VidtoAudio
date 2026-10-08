@@ -1,4 +1,25 @@
-export type SupportedLanguage = 'en' | 'es' | 'fr';
+export type SupportedLanguage = 
+  | 'en' // English
+  | 'de' // German
+  | 'fr' // French
+  | 'es' // Spanish
+  | 'it' // Italian
+  | 'nl' // Dutch
+  | 'sv' // Swedish
+  | 'pl' // Polish
+  | 'pt' // Portuguese
+  | 'el' // Greek
+  | 'sk' // Slovak
+  | 'tr' // Turkish
+  | 'uk' // Ukrainian
+  | 'ru' // Russian
+  | 'ja' // Japanese
+  | 'ko' // Korean
+  | 'zh' // Chinese
+  | 'ar' // Arabic
+  | 'id' // Indonesian
+  | 'th' // Thai
+  | 'vi'; // Vietnamese
 
 export interface LanguageConfig {
   code: SupportedLanguage;
@@ -6,6 +27,7 @@ export interface LanguageConfig {
   nativeName: string;
   flag: string;
   locale: string;
+  dir?: 'ltr' | 'rtl';
 }
 
 export const SUPPORTED_LANGUAGES: Record<SupportedLanguage, LanguageConfig> = {
@@ -14,21 +36,168 @@ export const SUPPORTED_LANGUAGES: Record<SupportedLanguage, LanguageConfig> = {
     name: 'English',
     nativeName: 'English',
     flag: '🇺🇸',
-    locale: 'en-US'
+    locale: 'en-US',
+    dir: 'ltr'
   },
-  es: {
-    code: 'es',
-    name: 'Spanish',
-    nativeName: 'Español',
-    flag: '🇪🇸',
-    locale: 'es-ES'
+  de: {
+    code: 'de',
+    name: 'German',
+    nativeName: 'Deutsch',
+    flag: '🇩🇪',
+    locale: 'de-DE',
+    dir: 'ltr'
   },
   fr: {
     code: 'fr',
     name: 'French',
     nativeName: 'Français',
     flag: '🇫🇷',
-    locale: 'fr-FR'
+    locale: 'fr-FR',
+    dir: 'ltr'
+  },
+  es: {
+    code: 'es',
+    name: 'Spanish',
+    nativeName: 'Español',
+    flag: '🇪🇸',
+    locale: 'es-ES',
+    dir: 'ltr'
+  },
+  it: {
+    code: 'it',
+    name: 'Italian',
+    nativeName: 'Italiano',
+    flag: '🇮🇹',
+    locale: 'it-IT',
+    dir: 'ltr'
+  },
+  nl: {
+    code: 'nl',
+    name: 'Dutch',
+    nativeName: 'Nederlands',
+    flag: '🇳🇱',
+    locale: 'nl-NL',
+    dir: 'ltr'
+  },
+  sv: {
+    code: 'sv',
+    name: 'Swedish',
+    nativeName: 'Svenska',
+    flag: '🇸🇪',
+    locale: 'sv-SE',
+    dir: 'ltr'
+  },
+  pl: {
+    code: 'pl',
+    name: 'Polish',
+    nativeName: 'Polski',
+    flag: '🇵🇱',
+    locale: 'pl-PL',
+    dir: 'ltr'
+  },
+  pt: {
+    code: 'pt',
+    name: 'Portuguese',
+    nativeName: 'Português',
+    flag: '🇧🇷',
+    locale: 'pt-BR',
+    dir: 'ltr'
+  },
+  el: {
+    code: 'el',
+    name: 'Greek',
+    nativeName: 'Ελληνικά',
+    flag: '🇬🇷',
+    locale: 'el-GR',
+    dir: 'ltr'
+  },
+  sk: {
+    code: 'sk',
+    name: 'Slovak',
+    nativeName: 'Slovenčina',
+    flag: '🇸🇰',
+    locale: 'sk-SK',
+    dir: 'ltr'
+  },
+  tr: {
+    code: 'tr',
+    name: 'Turkish',
+    nativeName: 'Türkçe',
+    flag: '🇹🇷',
+    locale: 'tr-TR',
+    dir: 'ltr'
+  },
+  uk: {
+    code: 'uk',
+    name: 'Ukrainian',
+    nativeName: 'Українська',
+    flag: '🇺🇦',
+    locale: 'uk-UA',
+    dir: 'ltr'
+  },
+  ru: {
+    code: 'ru',
+    name: 'Russian',
+    nativeName: 'Русский',
+    flag: '🇷🇺',
+    locale: 'ru-RU',
+    dir: 'ltr'
+  },
+  ja: {
+    code: 'ja',
+    name: 'Japanese',
+    nativeName: '日本語',
+    flag: '🇯🇵',
+    locale: 'ja-JP',
+    dir: 'ltr'
+  },
+  ko: {
+    code: 'ko',
+    name: 'Korean',
+    nativeName: '한국어',
+    flag: '🇰🇷',
+    locale: 'ko-KR',
+    dir: 'ltr'
+  },
+  zh: {
+    code: 'zh',
+    name: 'Chinese',
+    nativeName: '简体中文',
+    flag: '🇨🇳',
+    locale: 'zh-CN',
+    dir: 'ltr'
+  },
+  ar: {
+    code: 'ar',
+    name: 'Arabic',
+    nativeName: 'العربية',
+    flag: '🇸🇦',
+    locale: 'ar-SA',
+    dir: 'rtl'
+  },
+  id: {
+    code: 'id',
+    name: 'Indonesian',
+    nativeName: 'Bahasa Indonesia',
+    flag: '🇮🇩',
+    locale: 'id-ID',
+    dir: 'ltr'
+  },
+  th: {
+    code: 'th',
+    name: 'Thai',
+    nativeName: 'ไทย',
+    flag: '🇹🇭',
+    locale: 'th-TH',
+    dir: 'ltr'
+  },
+  vi: {
+    code: 'vi',
+    name: 'Vietnamese',
+    nativeName: 'Tiếng Việt',
+    flag: '🇻🇳',
+    locale: 'vi-VN',
+    dir: 'ltr'
   }
 };
 
@@ -45,6 +214,8 @@ export interface TranslationDictionary {
     admin: string;
     getApp: string;
     terms: string;
+    contactUs?: string;
+    languageLabel?: string;
   };
   hero: {
     homeTitle: string;
@@ -93,17 +264,46 @@ export interface TranslationDictionary {
     errorTitle: string;
     errorMessage: string;
     tryAgain: string;
+    audioPreview?: string;
+    trimAudio?: string;
+    cropSelection?: string;
+    waveformHint?: string;
+    durationLabel?: string;
+    sampleRateLabel?: string;
+    sizeLabel?: string;
+    convertedTracks?: string;
+    actions?: string;
+    sequentialOffline?: string;
+  };
+  batchSeo?: {
+    badge: string;
+    subBadge: string;
+    title: string;
+    desc: string;
+    b1: string;
+    b2: string;
+    b3: string;
+  };
+  whyWeBuilt?: {
+    title: string;
+    p1: string;
+    p2: string;
+    lastUpdated: string;
   };
   howItWorks: {
     title: string;
     step1Title: string;
     step1Desc: string;
+    step1Badge?: string;
     step2Title: string;
     step2Desc: string;
+    step2Badge?: string;
     step3Title: string;
     step3Desc: string;
+    step3Badge?: string;
     step4Title: string;
     step4Desc: string;
+    step4Badge?: string;
   };
   features: {
     title: string;
@@ -310,5 +510,13 @@ export interface TranslationDictionary {
     rightsReserved: string;
     privacyPolicy: string;
     termsOfService: string;
+    readyTitle?: string;
+    downloadBtn?: string;
+    popularLabel?: string;
+    matrixTitle?: string;
+    matrixSubtitle?: string;
+    matrixBadge?: string;
+    disclaimer?: string;
+    contact?: string;
   };
 }
