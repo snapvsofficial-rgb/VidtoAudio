@@ -1,0 +1,31 @@
+{
+  "name": "VidToAudio - Bulk Audio Converter",
+  "short_name": "VidToAudio",
+  "description": "Fastest bulk MP4 to MP3 converter online. Batch convert multiple video files to 320kbps MP3 instantly and securely in your browser with zero uploads.",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#14b8a6",
+  "orientation": "any",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "48x48 72x72 96x96 128x128 256x256 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/og-image.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": [
+    "utilities",
+    "multimedia",
+    "productivity"
+  ]
+}

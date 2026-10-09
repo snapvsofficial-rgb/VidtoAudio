@@ -1,5 +1,6 @@
 User-agent: *
 Disallow: /admin
 Allow: /
+Allow: /.well-known/
 
 Sitemap: https://vidtoaudio.com/sitemap.xml

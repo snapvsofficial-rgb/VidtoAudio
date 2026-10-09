@@ -1,38 +1,63 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "name": "VidToAudio",
-  "description": "Fast, privacy-focused in-browser video-to-audio converter with zero server uploads.",
-  "url": "https://vidtoaudio.com",
-  "version": "1.0.4",
-  "categories": [
-    "utilities",
-    "audio-converter",
-    "multimedia"
-  ],
-  "capabilities": [
+  "$schema": "https://raw.githubusercontent.com/ards-project/ard-spec/main/spec/schemas/ai-catalog.schema.json",
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "VidToAudio",
+    "documentationUrl": "https://vidtoaudio.com/llms.txt",
+    "logoUrl": "https://vidtoaudio.com/favicon.svg"
+  },
+  "entries": [
     {
-      "id": "audio-extraction",
-      "name": "Audio Extraction",
-      "description": "Converts MP4, MKV, AVI, WEBM, MOV video files to MP3, WAV, AAC, FLAC, OGG without server uploads.",
-      "protocol": "https",
-      "endpoint": "https://vidtoaudio.com/"
+      "identifier": "urn:air:vidtoaudio:converter:audio-extractor",
+      "displayName": "VidToAudio Offline Audio Extractor",
+      "type": "application/json",
+      "url": "https://vidtoaudio.com/llms.txt",
+      "description": "High-speed client-side video-to-audio converter powered by WebAssembly FFmpeg. Converts MP4, MKV, AVI, WEBM, MOV, FLV, WMV, HEVC, M4V to MP3, WAV, AAC, FLAC, OGG, M4A, WMA, OPUS, AIFF without server uploads.",
+      "tags": [
+        "audio-converter",
+        "video-to-audio",
+        "multimedia",
+        "privacy-focused",
+        "offline-converter"
+      ],
+      "capabilities": [
+        "AudioExtraction",
+        "FormatConversion",
+        "BatchProcessing",
+        "LosslessExtraction"
+      ],
+      "representativeQueries": [
+        "convert MP4 video to MP3 audio offline",
+        "extract WAV audio from MKV without uploading",
+        "bulk convert video files to high quality audio",
+        "free private video to audio converter"
+      ],
+      "version": "1.0.0",
+      "updatedAt": "2026-10-09T20:00:00Z"
     },
     {
-      "id": "video-editor",
-      "name": "Video Editor Studio",
-      "description": "Browser-based video trimmer and timeline audio extraction utility.",
-      "protocol": "https",
-      "endpoint": "https://vidtoaudio.com/editor"
-    }
-  ],
-  "resources": [
-    {
-      "type": "documentation",
-      "url": "https://vidtoaudio.com/llms.txt"
-    },
-    {
-      "type": "sitemap",
-      "url": "https://vidtoaudio.com/sitemap.xml"
+      "identifier": "urn:air:vidtoaudio:editor:video-cutter",
+      "displayName": "VidToAudio Studio Video & Audio Editor",
+      "type": "application/json",
+      "url": "https://vidtoaudio.com/editor",
+      "description": "In-browser video trimmer and audio waveform cutter with real-time waveform visualization and millisecond-accurate region trimming.",
+      "tags": [
+        "audio-editor",
+        "waveform-cutter",
+        "video-trimmer"
+      ],
+      "capabilities": [
+        "AudioTrimming",
+        "WaveformPreview",
+        "PreciseCut"
+      ],
+      "representativeQueries": [
+        "trim audio waveform in browser",
+        "cut audio file online free",
+        "extract trimmed segment from video"
+      ],
+      "version": "1.0.0",
+      "updatedAt": "2026-10-09T20:00:00Z"
     }
   ]
 }

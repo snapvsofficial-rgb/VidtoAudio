@@ -8,13 +8,52 @@
           "value": "same-origin"
         },
         {
-  "key": "Cross-Origin-Embedder-Policy",
-  "value": "credentialless"
-}
+          "key": "Cross-Origin-Embedder-Policy",
+          "value": "credentialless"
+        }
+      ]
+    },
+    {
+      "source": "/.well-known/(.*)",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json; charset=utf-8"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)\\.(json|webmanifest)",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json; charset=utf-8"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, stale-while-revalidate=86400"
+        }
       ]
     }
   ],
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/.well-known/ai-catalog.json", "destination": "/.well-known/ai-catalog.json" },
+    { "source": "/.well-known/ard.json", "destination": "/.well-known/ard.json" },
+    { "source": "/ai-catalog.json", "destination": "/ai-catalog.json" },
+    { "source": "/manifest.json", "destination": "/manifest.json" },
+    { "source": "/manifest.webmanifest", "destination": "/manifest.webmanifest" },
+    { "source": "/((?!.*\\.(?:json|webmanifest|xml|txt|png|webp|jpg|jpeg|svg|ico|js|css|wasm|apk|html)|\\.well-known).*)", "destination": "/index.html" }
   ]
 }
