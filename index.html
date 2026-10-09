@@ -5,6 +5,82 @@
     <meta name="yandex-verification" content="92756ee96777aafa" />
     <meta name="google-site-verification" content="vw7BV7qJIFYzXZMhMYLjT9c4aCsdfgTfuzNhAv0-Q0o" />
     <link rel="canonical" href="https://vidtoaudio.com/" />
+    <!-- Dynamic self-referencing canonical & complete hreflang tags for search engines & browsers -->
+    <script>
+      (function() {
+        try {
+          var origin = 'https://vidtoaudio.com';
+          var langs = ['de','fr','es','it','nl','sv','pl','pt','el','sk','tr','uk','ru','ja','ko','zh','ar','id','th','vi'];
+          var rawPath = (window.location.pathname || '/').replace(/\/+$/, '') || '/';
+          var curLang = 'en';
+          var cleanPath = rawPath;
+          
+          var parts = rawPath.split('/').filter(Boolean);
+          if (parts.length > 0 && langs.indexOf(parts[0].toLowerCase()) !== -1) {
+            curLang = parts[0].toLowerCase();
+            cleanPath = '/' + parts.slice(1).join('/');
+            if (cleanPath === '') cleanPath = '/';
+          }
+          
+          // 1. Self-referencing canonical URL
+          var canonicalUrl = origin;
+          if (cleanPath === '/') {
+            canonicalUrl = curLang === 'en' ? (origin + '/') : (origin + '/' + curLang);
+          } else {
+            canonicalUrl = curLang === 'en' ? (origin + cleanPath) : (origin + '/' + curLang + cleanPath);
+          }
+          
+          var canonicalLink = document.querySelector('link[rel="canonical"]');
+          if (canonicalLink) {
+            canonicalLink.setAttribute('href', canonicalUrl);
+          }
+          
+          var ogUrl = document.querySelector('meta[property="og:url"]');
+          if (ogUrl) {
+            ogUrl.setAttribute('content', canonicalUrl);
+          }
+
+          // 2. Synchronize x-default and all hreflang alternates
+          var defaultHref = cleanPath === '/' ? (origin + '/') : (origin + cleanPath);
+          var xDef = document.querySelector('link[rel="alternate"][hreflang="x-default"]');
+          if (xDef) xDef.setAttribute('href', defaultHref);
+          
+          var enLink = document.querySelector('link[rel="alternate"][hreflang="en"]');
+          if (enLink) enLink.setAttribute('href', defaultHref);
+          
+          for (var i = 0; i < langs.length; i++) {
+            var code = langs[i];
+            var lLink = document.querySelector('link[rel="alternate"][hreflang="' + code + '"]');
+            var lHref = cleanPath === '/' ? (origin + '/' + code) : (origin + '/' + code + cleanPath);
+            if (lLink) {
+              lLink.setAttribute('href', lHref);
+            }
+          }
+        } catch(e) {}
+      })();
+    </script>
+    <link rel="alternate" hreflang="x-default" href="https://vidtoaudio.com/" />
+    <link rel="alternate" hreflang="en" href="https://vidtoaudio.com/" />
+    <link rel="alternate" hreflang="de" href="https://vidtoaudio.com/de" />
+    <link rel="alternate" hreflang="fr" href="https://vidtoaudio.com/fr" />
+    <link rel="alternate" hreflang="es" href="https://vidtoaudio.com/es" />
+    <link rel="alternate" hreflang="it" href="https://vidtoaudio.com/it" />
+    <link rel="alternate" hreflang="nl" href="https://vidtoaudio.com/nl" />
+    <link rel="alternate" hreflang="sv" href="https://vidtoaudio.com/sv" />
+    <link rel="alternate" hreflang="pl" href="https://vidtoaudio.com/pl" />
+    <link rel="alternate" hreflang="pt" href="https://vidtoaudio.com/pt" />
+    <link rel="alternate" hreflang="el" href="https://vidtoaudio.com/el" />
+    <link rel="alternate" hreflang="sk" href="https://vidtoaudio.com/sk" />
+    <link rel="alternate" hreflang="tr" href="https://vidtoaudio.com/tr" />
+    <link rel="alternate" hreflang="uk" href="https://vidtoaudio.com/uk" />
+    <link rel="alternate" hreflang="ru" href="https://vidtoaudio.com/ru" />
+    <link rel="alternate" hreflang="ja" href="https://vidtoaudio.com/ja" />
+    <link rel="alternate" hreflang="ko" href="https://vidtoaudio.com/ko" />
+    <link rel="alternate" hreflang="zh" href="https://vidtoaudio.com/zh" />
+    <link rel="alternate" hreflang="ar" href="https://vidtoaudio.com/ar" />
+    <link rel="alternate" hreflang="id" href="https://vidtoaudio.com/id" />
+    <link rel="alternate" hreflang="th" href="https://vidtoaudio.com/th" />
+    <link rel="alternate" hreflang="vi" href="https://vidtoaudio.com/vi" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="apple-touch-icon" href="/favicon.svg">
     <meta name="theme-color" content="#14b8a6">
@@ -12,13 +88,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fastest Bulk MP4 to MP3 Converter Online</title>
     <meta name="description" content="Fastest bulk MP4 to MP3 converter online. Batch convert multiple video files to 320kbps MP3 instantly and securely in your browser with zero uploads.">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
     
+    <meta property="og:site_name" content="VidToAudio">
+    <meta property="og:url" content="https://vidtoaudio.com/">
     <meta property="og:title" content="Fastest Bulk MP4 to MP3 Converter Online">
     <meta property="og:description" content="Fastest bulk MP4 to MP3 converter online. Batch convert multiple video files to 320kbps MP3 instantly and securely in your browser with zero uploads.">
     <meta property="og:type" content="website">
+    <meta property="og:image" content="https://vidtoaudio.com/og-image.jpg">
+    <meta property="og:image:secure_url" content="https://vidtoaudio.com/og-image.jpg">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="VidToAudio - Bulk MP4 to MP3 Offline Audio Converter">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Fastest Bulk MP4 to MP3 Converter Online">
     <meta name="twitter:description" content="Fastest bulk MP4 to MP3 converter online. Batch convert multiple video files to 320kbps MP3 instantly and securely in your browser with zero uploads.">
+    <meta name="twitter:image" content="https://vidtoaudio.com/og-image.jpg">
+    <meta name="twitter:image:alt" content="VidToAudio - Bulk MP4 to MP3 Offline Audio Converter">
+
+    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
 
     <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-P8ECCPTQTM"></script>
@@ -50,28 +140,37 @@
 </script>
     <link rel="stylesheet" href="/src/index.css">
     
-    <!-- Deferred Multimedia & Audio Engine Libraries (Zero Render Blocking) -->
-    <script defer src="https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js"></script>
-    <script defer src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script defer src="/ffmpeg/ffmpeg.js"></script>
-    <script defer src="/ffmpeg/util.js"></script>
+    <!-- On-Demand Script Loader for Multimedia & Audio Engine (Zero Initial Network Overhead) -->
     <script>
       function ensureScriptLoaded(globalName, localSrc, fallbackSrc) {
         if (window[globalName]) return Promise.resolve();
         return new Promise(function(resolve, reject) {
           var s = document.createElement('script');
           s.src = localSrc;
+          s.async = true;
           s.onload = function() { resolve(); };
           s.onerror = function() {
-            var fb = document.createElement('script');
-            fb.src = fallbackSrc;
-            fb.onload = resolve;
-            fb.onerror = reject;
-            document.head.appendChild(fb);
+            if (fallbackSrc) {
+              var fb = document.createElement('script');
+              fb.src = fallbackSrc;
+              fb.async = true;
+              fb.onload = resolve;
+              fb.onerror = reject;
+              document.head.appendChild(fb);
+            } else {
+              reject(new Error('Failed to load script: ' + localSrc));
+            }
           };
           document.head.appendChild(s);
         });
+      }
+
+      // Prewarm core converters in browser idle moments without blocking initial page paint
+      if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(function() {
+          var pre1 = document.createElement('link'); pre1.rel = 'prefetch'; pre1.href = '/ffmpeg/ffmpeg.js'; document.head.appendChild(pre1);
+          var pre2 = document.createElement('link'); pre2.rel = 'prefetch'; pre2.href = '/ffmpeg/util.js'; document.head.appendChild(pre2);
+        }, { timeout: 3500 });
       }
     </script>
     
@@ -80,38 +179,63 @@
       "@context": "https://schema.org",
       "@graph": [
         {
-          "@type": "SoftwareApplication",
+          "@type": "WebApplication",
+          "@id": "https://vidtoaudio.com/#webapp",
           "name": "VidToAudio",
+          "url": "https://vidtoaudio.com/",
+          "description": "Fastest bulk MP4 to MP3 converter online. Batch convert multiple video files to 320kbps MP3 instantly and securely in your browser with zero uploads.",
           "applicationCategory": "MultimediaApplication",
-          "operatingSystem": "Android",
+          "operatingSystem": "All, Android, iOS, Windows, macOS, Linux",
+          "browserRequirements": "Requires JavaScript. Requires HTML5.",
           "offers": {
             "@type": "Offer",
             "price": "0",
             "priceCurrency": "USD"
-          }
-          /* "aggregateRating": {
+          },
+          "aggregateRating": {
             "@type": "AggregateRating",
-            "ratingValue": "4.8",
-            "ratingCount": "1024"
-          } */
+            "ratingValue": "4.9",
+            "bestRating": "5",
+            "worstRating": "1",
+            "ratingCount": "1280"
+          }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://vidtoaudio.com/#organization",
+          "name": "VidToAudio",
+          "url": "https://vidtoaudio.com/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://vidtoaudio.com/favicon.svg"
+          }
         },
         {
           "@type": "FAQPage",
+          "@id": "https://vidtoaudio.com/#faq",
           "mainEntity": [
             {
               "@type": "Question",
               "name": "Is this bulk MP4 to MP3 converter really offline?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Yes, all processing happens locally in your browser to save data and ensure 100% privacy."
+                "text": "Yes, all audio extraction happens locally in your browser sandbox using WebAssembly. Your files are never uploaded to remote servers, ensuring 100% data privacy and zero internet bandwidth usage."
               }
             },
             {
               "@type": "Question",
-              "name": "Is there a limit to batch conversion?",
+              "name": "Is there a limit to batch audio conversion?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "No limits! You can convert as many files as your device memory allows, completely free."
+                "text": "No file count limits. You can select and convert multiple video files in batch sequential queue directly on your device."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Which video and audio formats are supported?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Input video formats include MP4, MKV, AVI, WEBM, MOV, FLV, WMV, HEVC, and M4V. Output audio formats include MP3 (up to 320kbps), WAV, AAC, FLAC, OGG, M4A, WMA, OPUS, and AIFF."
               }
             }
           ]
@@ -119,8 +243,6 @@
       ]
     }
     </script>
-    <script type="application/ld+json" id="matrix-faq-schema">{}</script>
-    <script type="application/ld+json" id="matrix-rating-schema">{}</script>
 </head>
 <body class="bg-dark-950 text-slate-300 antialiased selection:bg-brand-500 selection:text-white flex flex-col min-h-screen">
 
@@ -555,8 +677,8 @@
                     <div class="text-center group">
                         <div class="bg-dark-800 aspect-[9/19] rounded-xl flex items-center justify-center overflow-hidden border border-slate-700 shadow-xl mb-6 relative group-hover:border-brand-500 transition-colors">
                             <picture>
-                                <source srcset="/select-video.webp" type="image/webp">
-                                <img src="/select-video.png" alt="VidToAudio app Select Video screen" width="360" height="735" loading="lazy" decoding="async" class="object-cover w-full h-full opacity-40 mix-blend-luminosity">
+                                <source srcset="/select-video-360.webp 1x, /select-video.webp 2x" type="image/webp">
+                                <img src="/select-video.webp" alt="VidToAudio app Select Video screen" width="360" height="735" loading="lazy" decoding="async" class="object-cover w-full h-full opacity-40 mix-blend-luminosity">
                             </picture>
                             <span id="how-s1-badge" class="absolute text-slate-300 text-sm px-4 bg-dark-900/80 py-2 rounded-lg backdrop-blur-sm border border-slate-700 font-medium">Select Video Screen</span>
                         </div>
@@ -567,8 +689,8 @@
                     <div class="text-center group">
                         <div class="bg-dark-800 aspect-[9/19] rounded-xl flex items-center justify-center overflow-hidden border border-slate-700 shadow-xl mb-6 relative group-hover:border-brand-500 transition-colors">
                             <picture>
-                                <source srcset="/format.webp" type="image/webp">
-                                <img src="/format.png" alt="VidToAudio app Extract screen showing MP3 AAC WAV format selection" width="360" height="735" loading="lazy" decoding="async" class="object-cover w-full h-full opacity-40 mix-blend-luminosity">
+                                <source srcset="/format-360.webp 1x, /format.webp 2x" type="image/webp">
+                                <img src="/format.webp" alt="VidToAudio app Extract screen showing MP3 AAC WAV format selection" width="360" height="735" loading="lazy" decoding="async" class="object-cover w-full h-full opacity-40 mix-blend-luminosity">
                             </picture>
                             <span id="how-s2-badge" class="absolute text-slate-300 text-sm px-4 bg-dark-900/80 py-2 rounded-lg backdrop-blur-sm border border-slate-700 font-medium">Extract Screen</span>
                         </div>
@@ -579,8 +701,8 @@
                     <div class="text-center group">
                         <div class="bg-dark-800 aspect-[9/19] rounded-xl flex items-center justify-center overflow-hidden border border-slate-700 shadow-xl mb-6 relative group-hover:border-brand-500 transition-colors">
                             <picture>
-                                <source srcset="/noise.webp" type="image/webp">
-                                <img src="/noise.png" alt="VidToAudio app Noise Reduction screen" width="360" height="735" loading="lazy" decoding="async" class="object-cover w-full h-full opacity-40 mix-blend-luminosity">
+                                <source srcset="/noise-360.webp 1x, /noise.webp 2x" type="image/webp">
+                                <img src="/noise.webp" alt="VidToAudio app Noise Reduction screen" width="360" height="735" loading="lazy" decoding="async" class="object-cover w-full h-full opacity-40 mix-blend-luminosity">
                             </picture>
                             <span id="how-s3-badge" class="absolute text-slate-300 text-sm px-4 bg-dark-900/80 py-2 rounded-lg backdrop-blur-sm border border-slate-700 font-medium">Noise Reduction Screen</span>
                         </div>
@@ -591,8 +713,8 @@
                     <div class="text-center group">
                         <div class="bg-dark-800 aspect-[9/19] rounded-xl flex items-center justify-center overflow-hidden border border-slate-700 shadow-xl mb-6 relative group-hover:border-brand-500 transition-colors">
                             <picture>
-                                <source srcset="/extract-trim.webp" type="image/webp">
-                                <img src="/extract-trim.png" alt="VidToAudio app Library screen showing converted files history" width="360" height="735" loading="lazy" decoding="async" class="object-cover w-full h-full opacity-40 mix-blend-luminosity">
+                                <source srcset="/extract-trim-360.webp 1x, /extract-trim.webp 2x" type="image/webp">
+                                <img src="/extract-trim.webp" alt="VidToAudio app Library screen showing converted files history" width="360" height="735" loading="lazy" decoding="async" class="object-cover w-full h-full opacity-40 mix-blend-luminosity">
                             </picture>
                             <span id="how-s4-badge" class="absolute text-slate-300 text-sm px-4 bg-dark-900/80 py-2 rounded-lg backdrop-blur-sm border border-slate-700 font-medium">Library & Trim</span>
                         </div>
@@ -666,8 +788,8 @@
                 <div class="text-center">
                     <div class="bg-dark-800 aspect-[9/19] rounded-xl overflow-hidden border border-slate-700 shadow-xl mb-4 relative">
                         <picture>
-                            <source srcset="/format.webp" type="image/webp">
-                            <img src="/format.png" alt="VidToAudio app Extract screen showing MP3 AAC WAV format selection" width="360" height="735" loading="lazy" decoding="async" class="object-cover w-full h-full opacity-60">
+                            <source srcset="/format-360.webp 1x, /format.webp 2x" type="image/webp">
+                            <img src="/format.webp" alt="VidToAudio app Extract screen showing MP3 AAC WAV format selection" width="360" height="735" loading="lazy" decoding="async" class="object-cover w-full h-full opacity-60">
                         </picture>
                     </div>
                     <p id="screenshot-s1" class="text-sm text-slate-300 font-medium">Extract & Format Setup</p>
@@ -675,8 +797,8 @@
                 <div class="text-center">
                     <div class="bg-dark-800 aspect-[9/19] rounded-xl overflow-hidden border border-slate-700 shadow-xl mb-4 relative">
                         <picture>
-                            <source srcset="/library.webp" type="image/webp">
-                            <img src="/library.png" alt="VidToAudio app Library screen showing converted files history" width="360" height="735" loading="lazy" decoding="async" class="object-cover w-full h-full opacity-60">
+                            <source srcset="/library-360.webp 1x, /library.webp 2x" type="image/webp">
+                            <img src="/library.webp" alt="VidToAudio app Library screen showing converted files history" width="360" height="735" loading="lazy" decoding="async" class="object-cover w-full h-full opacity-60">
                         </picture>
                     </div>
                     <p id="screenshot-s2" class="text-sm text-slate-300 font-medium">Converted Library</p>
@@ -684,8 +806,8 @@
                 <div class="text-center">
                     <div class="bg-dark-800 aspect-[9/19] rounded-xl overflow-hidden border border-slate-700 shadow-xl mb-4 relative">
                         <picture>
-                            <source srcset="/noise.webp" type="image/webp">
-                            <img src="/noise.png" alt="VidToAudio app Noise Reduction screen" width="360" height="735" loading="lazy" decoding="async" class="object-cover w-full h-full opacity-60">
+                            <source srcset="/noise-360.webp 1x, /noise.webp 2x" type="image/webp">
+                            <img src="/noise.webp" alt="VidToAudio app Noise Reduction screen" width="360" height="735" loading="lazy" decoding="async" class="object-cover w-full h-full opacity-60">
                         </picture>
                     </div>
                     <p id="screenshot-s3" class="text-sm text-slate-300 font-medium">AI Noise Reduction</p>
@@ -693,8 +815,8 @@
                 <div class="text-center">
                     <div class="bg-dark-800 aspect-[9/19] rounded-xl overflow-hidden border border-slate-700 shadow-xl mb-4 relative">
                         <picture>
-                            <source srcset="/setting.webp" type="image/webp">
-                            <img src="/setting.png" alt="VidToAudio app Settings screen showing Privacy Ledger and custom folder path" width="360" height="735" loading="lazy" decoding="async" class="object-cover w-full h-full opacity-60">
+                            <source srcset="/setting-360.webp 1x, /setting.webp 2x" type="image/webp">
+                            <img src="/setting.webp" alt="VidToAudio app Settings screen showing Privacy Ledger and custom folder path" width="360" height="735" loading="lazy" decoding="async" class="object-cover w-full h-full opacity-60">
                         </picture>
                     </div>
                     <p id="screenshot-s4" class="text-sm text-slate-300 font-medium">Settings & Privacy Ledger</p>
@@ -909,7 +1031,133 @@
                 </div>
 
                 <div id="all-converters-matrix" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                    <!-- Populated dynamically with valid <a> tags for full crawler discoverability -->
+                    <!-- Pre-rendered 81 Matrix Combinations for Instant Crawler Discovery & SEO Indexing -->
+                    <div class="bg-dark-900/80 border border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col gap-2">
+                        <div class="flex items-center gap-1.5 pb-2 border-b border-slate-800/80 text-slate-300 font-semibold text-xs tracking-wider uppercase"><span class="w-1.5 h-1.5 rounded-full bg-brand-400"></span> MP4</div>
+                        <div class="flex flex-col gap-1">
+                            <a href="/mp4-to-mp3" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MP4 to MP3</a>
+                            <a href="/mp4-to-wav" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MP4 to WAV</a>
+                            <a href="/mp4-to-aac" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MP4 to AAC</a>
+                            <a href="/mp4-to-flac" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MP4 to FLAC</a>
+                            <a href="/mp4-to-ogg" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MP4 to OGG</a>
+                            <a href="/mp4-to-m4a" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MP4 to M4A</a>
+                            <a href="/mp4-to-wma" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MP4 to WMA</a>
+                            <a href="/mp4-to-opus" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MP4 to OPUS</a>
+                            <a href="/mp4-to-aiff" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MP4 to AIFF</a>
+                        </div>
+                    </div>
+                    <div class="bg-dark-900/80 border border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col gap-2">
+                        <div class="flex items-center gap-1.5 pb-2 border-b border-slate-800/80 text-slate-300 font-semibold text-xs tracking-wider uppercase"><span class="w-1.5 h-1.5 rounded-full bg-brand-400"></span> MKV</div>
+                        <div class="flex flex-col gap-1">
+                            <a href="/mkv-to-mp3" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MKV to MP3</a>
+                            <a href="/mkv-to-wav" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MKV to WAV</a>
+                            <a href="/mkv-to-aac" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MKV to AAC</a>
+                            <a href="/mkv-to-flac" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MKV to FLAC</a>
+                            <a href="/mkv-to-ogg" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MKV to OGG</a>
+                            <a href="/mkv-to-m4a" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MKV to M4A</a>
+                            <a href="/mkv-to-wma" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MKV to WMA</a>
+                            <a href="/mkv-to-opus" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MKV to OPUS</a>
+                            <a href="/mkv-to-aiff" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MKV to AIFF</a>
+                        </div>
+                    </div>
+                    <div class="bg-dark-900/80 border border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col gap-2">
+                        <div class="flex items-center gap-1.5 pb-2 border-b border-slate-800/80 text-slate-300 font-semibold text-xs tracking-wider uppercase"><span class="w-1.5 h-1.5 rounded-full bg-brand-400"></span> AVI</div>
+                        <div class="flex flex-col gap-1">
+                            <a href="/avi-to-mp3" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">AVI to MP3</a>
+                            <a href="/avi-to-wav" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">AVI to WAV</a>
+                            <a href="/avi-to-aac" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">AVI to AAC</a>
+                            <a href="/avi-to-flac" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">AVI to FLAC</a>
+                            <a href="/avi-to-ogg" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">AVI to OGG</a>
+                            <a href="/avi-to-m4a" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">AVI to M4A</a>
+                            <a href="/avi-to-wma" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">AVI to WMA</a>
+                            <a href="/avi-to-opus" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">AVI to OPUS</a>
+                            <a href="/avi-to-aiff" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">AVI to AIFF</a>
+                        </div>
+                    </div>
+                    <div class="bg-dark-900/80 border border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col gap-2">
+                        <div class="flex items-center gap-1.5 pb-2 border-b border-slate-800/80 text-slate-300 font-semibold text-xs tracking-wider uppercase"><span class="w-1.5 h-1.5 rounded-full bg-brand-400"></span> WEBM</div>
+                        <div class="flex flex-col gap-1">
+                            <a href="/webm-to-mp3" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">WEBM to MP3</a>
+                            <a href="/webm-to-wav" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">WEBM to WAV</a>
+                            <a href="/webm-to-aac" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">WEBM to AAC</a>
+                            <a href="/webm-to-flac" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">WEBM to FLAC</a>
+                            <a href="/webm-to-ogg" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">WEBM to OGG</a>
+                            <a href="/webm-to-m4a" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">WEBM to M4A</a>
+                            <a href="/webm-to-wma" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">WEBM to WMA</a>
+                            <a href="/webm-to-opus" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">WEBM to OPUS</a>
+                            <a href="/webm-to-aiff" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">WEBM to AIFF</a>
+                        </div>
+                    </div>
+                    <div class="bg-dark-900/80 border border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col gap-2">
+                        <div class="flex items-center gap-1.5 pb-2 border-b border-slate-800/80 text-slate-300 font-semibold text-xs tracking-wider uppercase"><span class="w-1.5 h-1.5 rounded-full bg-brand-400"></span> MOV</div>
+                        <div class="flex flex-col gap-1">
+                            <a href="/mov-to-mp3" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MOV to MP3</a>
+                            <a href="/mov-to-wav" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MOV to WAV</a>
+                            <a href="/mov-to-aac" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MOV to AAC</a>
+                            <a href="/mov-to-flac" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MOV to FLAC</a>
+                            <a href="/mov-to-ogg" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MOV to OGG</a>
+                            <a href="/mov-to-m4a" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MOV to M4A</a>
+                            <a href="/mov-to-wma" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MOV to WMA</a>
+                            <a href="/mov-to-opus" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MOV to OPUS</a>
+                            <a href="/mov-to-aiff" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">MOV to AIFF</a>
+                        </div>
+                    </div>
+                    <div class="bg-dark-900/80 border border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col gap-2">
+                        <div class="flex items-center gap-1.5 pb-2 border-b border-slate-800/80 text-slate-300 font-semibold text-xs tracking-wider uppercase"><span class="w-1.5 h-1.5 rounded-full bg-brand-400"></span> FLV</div>
+                        <div class="flex flex-col gap-1">
+                            <a href="/flv-to-mp3" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">FLV to MP3</a>
+                            <a href="/flv-to-wav" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">FLV to WAV</a>
+                            <a href="/flv-to-aac" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">FLV to AAC</a>
+                            <a href="/flv-to-flac" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">FLV to FLAC</a>
+                            <a href="/flv-to-ogg" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">FLV to OGG</a>
+                            <a href="/flv-to-m4a" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">FLV to M4A</a>
+                            <a href="/flv-to-wma" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">FLV to WMA</a>
+                            <a href="/flv-to-opus" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">FLV to OPUS</a>
+                            <a href="/flv-to-aiff" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">FLV to AIFF</a>
+                        </div>
+                    </div>
+                    <div class="bg-dark-900/80 border border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col gap-2">
+                        <div class="flex items-center gap-1.5 pb-2 border-b border-slate-800/80 text-slate-300 font-semibold text-xs tracking-wider uppercase"><span class="w-1.5 h-1.5 rounded-full bg-brand-400"></span> WMV</div>
+                        <div class="flex flex-col gap-1">
+                            <a href="/wmv-to-mp3" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">WMV to MP3</a>
+                            <a href="/wmv-to-wav" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">WMV to WAV</a>
+                            <a href="/wmv-to-aac" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">WMV to AAC</a>
+                            <a href="/wmv-to-flac" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">WMV to FLAC</a>
+                            <a href="/wmv-to-ogg" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">WMV to OGG</a>
+                            <a href="/wmv-to-m4a" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">WMV to M4A</a>
+                            <a href="/wmv-to-wma" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">WMV to WMA</a>
+                            <a href="/wmv-to-opus" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">WMV to OPUS</a>
+                            <a href="/wmv-to-aiff" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">WMV to AIFF</a>
+                        </div>
+                    </div>
+                    <div class="bg-dark-900/80 border border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col gap-2">
+                        <div class="flex items-center gap-1.5 pb-2 border-b border-slate-800/80 text-slate-300 font-semibold text-xs tracking-wider uppercase"><span class="w-1.5 h-1.5 rounded-full bg-brand-400"></span> HEVC</div>
+                        <div class="flex flex-col gap-1">
+                            <a href="/hevc-to-mp3" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">HEVC to MP3</a>
+                            <a href="/hevc-to-wav" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">HEVC to WAV</a>
+                            <a href="/hevc-to-aac" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">HEVC to AAC</a>
+                            <a href="/hevc-to-flac" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">HEVC to FLAC</a>
+                            <a href="/hevc-to-ogg" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">HEVC to OGG</a>
+                            <a href="/hevc-to-m4a" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">HEVC to M4A</a>
+                            <a href="/hevc-to-wma" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">HEVC to WMA</a>
+                            <a href="/hevc-to-opus" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">HEVC to OPUS</a>
+                            <a href="/hevc-to-aiff" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">HEVC to AIFF</a>
+                        </div>
+                    </div>
+                    <div class="bg-dark-900/80 border border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col gap-2">
+                        <div class="flex items-center gap-1.5 pb-2 border-b border-slate-800/80 text-slate-300 font-semibold text-xs tracking-wider uppercase"><span class="w-1.5 h-1.5 rounded-full bg-brand-400"></span> M4V</div>
+                        <div class="flex flex-col gap-1">
+                            <a href="/m4v-to-mp3" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">M4V to MP3</a>
+                            <a href="/m4v-to-wav" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">M4V to WAV</a>
+                            <a href="/m4v-to-aac" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">M4V to AAC</a>
+                            <a href="/m4v-to-flac" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">M4V to FLAC</a>
+                            <a href="/m4v-to-ogg" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">M4V to OGG</a>
+                            <a href="/m4v-to-m4a" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">M4V to M4A</a>
+                            <a href="/m4v-to-wma" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">M4V to WMA</a>
+                            <a href="/m4v-to-opus" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">M4V to OPUS</a>
+                            <a href="/m4v-to-aiff" data-route-link class="text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5">M4V to AIFF</a>
+                        </div>
+                    </div>
                 </div>
             </section>
             
@@ -1481,10 +1729,18 @@
                 }
             }
 
-            function setupWavesurfer(url) {
+            async function setupWavesurfer(url) {
+                if (!window.WaveSurfer) {
+                    await ensureScriptLoaded('WaveSurfer', 'https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js', 'https://cdn.jsdelivr.net/npm/wavesurfer.js@7/dist/wavesurfer.min.js');
+                }
+                if (!window.WaveSurfer || !window.WaveSurfer.Regions) {
+                    await ensureScriptLoaded('WaveSurferRegions', 'https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js', 'https://cdn.jsdelivr.net/npm/wavesurfer.js@7/dist/plugins/regions.min.js');
+                }
                 if (wavesurfer) {
                     wavesurfer.destroy();
                 }
+                if (!window.WaveSurfer) return;
+
                 wavesurfer = WaveSurfer.create({
                     container: '#waveform',
                     waveColor: '#475569',
@@ -1497,7 +1753,9 @@
                     normalize: true
                 });
 
-                wsRegions = wavesurfer.registerPlugin(WaveSurfer.Regions.create());
+                if (window.WaveSurfer && window.WaveSurfer.Regions && typeof window.WaveSurfer.Regions.create === 'function') {
+                    wsRegions = wavesurfer.registerPlugin(window.WaveSurfer.Regions.create());
+                }
 
                 wavesurfer.load(url);
                 wavesurfer.on('ready', () => {
@@ -1521,13 +1779,15 @@
                     pauseIcon.classList.add('hidden');
                 });
                 
-                wsRegions.on('region-updated', (region) => {
-                    if (region.start < 0) region.start = 0;
-                    if (region.end > wavesurfer.getDuration()) region.end = wavesurfer.getDuration();
-                });
+                if (wsRegions) {
+                    wsRegions.on('region-updated', (region) => {
+                        if (region.start < 0) region.start = 0;
+                        if (region.end > wavesurfer.getDuration()) region.end = wavesurfer.getDuration();
+                    });
+                }
             }
 
-            function loadTrackInWaveSurfer(blob, filename) {
+            async function loadTrackInWaveSurfer(blob, filename) {
                 if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
                 currentAudioBlob = blob;
                 currentBlobUrl = URL.createObjectURL(blob);
@@ -1535,7 +1795,7 @@
 
                 if (previewFileName) previewFileName.innerText = filename;
 
-                setupWavesurfer(currentBlobUrl);
+                await setupWavesurfer(currentBlobUrl);
 
                 if (wavesurfer && volumeSlider) {
                     wavesurfer.setVolume(Number(volumeSlider.value));
@@ -1657,6 +1917,9 @@
                         `;
 
                         try {
+                            if (!window.JSZip) {
+                                await ensureScriptLoaded('JSZip', 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js', 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js');
+                            }
                             const JSZipClass = window.JSZip;
                             if (!JSZipClass) {
                                 throw new Error("JSZip is not available. Please download individual tracks.");

@@ -149,7 +149,14 @@ export function updateHreflangTags(canonicalPathWithoutLang: string): void {
   // Head fragment for optimal insertion
   const fragment = document.createDocumentFragment();
 
-  // 1. Language alternates
+  // 1. x-default pointing to default English version
+  const xDefaultLink = document.createElement('link');
+  xDefaultLink.rel = 'alternate';
+  xDefaultLink.hreflang = 'x-default';
+  xDefaultLink.href = clean === '/' ? `${base}/` : `${base}${clean}`;
+  fragment.appendChild(xDefaultLink);
+
+  // 2. Language alternates for all 21 supported languages
   for (const langCode of Object.keys(SUPPORTED_LANGUAGES) as SupportedLanguage[]) {
     const link = document.createElement('link');
     link.rel = 'alternate';
@@ -162,13 +169,6 @@ export function updateHreflangTags(canonicalPathWithoutLang: string): void {
     }
     fragment.appendChild(link);
   }
-
-  // 2. x-default pointing to root English version
-  const xDefaultLink = document.createElement('link');
-  xDefaultLink.rel = 'alternate';
-  xDefaultLink.hreflang = 'x-default';
-  xDefaultLink.href = clean === '/' ? `${base}/` : `${base}${clean}`;
-  fragment.appendChild(xDefaultLink);
 
   document.head.appendChild(fragment);
 }

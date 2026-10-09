@@ -24,6 +24,13 @@ export default defineConfig(() => {
           disclaimer: path.resolve(__dirname, 'disclaimer.html'),
           contact: path.resolve(__dirname, 'contact.html'),
         },
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules/firebase') || id.includes('@firebase')) {
+              return 'firebase-vendor';
+            }
+          },
+        },
       },
     },
     server: {

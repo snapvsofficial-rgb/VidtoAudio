@@ -28,9 +28,16 @@ import {
   interpolate,
   updateHreflangTags
 } from './i18n';
-import { updateEditorLanguage } from './editor/videoEditorApp';
 import { onAuthUserChange, signOutUser, isEmailAdmin } from './services/authService';
 import { openAuthModal } from './components/AuthModal';
+
+// Video Editor lazy loading reference
+let loadedEditorModule: typeof import('./editor/videoEditorApp') | null = null;
+function safeUpdateEditorLanguage(lang: SupportedLanguage) {
+  if (loadedEditorModule) {
+    loadedEditorModule.updateEditorLanguage(lang);
+  }
+}
 
 // Expose i18n and router API immediately for inline scripts
 if (typeof window !== 'undefined') {
@@ -154,13 +161,19 @@ export function updateMetaTag(name: string, content: string, isProperty = false)
 }
 
 export function updateCanonical(url: string) {
-  let link = document.querySelector('link[rel="canonical"]');
-  if (!link) {
-    link = document.createElement('link');
+  const existing = Array.from(document.querySelectorAll('link[rel="canonical"]'));
+  if (existing.length > 0) {
+    existing[0].setAttribute('href', url);
+    for (let i = 1; i < existing.length; i++) {
+      existing[i].remove();
+    }
+  } else {
+    const link = document.createElement('link');
     link.setAttribute('rel', 'canonical');
+    link.setAttribute('href', url);
     document.head.appendChild(link);
   }
-  link.setAttribute('href', url);
+  updateMetaTag('og:url', url, true);
 }
 
 export function updateRobots(allowIndex = true) {
@@ -386,20 +399,26 @@ export function parseRoute(pathname: string): ParsedRoute {
 }
 
 // Render dynamic matrix footer links localized
-export function renderMatrixLinks(lang: SupportedLanguage = getCurrentLanguage()) {
+export function renderMatrixLinks(lang: SupportedLanguage = getCurrentLanguage(), activeRoute?: { type?: string; input?: string; output?: string; isFallback?: boolean }) {
   const matrixContainer = document.getElementById('all-converters-matrix');
   if (!matrixContainer) return;
+
+  const currentRoute = activeRoute || parseRoute(window.location.pathname);
+  const isMatrix = currentRoute.type === 'converter' && !currentRoute.isFallback;
 
   matrixContainer.innerHTML = '';
 
   validInputs.forEach(inExt => {
     const inUpper = inExt.toUpperCase();
+    const isColActive = isMatrix && currentRoute.input === inExt;
     const col = document.createElement('div');
-    col.className = 'bg-dark-900/80 border border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col gap-2 hover:border-slate-700 transition-colors';
+    col.className = isColActive
+      ? 'bg-dark-900/90 border border-brand-500/50 ring-1 ring-brand-500/20 rounded-xl p-3 sm:p-4 flex flex-col gap-2 transition-all shadow-lg shadow-brand-500/5'
+      : 'bg-dark-900/80 border border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col gap-2 hover:border-slate-700 transition-colors';
 
     const title = document.createElement('div');
-    title.className = 'flex items-center gap-1.5 pb-2 border-b border-slate-800/80 text-slate-300 font-semibold text-xs tracking-wider uppercase';
-    title.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-brand-400"></span> ${inUpper}`;
+    title.className = `flex items-center gap-1.5 pb-2 border-b ${isColActive ? 'border-brand-500/30 text-brand-300' : 'border-slate-800/80 text-slate-300'} font-semibold text-xs tracking-wider uppercase`;
+    title.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${isColActive ? 'bg-brand-400 ring-2 ring-brand-400/30' : 'bg-brand-400'}"></span> ${inUpper}`;
     col.appendChild(title);
 
     const linkList = document.createElement('div');
@@ -410,11 +429,18 @@ export function renderMatrixLinks(lang: SupportedLanguage = getCurrentLanguage()
       if (!isEnabled) return; // Only show enabled outputs
 
       const outUpper = outExt.toUpperCase();
+      const isActive = isMatrix && currentRoute.input === inExt && currentRoute.output === outExt;
       const a = document.createElement('a');
       a.href = buildLocalizedPath(`/${inExt}-to-${outExt}`, lang);
       a.setAttribute('data-route-link', '');
-      a.className = 'text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5 whitespace-nowrap overflow-hidden text-ellipsis';
-      a.textContent = `${inUpper} to ${outUpper}`;
+      if (isActive) {
+        a.setAttribute('aria-current', 'page');
+        a.className = 'text-xs text-brand-300 font-semibold bg-brand-500/15 border border-brand-500/30 px-2 py-0.5 rounded transition-colors whitespace-nowrap overflow-hidden text-ellipsis flex items-center justify-between';
+        a.innerHTML = `<span>${inUpper} to ${outUpper}</span><span class="text-[10px] text-brand-400 font-mono">ACTIVE</span>`;
+      } else {
+        a.className = 'text-xs text-slate-400 hover:text-brand-400 transition-colors py-0.5 whitespace-nowrap overflow-hidden text-ellipsis';
+        a.textContent = `${inUpper} to ${outUpper}`;
+      }
       linkList.appendChild(a);
     });
 
@@ -1237,14 +1263,24 @@ export function applyLanguageToUI(lang: SupportedLanguage) {
     if (matrixFaqAccordion) {
       matrixFaqAccordion.innerHTML = generateFormatFAQAccordionHTML(currentRoute.input || 'mp4', currentRoute.output || 'mp3', lang);
     }
-    const matrixFaqSchemaScript = document.getElementById('matrix-faq-schema') as HTMLScriptElement | null;
-    if (matrixFaqSchemaScript) {
-      matrixFaqSchemaScript.textContent = JSON.stringify(generateFormatFAQSchema(currentRoute.input || 'mp4', currentRoute.output || 'mp3', lang));
+    let matrixFaqSchemaScript = document.getElementById('matrix-faq-schema') as HTMLScriptElement | null;
+    if (!matrixFaqSchemaScript) {
+      matrixFaqSchemaScript = document.createElement('script');
+      matrixFaqSchemaScript.type = 'application/ld+json';
+      matrixFaqSchemaScript.id = 'matrix-faq-schema';
+      document.head.appendChild(matrixFaqSchemaScript);
     }
+    matrixFaqSchemaScript.textContent = JSON.stringify(generateFormatFAQSchema(currentRoute.input || 'mp4', currentRoute.output || 'mp3', lang));
 
     // Re-render interactive 5-star rating system with active locale
     const matrixRatingContainer = document.getElementById('matrix-rating-container');
-    const matrixRatingSchemaScript = document.getElementById('matrix-rating-schema') as HTMLScriptElement | null;
+    let matrixRatingSchemaScript = document.getElementById('matrix-rating-schema') as HTMLScriptElement | null;
+    if (!matrixRatingSchemaScript) {
+      matrixRatingSchemaScript = document.createElement('script');
+      matrixRatingSchemaScript.type = 'application/ld+json';
+      matrixRatingSchemaScript.id = 'matrix-rating-schema';
+      document.head.appendChild(matrixRatingSchemaScript);
+    }
     if (matrixRatingContainer) {
       const matrixSlug = (currentRoute.input && currentRoute.output)
         ? `${currentRoute.input}-to-${currentRoute.output}`
@@ -1265,7 +1301,7 @@ export function applyLanguageToUI(lang: SupportedLanguage) {
   }
 
   // 18. Update Video Editor UI in-place if active
-  updateEditorLanguage(lang);
+  safeUpdateEditorLanguage(lang);
 
   // 19. Dispatch custom event so inline audio converter script refreshes labels
   if (typeof window !== 'undefined') {
@@ -1289,7 +1325,7 @@ export async function navigateTo(pathname = window.location.pathname) {
   updateHreflangTags(route.cleanPath);
 
   // Re-render Matrix links for the active locale
-  renderMatrixLinks(lang);
+  renderMatrixLinks(lang, route);
 
   const publicConverterView = document.getElementById('public-converter-view');
   const dynamicRouteView = document.getElementById('dynamic-route-view');
@@ -1329,10 +1365,10 @@ export async function navigateTo(pathname = window.location.pathname) {
           </div>
         `;
 
-        const { renderVideoEditor } = await import('./editor/videoEditorApp');
-        renderVideoEditor(dynamicRouteView, lang);
+        loadedEditorModule = await import('./editor/videoEditorApp');
+        loadedEditorModule.renderVideoEditor(dynamicRouteView, lang);
       } else {
-        updateEditorLanguage(lang);
+        safeUpdateEditorLanguage(lang);
       }
     }
 
@@ -1634,9 +1670,14 @@ export async function navigateTo(pathname = window.location.pathname) {
     if (matrixFaqAccordion) {
       matrixFaqAccordion.innerHTML = generateFormatFAQAccordionHTML(route.input || 'mp4', route.output || 'mp3', lang);
     }
-    if (matrixFaqSchemaScript) {
-      matrixFaqSchemaScript.textContent = JSON.stringify(generateFormatFAQSchema(route.input || 'mp4', route.output || 'mp3', lang));
+    let matrixFaqSchemaScript = document.getElementById('matrix-faq-schema') as HTMLScriptElement | null;
+    if (!matrixFaqSchemaScript) {
+      matrixFaqSchemaScript = document.createElement('script');
+      matrixFaqSchemaScript.type = 'application/ld+json';
+      matrixFaqSchemaScript.id = 'matrix-faq-schema';
+      document.head.appendChild(matrixFaqSchemaScript);
     }
+    matrixFaqSchemaScript.textContent = JSON.stringify(generateFormatFAQSchema(route.input || 'mp4', route.output || 'mp3', lang));
   } else {
     // HOMEPAGE (/ or /es or /fr):
     if (heroBreadcrumbs) {
@@ -1663,6 +1704,13 @@ export async function navigateTo(pathname = window.location.pathname) {
     // Render interactive 5-star rating system on Homepage for default MP4 to MP3 converter
     if (matrixRatingSection) matrixRatingSection.classList.remove('hidden');
     if (matrixRatingContainer) {
+      let matrixRatingSchemaScript = document.getElementById('matrix-rating-schema') as HTMLScriptElement | null;
+      if (!matrixRatingSchemaScript) {
+        matrixRatingSchemaScript = document.createElement('script');
+        matrixRatingSchemaScript.type = 'application/ld+json';
+        matrixRatingSchemaScript.id = 'matrix-rating-schema';
+        document.head.appendChild(matrixRatingSchemaScript);
+      }
       renderRatingWidget(
         matrixRatingContainer,
         'mp4-to-mp3',
@@ -1675,7 +1723,10 @@ export async function navigateTo(pathname = window.location.pathname) {
 
     if (matrixFaqSection) matrixFaqSection.classList.add('hidden');
     if (matrixFaqAccordion) matrixFaqAccordion.innerHTML = '';
-    if (matrixFaqSchemaScript) matrixFaqSchemaScript.textContent = '{}';
+    const existingFaqSchema = document.getElementById('matrix-faq-schema');
+    if (existingFaqSchema) {
+      existingFaqSchema.remove();
+    }
 
     if (seoContainer) {
       seoContainer.innerHTML = '';
@@ -2085,6 +2136,24 @@ async function initApp() {
     navigateTo(window.location.pathname);
   });
 
+  // 4. Update route, dynamic canonical & hreflang tags when user changes output format
+  const outputFormatDropdown = (document.getElementById('output-format') || document.getElementById('format-select')) as HTMLSelectElement | null;
+  if (outputFormatDropdown) {
+    outputFormatDropdown.addEventListener('change', () => {
+      const currentRoute = parseRoute(window.location.pathname);
+      if (currentRoute.type === 'converter') {
+        const outExt = outputFormatDropdown.value.toLowerCase();
+        const inExt = currentRoute.input || 'mp4';
+        const targetPath = (inExt === 'mp4' && outExt === 'mp3') ? '/' : `/${inExt}-to-${outExt}`;
+        const newPath = buildLocalizedPath(targetPath, currentRoute.lang);
+        if (window.location.pathname !== newPath) {
+          window.history.pushState({}, '', newPath);
+          navigateTo(newPath);
+        }
+      }
+    });
+  }
+
   // 4. Non-blocking background fetch of remote configurations
   fetchRemoteConfigs();
 }
@@ -2102,7 +2171,7 @@ async function fetchRemoteConfigs() {
 
     applyGlobalSettings(settings, toggles);
     const currentRoute = parseRoute(window.location.pathname);
-    renderMatrixLinks(currentRoute.lang);
+    renderMatrixLinks(currentRoute.lang, currentRoute);
     updateFormatDropdown();
     
     // If currently on a converter page, re-inject SEO content
